@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# 가상환경
+.venv/
+venv/
+env/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 생성물(재현 가능) / 대용량 — HF Hub·릴리즈로 분리 (.claude/CLAUDE.md 규칙)
+benchmark.jsonl
+results/
+*.log
