@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "models": [
+    {
+      "key": "kanana-content-8b",
+      "model_id": "kakaocorp/kanana-safeguard-8b",
+      "revision": "2f4a68641d818caf873e21badcdc161928b0fcbf",
+      "track": "C",
+      "adapter": "kanana_content",
+      "tier": "core",
+      "download_default": true,
+      "gated": false,
+      "license": "Apache-2.0",
+      "download_size_gb": 14.97,
+      "inference_dtype": "bfloat16",
+      "source": "https://huggingface.co/kakaocorp/kanana-safeguard-8b"
+    },
+    {
+      "key": "kanana-prompt-2.1b",
+      "model_id": "kakaocorp/kanana-safeguard-prompt-2.1b",
+      "revision": "167d74d4706b236580b0e48318337c7ac6ba7848",
+      "track": "P",
+      "adapter": "kanana_prompt",
+      "tier": "core",
+      "download_default": true,
+      "gated": false,
+      "license": "Apache-2.0",
+      "download_size_gb": 3.9,
+      "inference_dtype": "float16",
+      "source": "https://huggingface.co/kakaocorp/kanana-safeguard-prompt-2.1b"
+    },
+    {
+      "key": "qwen3guard-gen-0.6b",
+      "model_id": "Qwen/Qwen3Guard-Gen-0.6B",
+      "revision": "fada3b2f655b89601929198343c94cd2f64d93cc",
+      "track": "comparison",
+      "adapter": "qwen3guard_gen",
+      "tier": "comparison",
+      "download_default": true,
+      "gated": false,
+      "license": "Apache-2.0",
+      "download_size_gb": 1.41,
+      "inference_dtype": "bfloat16",
+      "source": "https://huggingface.co/Qwen/Qwen3Guard-Gen-0.6B"
+    },
+    {
+      "key": "llama-prompt-guard-2-86m",
+      "model_id": "meta-llama/Llama-Prompt-Guard-2-86M",
+      "revision": "a8ded8e697ce7c355e395a0df51f94adb4a2fd27",
+      "track": "comparison",
+      "adapter": "prompt_guard_classifier",
+      "tier": "optional",
+      "download_default": false,
+      "gated": true,
+      "license": "Meta license; accept the model terms before download",
+      "download_size_gb": 1.05,
+      "inference_dtype": "float32",
+      "source": "https://huggingface.co/meta-llama/Llama-Prompt-Guard-2-86M"
+    }
+  ]
+}
