@@ -70,6 +70,10 @@ results/<run_id>/
 Git commit, dataset SHA-256, 모델 lock, tokenizer template hash, normalizer version과 bootstrap 설정을
 고정한다.
 
+집계 결과의 표·시각화·해석은 [`reports/normalizer_evaluation.ipynb`](../../reports/normalizer_evaluation.ipynb)에서
+재현한다. 보고서 노트북은 `manifest.json`, `summary.json`, `condition_summary.csv`만 읽으며 원문이 있는
+`predictions.jsonl`은 로드하지 않는다.
+
 ## 해석 제한
 
 이 runner는 Prompt track의 가드레일 판정과 문자열 정확 복원을 측정한다. 하위 LLM
