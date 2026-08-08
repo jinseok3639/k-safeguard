@@ -68,6 +68,25 @@ provider = ChosungLexiconProvider(
 부분 초성·완성형 음절이 섞인 span은 분할하지 않으며 직접 일치만 사용한다. 분할된 replacement에는
 `segment_words`, `segment_sources`가 기록되고 provider metadata에는 최대 segment 수가 포함된다.
 
+긴 완전 초성 span에서 신뢰한 사전 단어 한 구간만 복원하는 실험 기능도 opt-in으로 사용할 수 있다.
+일반 빈도 사전의 우연한 부분 일치를 막기 위해 `partial_sources`를 반드시 지정해야 하며, 기본 후보당
+부분 복원은 한 번으로 제한된다.
+
+```python
+provider = ChosungLexiconProvider(
+    lexicon,
+    allow_partial_restoration=True,
+    partial_sources=("user",),
+    min_partial_initials=3,
+    max_partial_replacements=1,
+)
+```
+
+이 기능은 현재 benchmark에서 복원률을 개선하지 못했으므로 기본 활성화하거나 방어 개선으로 해석하지
+않는다. 비교 결과는
+[`experiments/benchmark/CHOSUNG_PARTIAL_RESTORATION_COMPARISON.md`](./experiments/benchmark/CHOSUNG_PARTIAL_RESTORATION_COMPARISON.md)에
+기록한다.
+
 `ChosungLexicon`은 특정 라이브러리에 의존하지 않는다. 실험에서는 빈도순 한국어 단어를 제공하는
 [`wordfreq`](https://github.com/rspeer/wordfreq) 3.1.1을 선택했다. 코드 라이선스는 Apache-2.0이며
 포함 데이터에는 CC BY-SA 4.0 자료가 있으므로, 단어 목록을 별도 CSV로 복제·재배포하지 않고 런타임에

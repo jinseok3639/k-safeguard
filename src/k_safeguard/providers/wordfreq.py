@@ -38,6 +38,12 @@ class WordfreqChosungProvider(ChosungLexiconProvider):
             sources.append((priority_source, priority_words))
         sources.append(("wordfreq:ko", top_n_list("ko", word_limit)))
         lexicon = ChosungLexicon.from_sources(sources)
+        if kwargs.get("allow_partial_restoration") and "partial_sources" not in kwargs:
+            if not priority_words:
+                raise ValueError(
+                    "partial restoration에는 priority_words가 하나 이상 필요합니다."
+                )
+            kwargs["partial_sources"] = (priority_source,)
         super().__init__(lexicon, **kwargs)
         self.word_limit = word_limit
         self.requested_priority_word_count = len(raw_priority_words)

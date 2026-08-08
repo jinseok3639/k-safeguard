@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 
-CHOSUNG_CANDIDATE_VERSION = "0.3.0"
+CHOSUNG_CANDIDATE_VERSION = "0.4.0"
 HANGUL_BASE = 0xAC00
 COMPAT_CHO = (
     "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ",
@@ -94,6 +94,13 @@ class LexiconSegmentation:
     @property
     def rank_score(self) -> int:
         return sum(entry.rank for entry in self.entries)
+
+
+@dataclass(frozen=True)
+class LexiconPartialMatch:
+    start: int
+    end: int
+    entry: LexiconEntry
 
 
 class ChosungLexicon:
@@ -265,6 +272,51 @@ class ChosungLexicon:
         )
         return tuple(ranked[:limit])
 
+    def match_partial(
+        self,
+        pattern: str,
+        limit: int,
+        *,
+        sources: Iterable[str],
+        min_initials: int = 3,
+    ) -> tuple[LexiconPartialMatch, ...]:
+        """완전 초성 pattern 내부의 신뢰 source 단어를 제한적으로 찾는다."""
+
+        if limit < 1:
+            raise ValueError("limit은 1 이상이어야 합니다.")
+        if min_initials < 1:
+            raise ValueError("min_initials는 1 이상이어야 합니다.")
+        if not pattern or not all(char in _COMPAT_CHO_SET for char in pattern):
+            return ()
+
+        if isinstance(sources, str):
+            raise TypeError("partial restoration sources는 문자열 iterable이어야 합니다.")
+        source_set = frozenset(sources)
+        if not source_set or any(
+            not isinstance(source, str) or not source.strip() for source in source_set
+        ):
+            raise ValueError("partial restoration source를 하나 이상 지정해야 합니다.")
+
+        matches: list[LexiconPartialMatch] = []
+        max_length = min(self._max_word_length, len(pattern) - 1)
+        for length in range(max_length, min_initials - 1, -1):
+            for start in range(0, len(pattern) - length + 1):
+                end = start + length
+                for entry in self._by_signature.get(pattern[start:end], ()):
+                    if entry.source in source_set:
+                        matches.append(LexiconPartialMatch(start, end, entry))
+
+        ranked = sorted(
+            matches,
+            key=lambda item: (
+                -(item.end - item.start),
+                item.entry.rank,
+                item.start,
+                item.entry.word,
+            ),
+        )
+        return tuple(ranked[:limit])
+
 
 @dataclass(frozen=True)
 class ChosungReplacement:
@@ -278,11 +330,17 @@ class ChosungReplacement:
     source_rank: int = 0
     segment_words: tuple[str, ...] = ()
     segment_sources: tuple[str, ...] = ()
+    partial: bool = False
 
 
 @dataclass(frozen=True)
 class _LexiconOption:
-    word: str
+    span_text: str
+    replacement_text: str
+    relative_start: int
+    relative_end: int
+    covered_initials: int
+    partial: bool
     rank_score: int
     source_rank: int
     segment_words: tuple[str, ...]
@@ -301,11 +359,19 @@ def _lexicon_options(
     allow_segmentation: bool,
     max_segments: int,
     max_options_per_segment: int,
+    allow_partial_restoration: bool,
+    partial_sources: tuple[str, ...],
+    min_partial_initials: int,
 ) -> tuple[tuple[_LexiconOption, ...], bool]:
     direct = lexicon.match(pattern, limit + 1)
     options = [
         _LexiconOption(
             entry.word,
+            entry.word,
+            0,
+            len(pattern),
+            sum(char in _COMPAT_CHO_SET for char in pattern),
+            False,
             entry.rank,
             entry.source_rank,
             (entry.word,),
@@ -323,6 +389,11 @@ def _lexicon_options(
         options.extend(
             _LexiconOption(
                 item.word,
+                item.word,
+                0,
+                len(pattern),
+                len(pattern),
+                False,
                 item.rank_score,
                 sum(entry.source_rank for entry in item.entries),
                 tuple(entry.word for entry in item.entries),
@@ -331,19 +402,53 @@ def _lexicon_options(
             for item in segmented
         )
 
+    if allow_partial_restoration:
+        partial_matches = lexicon.match_partial(
+            pattern,
+            limit + 1,
+            sources=partial_sources,
+            min_initials=min_partial_initials,
+        )
+        options.extend(
+            _LexiconOption(
+                pattern[: item.start] + item.entry.word + pattern[item.end :],
+                item.entry.word,
+                item.start,
+                item.end,
+                item.end - item.start,
+                True,
+                item.entry.rank,
+                item.entry.source_rank,
+                (item.entry.word,),
+                (item.entry.source,),
+            )
+            for item in partial_matches
+        )
+
     deduplicated: dict[str, _LexiconOption] = {}
     for option in options:
-        previous = deduplicated.get(option.word)
-        key = (option.rank_score, len(option.segment_words), option.word)
+        previous = deduplicated.get(option.span_text)
+        key = (
+            -option.covered_initials,
+            option.rank_score,
+            len(option.segment_words),
+            option.span_text,
+        )
         if previous is None or key < (
+            -previous.covered_initials,
             previous.rank_score,
             len(previous.segment_words),
-            previous.word,
+            previous.span_text,
         ):
-            deduplicated[option.word] = option
+            deduplicated[option.span_text] = option
     ranked = sorted(
         deduplicated.values(),
-        key=lambda item: (item.rank_score, len(item.segment_words), item.word),
+        key=lambda item: (
+            -item.covered_initials,
+            item.rank_score,
+            len(item.segment_words),
+            item.span_text,
+        ),
     )
     return tuple(ranked[:limit]), len(ranked) > limit
 
@@ -400,6 +505,10 @@ def generate_chosung_candidates(
     allow_segmentation: bool = False,
     max_segments: int = 2,
     max_options_per_segment: int = 1,
+    allow_partial_restoration: bool = False,
+    partial_sources: Iterable[str] = (),
+    min_partial_initials: int = 3,
+    max_partial_replacements: int = 1,
 ) -> ChosungCandidateResult:
     """원문 view와 제한된 초성 복원 후보를 결정론적으로 반환한다.
 
@@ -418,6 +527,15 @@ def generate_chosung_candidates(
         raise ValueError(
             f"max_options_per_segment는 1~{_MAX_OPTIONS_PER_SEGMENT}여야 합니다."
         )
+    if min_partial_initials < 1:
+        raise ValueError("min_partial_initials는 1 이상이어야 합니다.")
+    if max_partial_replacements < 1:
+        raise ValueError("max_partial_replacements는 1 이상이어야 합니다.")
+    if isinstance(partial_sources, str):
+        raise TypeError("partial_sources는 문자열 iterable이어야 합니다.")
+    partial_source_names = tuple(dict.fromkeys(partial_sources))
+    if allow_partial_restoration and not partial_source_names:
+        raise ValueError("partial restoration source를 하나 이상 지정해야 합니다.")
 
     original_candidate = ChosungCandidate(text, (), 0, 0, False)
     states = [original_candidate]
@@ -436,6 +554,9 @@ def generate_chosung_candidates(
             allow_segmentation=allow_segmentation,
             max_segments=max_segments,
             max_options_per_segment=max_options_per_segment,
+            allow_partial_restoration=allow_partial_restoration,
+            partial_sources=partial_source_names,
+            min_partial_initials=min_partial_initials,
         )
         if not options:
             continue
@@ -446,23 +567,30 @@ def generate_chosung_candidates(
         expanded = list(states)
         for state in states:
             for option in options:
+                if option.partial and sum(
+                    replacement.partial for replacement in state.replacements
+                ) >= max_partial_replacements:
+                    continue
+                replacement_start = start + option.relative_start
+                replacement_end = start + option.relative_end
                 replacement = ChosungReplacement(
-                    start,
-                    end,
-                    pattern,
-                    option.word,
+                    replacement_start,
+                    replacement_end,
+                    text[replacement_start:replacement_end],
+                    option.replacement_text,
                     option.rank_score,
                     alternatives,
                     option.source,
                     option.source_rank,
                     option.segment_words,
                     option.segment_sources,
+                    option.partial,
                 )
                 expanded.append(
                     ChosungCandidate(
-                        state.text[:start] + option.word + state.text[end:],
+                        state.text[:start] + option.span_text + state.text[end:],
                         state.replacements + (replacement,),
-                        state.covered_initials + initial_count,
+                        state.covered_initials + option.covered_initials,
                         state.rank_score + option.rank_score,
                         True,
                     )
@@ -507,6 +635,7 @@ __all__ = [
     "ChosungLexicon",
     "ChosungReplacement",
     "LexiconEntry",
+    "LexiconPartialMatch",
     "LexiconSegmentation",
     "chosung_signature",
     "expand_korean_noun_particles",

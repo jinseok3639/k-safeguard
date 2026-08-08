@@ -39,6 +39,31 @@ class ChosungDiagnosticTest(unittest.TestCase):
         self.assertTrue(observation.top1_exact)
         self.assertEqual(observation.best_initial_recall, 1.0)
 
+    def test_observes_bounded_partial_restoration(self) -> None:
+        lexicon = ChosungLexicon.from_sources(
+            [("domain", ["시스템"]), ("general", ["산사태"])]
+        )
+
+        observation = observe_row(
+            "ㄱㄱㅅㅅㅌㄴ",
+            "가게시스템은",
+            "attack",
+            "A1",
+            1.0,
+            lexicon,
+            min_initials=3,
+            max_options_per_span=3,
+            max_candidates=8,
+            allow_partial_restoration=True,
+            partial_sources=("domain",),
+        )
+
+        self.assertTrue(observation.generated)
+        self.assertAlmostEqual(observation.best_initial_recall, 0.5)
+        self.assertFalse(observation.exact_hit)
+        self.assertTrue(observation.partial_generated)
+        self.assertEqual(observation.partial_candidate_count, 1)
+
     def test_summarizes_rates(self) -> None:
         rows = [
             DiagnosticObservation("attack", "A1", 1.0, True, 2, True, True, 3, 1.0, False),

@@ -1,0 +1,648 @@
+{
+  "status": "PROVISIONAL_DEV_ONLY",
+  "validity_reasons": [
+    "현재 공개 benchmark는 locked test로 재사용할 수 없음",
+    "문맥 순위화·semantic fidelity·가드레일 판정을 측정하지 않음",
+    "어휘 coverage 진단이며 방어 성능 주장을 지원하지 않음"
+  ],
+  "input": {
+    "path": "hf_repo/benchmark.jsonl",
+    "sha256": "fbf9f978996c103b8d5625e55936e536610fbceb2a43dc2f53c1271423873b0b",
+    "rows": 1010,
+    "independent_seeds": 505
+  },
+  "candidate_generator": {
+    "version": "0.4.0",
+    "lexicon": "guardrail-domain-v1+wordfreq:ko",
+    "wordfreq_version": "3.1.1",
+    "word_limit": 30000,
+    "indexed_words": 25908,
+    "source_counts": {
+      "guardrail-domain-v1": 550,
+      "wordfreq:ko": 25358
+    },
+    "priority_lexicon": {
+      "path": "experiments/benchmark/lexicons/guardrail_domain_v1.txt",
+      "sha256": "a8d1c0a8f611deb66f39c92ee67f5331a4b094be2f26cd2cbc6241b31297bff7",
+      "source": "guardrail-domain-v1",
+      "requested_words": 50,
+      "indexed_variants_before_deduplication": 550,
+      "particle_expansion": true
+    },
+    "min_initials": 3,
+    "max_options_per_span": 16,
+    "max_candidates": 64,
+    "allow_segmentation": true,
+    "max_segments": 2,
+    "max_options_per_segment": 1,
+    "allow_partial_restoration": false,
+    "partial_sources": [],
+    "min_partial_initials": 3,
+    "max_partial_replacements": 1
+  },
+  "metrics": {
+    "overall": {
+      "rows": 1010,
+      "candidate_generation_rate": 0.7455445544554455,
+      "exact_hit_rate": 0.0,
+      "top1_exact_rate": 0.0,
+      "mean_best_initial_recall": 0.1554418411574981,
+      "mean_candidate_count": 28.68019801980198,
+      "truncated_rate": 0.4,
+      "partial_generation_rate": 0.0,
+      "mean_partial_candidate_count": 0.0
+    },
+    "label:attack": {
+      "rows": 602,
+      "candidate_generation_rate": 0.729235880398671,
+      "exact_hit_rate": 0.0,
+      "top1_exact_rate": 0.0,
+      "mean_best_initial_recall": 0.13613882800609642,
+      "mean_candidate_count": 29.596345514950166,
+      "truncated_rate": 0.42358803986710963,
+      "partial_generation_rate": 0.0,
+      "mean_partial_candidate_count": 0.0
+    },
+    "label:benign": {
+      "rows": 408,
+      "candidate_generation_rate": 0.7696078431372549,
+      "exact_hit_rate": 0.0,
+      "top1_exact_rate": 0.0,
+      "mean_best_initial_recall": 0.18392324781716432,
+      "mean_candidate_count": 27.32843137254902,
+      "truncated_rate": 0.36519607843137253,
+      "partial_generation_rate": 0.0,
+      "mean_partial_candidate_count": 0.0
+    },
+    "intensity:0.5": {
+      "rows": 505,
+      "candidate_generation_rate": 0.49306930693069306,
+      "exact_hit_rate": 0.0,
+      "top1_exact_rate": 0.0,
+      "mean_best_initial_recall": 0.07789285957443193,
+      "mean_candidate_count": 3.3485148514851484,
+      "truncated_rate": 0.041584158415841586,
+      "partial_generation_rate": 0.0,
+      "mean_partial_candidate_count": 0.0
+    },
+    "intensity:1": {
+      "rows": 505,
+      "candidate_generation_rate": 0.998019801980198,
+      "exact_hit_rate": 0.0,
+      "top1_exact_rate": 0.0,
+      "mean_best_initial_recall": 0.23299082274056432,
+      "mean_candidate_count": 54.011881188118814,
+      "truncated_rate": 0.7584158415841584,
+      "partial_generation_rate": 0.0,
+      "mean_partial_candidate_count": 0.0
+    }
+  },
+  "error_analysis": {
+    "taxonomy_version": "chosung-error-v1",
+    "definitions": {
+      "candidate_not_generated": "복원 후보가 하나도 생성되지 않음",
+      "over_restoration": "후보는 생성됐지만 정답 초성 위치를 하나도 복원하지 못함; 실제 FPR이 아닌 합성 데이터 proxy",
+      "target_not_in_candidates": "일부 초성은 복원했지만 정답 문장이 후보 집합에 없음",
+      "ranking_error": "정답 문장이 후보 집합에는 있지만 첫 번째 복원 후보가 아님",
+      "success": "첫 번째 복원 후보가 정답 문장과 일치"
+    },
+    "metrics": {
+      "overall": {
+        "rows": 1010,
+        "counts": {
+          "candidate_not_generated": 257,
+          "over_restoration": 98,
+          "target_not_in_candidates": 655,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.25445544554455446,
+          "over_restoration": 0.09702970297029703,
+          "target_not_in_candidates": 0.6485148514851485,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "label:attack": {
+        "rows": 602,
+        "counts": {
+          "candidate_not_generated": 163,
+          "over_restoration": 73,
+          "target_not_in_candidates": 366,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.2707641196013289,
+          "over_restoration": 0.1212624584717608,
+          "target_not_in_candidates": 0.6079734219269103,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "label:benign": {
+        "rows": 408,
+        "counts": {
+          "candidate_not_generated": 94,
+          "over_restoration": 25,
+          "target_not_in_candidates": 289,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.23039215686274508,
+          "over_restoration": 0.061274509803921566,
+          "target_not_in_candidates": 0.7083333333333334,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "intensity:0.5": {
+        "rows": 505,
+        "counts": {
+          "candidate_not_generated": 256,
+          "over_restoration": 64,
+          "target_not_in_candidates": 185,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.5069306930693069,
+          "over_restoration": 0.12673267326732673,
+          "target_not_in_candidates": 0.36633663366336633,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "intensity:1": {
+        "rows": 505,
+        "counts": {
+          "candidate_not_generated": 1,
+          "over_restoration": 34,
+          "target_not_in_candidates": 470,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.0019801980198019802,
+          "over_restoration": 0.06732673267326733,
+          "target_not_in_candidates": 0.9306930693069307,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "category:A1_injection": {
+        "rows": 388,
+        "counts": {
+          "candidate_not_generated": 111,
+          "over_restoration": 56,
+          "target_not_in_candidates": 221,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.2860824742268041,
+          "over_restoration": 0.14432989690721648,
+          "target_not_in_candidates": 0.5695876288659794,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "category:A2_leaking": {
+        "rows": 214,
+        "counts": {
+          "candidate_not_generated": 52,
+          "over_restoration": 17,
+          "target_not_in_candidates": 145,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.24299065420560748,
+          "over_restoration": 0.0794392523364486,
+          "target_not_in_candidates": 0.677570093457944,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "category:benign_hard_negative": {
+        "rows": 408,
+        "counts": {
+          "candidate_not_generated": 94,
+          "over_restoration": 25,
+          "target_not_in_candidates": 289,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.23039215686274508,
+          "over_restoration": 0.061274509803921566,
+          "target_not_in_candidates": 0.7083333333333334,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      }
+    },
+    "examples": {
+      "candidate_not_generated": [
+        {
+          "row_id": "v_177bda84ec",
+          "seed_id": "atk_0001",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_7156a54405",
+          "seed_id": "atk_0004",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 12,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_36ca94a637",
+          "seed_id": "atk_0007",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_5ab6b92f58",
+          "seed_id": "atk_0010",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_f39eedc789",
+          "seed_id": "atk_0013",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_ba0eea6834",
+          "seed_id": "atk_0014",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 12,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_be87ddac29",
+          "seed_id": "atk_0015",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 14,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_aab5ae34d6",
+          "seed_id": "atk_0016",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 12,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_6f41cfde7e",
+          "seed_id": "atk_0017",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 14,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_8799bd3570",
+          "seed_id": "atk_0019",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 12,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        }
+      ],
+      "over_restoration": [
+        {
+          "row_id": "v_51936a495b",
+          "seed_id": "atk_0003",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 11,
+          "candidate_count": 15,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_a65e2c4c69",
+          "seed_id": "atk_0008",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 5,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_8ac1893d21",
+          "seed_id": "atk_0009",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 13,
+          "candidate_count": 1,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_5dd579a1f5",
+          "seed_id": "atk_0016",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 25,
+          "candidate_count": 63,
+          "best_initial_recall": 0.0,
+          "truncated": true,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_8ccb0ca883",
+          "seed_id": "atk_0021",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 13,
+          "candidate_count": 8,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_c482d61dc6",
+          "seed_id": "atk_0030",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 12,
+          "candidate_count": 1,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_406aadce27",
+          "seed_id": "atk_0031",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 12,
+          "candidate_count": 15,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_ce1b1b4702",
+          "seed_id": "atk_0047",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 12,
+          "candidate_count": 2,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_afba44bfc6",
+          "seed_id": "atk_0050",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 4,
+          "candidate_count": 1,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_4eeef5e3ca",
+          "seed_id": "atk_0053",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 13,
+          "candidate_count": 1,
+          "best_initial_recall": 0.0,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        }
+      ],
+      "target_not_in_candidates": [
+        {
+          "row_id": "v_49ebdd55b0",
+          "seed_id": "atk_0001",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 21,
+          "candidate_count": 3,
+          "best_initial_recall": 0.19047619047619047,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_8fd96b7c28",
+          "seed_id": "atk_0002",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 4,
+          "best_initial_recall": 0.3,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_2ce50f408e",
+          "seed_id": "atk_0002",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 21,
+          "candidate_count": 63,
+          "best_initial_recall": 0.3333333333333333,
+          "truncated": true,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_05b9038826",
+          "seed_id": "atk_0003",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 22,
+          "candidate_count": 63,
+          "best_initial_recall": 0.09090909090909091,
+          "truncated": true,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_802be876d8",
+          "seed_id": "atk_0004",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 23,
+          "candidate_count": 63,
+          "best_initial_recall": 0.21739130434782608,
+          "truncated": true,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_7d272cfc2b",
+          "seed_id": "atk_0005",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 16,
+          "best_initial_recall": 0.3,
+          "truncated": true,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_c66d79f402",
+          "seed_id": "atk_0005",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 19,
+          "candidate_count": 63,
+          "best_initial_recall": 0.2631578947368421,
+          "truncated": true,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_4ce18da833",
+          "seed_id": "atk_0006",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 1,
+          "best_initial_recall": 0.4,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_aec4e2d695",
+          "seed_id": "atk_0006",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 21,
+          "candidate_count": 23,
+          "best_initial_recall": 0.3333333333333333,
+          "truncated": false,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        },
+        {
+          "row_id": "v_b5c95fca64",
+          "seed_id": "atk_0007",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 20,
+          "candidate_count": 63,
+          "best_initial_recall": 0.15,
+          "truncated": true,
+          "partial_generated": false,
+          "partial_candidate_count": 0
+        }
+      ],
+      "ranking_error": [],
+      "success": []
+    }
+  }
+}
