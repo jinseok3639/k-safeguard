@@ -18,6 +18,31 @@ from k_safeguard.chosung import (
 from k_safeguard.normalization import normalize_korean
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ERROR_TAXONOMY_VERSION = "chosung-error-v1"
+OUTCOME_CANDIDATE_NOT_GENERATED = "candidate_not_generated"
+OUTCOME_OVER_RESTORATION = "over_restoration"
+OUTCOME_TARGET_NOT_IN_CANDIDATES = "target_not_in_candidates"
+OUTCOME_RANKING_ERROR = "ranking_error"
+OUTCOME_SUCCESS = "success"
+OUTCOME_ORDER = (
+    OUTCOME_CANDIDATE_NOT_GENERATED,
+    OUTCOME_OVER_RESTORATION,
+    OUTCOME_TARGET_NOT_IN_CANDIDATES,
+    OUTCOME_RANKING_ERROR,
+    OUTCOME_SUCCESS,
+)
+OUTCOME_DEFINITIONS = {
+    OUTCOME_CANDIDATE_NOT_GENERATED: "복원 후보가 하나도 생성되지 않음",
+    OUTCOME_OVER_RESTORATION: (
+        "후보는 생성됐지만 정답 초성 위치를 하나도 복원하지 못함; 실제 FPR이 아닌 합성 데이터 proxy"
+    ),
+    OUTCOME_TARGET_NOT_IN_CANDIDATES: "일부 초성은 복원했지만 정답 문장이 후보 집합에 없음",
+    OUTCOME_RANKING_ERROR: "정답 문장이 후보 집합에는 있지만 첫 번째 복원 후보가 아님",
+    OUTCOME_SUCCESS: "첫 번째 복원 후보가 정답 문장과 일치",
+}
+
+
 @dataclass(frozen=True)
 class DiagnosticObservation:
     label: str
@@ -30,6 +55,8 @@ class DiagnosticObservation:
     initial_count: int
     best_initial_recall: float
     truncated: bool
+    row_id: str | None = None
+    seed_id: str | None = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,6 +69,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-options-per-span", type=int, default=3)
     parser.add_argument("--min-initials", type=int, default=3)
     parser.add_argument("--limit-seeds", type=int)
+    parser.add_argument("--examples-per-outcome", type=int, default=10)
     parser.add_argument("--output", type=Path)
     return parser.parse_args()
 
@@ -61,6 +89,8 @@ def observe_row(
     min_initials: int,
     max_options_per_span: int,
     max_candidates: int,
+    row_id: str | None = None,
+    seed_id: str | None = None,
 ) -> DiagnosticObservation:
     exact_normalized = normalize_korean(variant).text
     result = generate_chosung_candidates(
@@ -92,7 +122,23 @@ def observe_row(
         initial_count=len(initial_positions),
         best_initial_recall=max(recalls, default=0.0),
         truncated=result.truncated,
+        row_id=row_id,
+        seed_id=seed_id,
     )
+
+
+def classify_observation(observation: DiagnosticObservation) -> str:
+    """진단 결과를 상호 배타적인 초성 복원 outcome으로 분류한다."""
+
+    if not observation.generated:
+        return OUTCOME_CANDIDATE_NOT_GENERATED
+    if observation.exact_hit:
+        if observation.top1_exact:
+            return OUTCOME_SUCCESS
+        return OUTCOME_RANKING_ERROR
+    if observation.best_initial_recall == 0.0:
+        return OUTCOME_OVER_RESTORATION
+    return OUTCOME_TARGET_NOT_IN_CANDIDATES
 
 
 def _aggregate(items: list[DiagnosticObservation]) -> dict[str, Any]:
@@ -130,12 +176,79 @@ def summarize(observations: list[DiagnosticObservation]) -> dict[str, Any]:
     return {name: _aggregate(items) for name, items in groups.items()}
 
 
+def _outcome_aggregate(items: list[DiagnosticObservation]) -> dict[str, Any]:
+    counts = {outcome: 0 for outcome in OUTCOME_ORDER}
+    for item in items:
+        counts[classify_observation(item)] += 1
+    denominator = len(items)
+    return {
+        "rows": denominator,
+        "counts": counts,
+        "rates": {
+            outcome: counts[outcome] / denominator if denominator else None
+            for outcome in OUTCOME_ORDER
+        },
+    }
+
+
+def summarize_outcomes(observations: list[DiagnosticObservation]) -> dict[str, Any]:
+    groups: dict[str, list[DiagnosticObservation]] = {"overall": observations}
+    for label in sorted({item.label for item in observations}):
+        groups[f"label:{label}"] = [item for item in observations if item.label == label]
+    for intensity in sorted({item.intensity for item in observations}):
+        groups[f"intensity:{intensity:g}"] = [
+            item for item in observations if item.intensity == intensity
+        ]
+    for category in sorted({item.category for item in observations}):
+        groups[f"category:{category}"] = [
+            item for item in observations if item.category == category
+        ]
+    return {name: _outcome_aggregate(items) for name, items in groups.items()}
+
+
+def outcome_examples(
+    observations: list[DiagnosticObservation],
+    *,
+    limit_per_outcome: int,
+) -> dict[str, list[dict[str, Any]]]:
+    if limit_per_outcome < 1:
+        raise ValueError("limit_per_outcome은 1 이상이어야 합니다.")
+    examples = {outcome: [] for outcome in OUTCOME_ORDER}
+    for item in observations:
+        outcome = classify_observation(item)
+        if len(examples[outcome]) >= limit_per_outcome:
+            continue
+        examples[outcome].append(
+            {
+                "row_id": item.row_id,
+                "seed_id": item.seed_id,
+                "label": item.label,
+                "category": item.category,
+                "intensity": item.intensity,
+                "initial_count": item.initial_count,
+                "candidate_count": item.candidate_count,
+                "best_initial_recall": item.best_initial_recall,
+                "truncated": item.truncated,
+            }
+        )
+    return examples
+
+
+def _portable_input_path(path: Path) -> str:
+    try:
+        return path.relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
 def main() -> int:
     args = parse_args()
     if args.word_limit < 1:
         raise ValueError("--word-limit은 1 이상이어야 합니다.")
     if args.max_candidates < 1 or args.max_options_per_span < 1:
         raise ValueError("후보 제한은 1 이상이어야 합니다.")
+    if args.examples_per_outcome < 1:
+        raise ValueError("--examples-per-outcome은 1 이상이어야 합니다.")
 
     try:
         from wordfreq import top_n_list
@@ -164,6 +277,8 @@ def main() -> int:
             min_initials=args.min_initials,
             max_options_per_span=args.max_options_per_span,
             max_candidates=args.max_candidates,
+            row_id=row.row_id,
+            seed_id=row.seed_id,
         )
         for row in variants
     ]
@@ -175,7 +290,7 @@ def main() -> int:
             "어휘 coverage 진단이며 방어 성능 주장을 지원하지 않음",
         ],
         "input": {
-            "path": str(input_path),
+            "path": _portable_input_path(input_path),
             "sha256": sha256_file(input_path),
             "rows": len(variants),
             "independent_seeds": len({row.seed_id for row in variants}),
@@ -191,6 +306,15 @@ def main() -> int:
             "max_candidates": args.max_candidates,
         },
         "metrics": summarize(observations),
+        "error_analysis": {
+            "taxonomy_version": ERROR_TAXONOMY_VERSION,
+            "definitions": OUTCOME_DEFINITIONS,
+            "metrics": summarize_outcomes(observations),
+            "examples": outcome_examples(
+                observations,
+                limit_per_outcome=args.examples_per_outcome,
+            ),
+        },
     }
     serialized = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output is not None:
