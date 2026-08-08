@@ -1,0 +1,207 @@
+from __future__ import annotations
+
+import argparse
+import json
+import statistics
+from dataclasses import dataclass
+from importlib.metadata import version
+from pathlib import Path
+from typing import Any
+
+from experiments.benchmark.run_clean_baseline import sha256_file
+from experiments.benchmark.run_normalizer_evaluation import DEFAULT_INPUT, load_benchmark
+from ko_chosung import (
+    CHOSUNG_CANDIDATE_VERSION,
+    ChosungLexicon,
+    generate_chosung_candidates,
+)
+from ko_normalizer import normalize_korean
+
+
+@dataclass(frozen=True)
+class DiagnosticObservation:
+    label: str
+    category: str
+    intensity: float
+    generated: bool
+    candidate_count: int
+    exact_hit: bool
+    top1_exact: bool
+    initial_count: int
+    best_initial_recall: float
+    truncated: bool
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="wordfreq 기반 초성 복원 후보의 어휘 coverage를 개발용으로 진단합니다."
+    )
+    parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
+    parser.add_argument("--word-limit", type=int, default=30_000)
+    parser.add_argument("--max-candidates", type=int, default=16)
+    parser.add_argument("--max-options-per-span", type=int, default=3)
+    parser.add_argument("--min-initials", type=int, default=3)
+    parser.add_argument("--limit-seeds", type=int)
+    parser.add_argument("--output", type=Path)
+    return parser.parse_args()
+
+
+def _initial_positions(text: str) -> list[int]:
+    return [index for index, char in enumerate(text) if 0x3131 <= ord(char) <= 0x314E]
+
+
+def observe_row(
+    variant: str,
+    original: str,
+    label: str,
+    category: str,
+    intensity: float,
+    lexicon: ChosungLexicon,
+    *,
+    min_initials: int,
+    max_options_per_span: int,
+    max_candidates: int,
+) -> DiagnosticObservation:
+    exact_normalized = normalize_korean(variant).text
+    result = generate_chosung_candidates(
+        exact_normalized,
+        lexicon,
+        min_initials=min_initials,
+        max_options_per_span=max_options_per_span,
+        max_candidates=max_candidates,
+    )
+    expanded = result.candidates[1:]
+    initial_positions = _initial_positions(exact_normalized)
+    recalls = []
+    for candidate in expanded:
+        correct = sum(
+            index < len(candidate.text)
+            and index < len(original)
+            and candidate.text[index] == original[index]
+            for index in initial_positions
+        )
+        recalls.append(correct / len(initial_positions) if initial_positions else 0.0)
+    return DiagnosticObservation(
+        label=label,
+        category=category,
+        intensity=intensity,
+        generated=bool(expanded),
+        candidate_count=len(expanded),
+        exact_hit=any(candidate.text == original for candidate in expanded),
+        top1_exact=bool(expanded) and expanded[0].text == original,
+        initial_count=len(initial_positions),
+        best_initial_recall=max(recalls, default=0.0),
+        truncated=result.truncated,
+    )
+
+
+def _aggregate(items: list[DiagnosticObservation]) -> dict[str, Any]:
+    if not items:
+        return {
+            "rows": 0,
+            "candidate_generation_rate": None,
+            "exact_hit_rate": None,
+            "top1_exact_rate": None,
+            "mean_best_initial_recall": None,
+            "mean_candidate_count": None,
+            "truncated_rate": None,
+        }
+    return {
+        "rows": len(items),
+        "candidate_generation_rate": statistics.fmean(item.generated for item in items),
+        "exact_hit_rate": statistics.fmean(item.exact_hit for item in items),
+        "top1_exact_rate": statistics.fmean(item.top1_exact for item in items),
+        "mean_best_initial_recall": statistics.fmean(
+            item.best_initial_recall for item in items
+        ),
+        "mean_candidate_count": statistics.fmean(item.candidate_count for item in items),
+        "truncated_rate": statistics.fmean(item.truncated for item in items),
+    }
+
+
+def summarize(observations: list[DiagnosticObservation]) -> dict[str, Any]:
+    groups: dict[str, list[DiagnosticObservation]] = {"overall": observations}
+    for label in sorted({item.label for item in observations}):
+        groups[f"label:{label}"] = [item for item in observations if item.label == label]
+    for intensity in sorted({item.intensity for item in observations}):
+        groups[f"intensity:{intensity:g}"] = [
+            item for item in observations if item.intensity == intensity
+        ]
+    return {name: _aggregate(items) for name, items in groups.items()}
+
+
+def main() -> int:
+    args = parse_args()
+    if args.word_limit < 1:
+        raise ValueError("--word-limit은 1 이상이어야 합니다.")
+    if args.max_candidates < 1 or args.max_options_per_span < 1:
+        raise ValueError("후보 제한은 1 이상이어야 합니다.")
+
+    try:
+        from wordfreq import top_n_list
+    except ImportError as exc:
+        raise SystemExit(
+            "wordfreq가 필요합니다: pip install -r "
+            "experiments/guardrail/requirements-chosung.txt"
+        ) from exc
+
+    input_path = args.input.resolve()
+    rows = load_benchmark(
+        input_path,
+        limit_seeds=args.limit_seeds,
+        techniques={"chosung"},
+    )
+    variants = [row for row in rows if row.technique == "chosung"]
+    lexicon = ChosungLexicon(top_n_list("ko", args.word_limit))
+    observations = [
+        observe_row(
+            row.text,
+            row.original,
+            row.label,
+            row.category,
+            row.intensity,
+            lexicon,
+            min_initials=args.min_initials,
+            max_options_per_span=args.max_options_per_span,
+            max_candidates=args.max_candidates,
+        )
+        for row in variants
+    ]
+    result = {
+        "status": "PROVISIONAL_DEV_ONLY",
+        "validity_reasons": [
+            "현재 공개 benchmark는 locked test로 재사용할 수 없음",
+            "문맥 순위화·semantic fidelity·가드레일 판정을 측정하지 않음",
+            "어휘 coverage 진단이며 방어 성능 주장을 지원하지 않음",
+        ],
+        "input": {
+            "path": str(input_path),
+            "sha256": sha256_file(input_path),
+            "rows": len(variants),
+            "independent_seeds": len({row.seed_id for row in variants}),
+        },
+        "candidate_generator": {
+            "version": CHOSUNG_CANDIDATE_VERSION,
+            "lexicon": "wordfreq:ko",
+            "wordfreq_version": version("wordfreq"),
+            "word_limit": args.word_limit,
+            "indexed_words": lexicon.word_count,
+            "min_initials": args.min_initials,
+            "max_options_per_span": args.max_options_per_span,
+            "max_candidates": args.max_candidates,
+        },
+        "metrics": summarize(observations),
+    }
+    serialized = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
+    if args.output is not None:
+        output_path = args.output.resolve()
+        if output_path.exists():
+            raise SystemExit(f"출력 파일이 이미 있습니다: {output_path}")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(serialized, encoding="utf-8")
+    print(serialized, end="")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -94,7 +94,7 @@
 - [x] 1일 gate 실험 완료 — 된소리·쌍자음화 5/6(83%) 회피 성공 확인, 난독화 강도와 회피율이 비례하지 않는 서열 반전 현상 발견
 - [x] 시드 확장 — 공격·benign hard-negative 505개, 파생 벤치마크 5,555행
 - [x] [로컬 가드레일 실험 환경](./experiments/guardrail/README.md) — 고정 revision 모델 3종, CUDA 격리 환경, 오프라인 smoke test
-- [ ] 초성체 blind 복원 체크
+- [x] 초성체 blind 복원 진단 — 일반 빈도 사전 후보만으로는 coverage가 낮아 기본 활성화 보류
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)
 - [ ] [정규화 하드닝 미들웨어](./NORMALIZER.md) — 자모·ZWSP 무손실 MVP 완료, 문맥형 복원·평가 연결 남음
 - [ ] 벤치마크·평가 하네스 코드화 (`kanana_test_suite.py`)
