@@ -126,6 +126,7 @@ python -m pip install ".[wordfreq]"
 - [x] [로컬 가드레일 실험 환경](./experiments/guardrail/README.md) — 고정 revision 모델 3종, CUDA 격리 환경, 오프라인 smoke test
 - [x] 초성체 blind 복원 진단 — 일반 빈도 사전 후보만으로는 coverage가 낮아 기본 활성화 보류
 - [x] bounded partial restoration 진단 — 현재 초성 benchmark에서 복원 개선이 없어 기본 활성화 보류
+- [x] 초성 후보 가드레일 영향 평가 — segmented NRR 13.04%, ΔFPR-obf +0.49%p로 기본 활성화 보류
 - [x] pip 패키징 MVP — 무의존 core, Gateway API, opt-in provider와 wheel 빌드 구성
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)
 - [ ] [정규화 하드닝 미들웨어](./NORMALIZER.md) — 자모·ZWSP 무손실 MVP 완료, 문맥형 복원·평가 연결 남음
