@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 
-CHOSUNG_CANDIDATE_VERSION = "0.1.0"
+CHOSUNG_CANDIDATE_VERSION = "0.2.0"
 HANGUL_BASE = 0xAC00
 COMPAT_CHO = (
     "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ",
@@ -34,11 +34,51 @@ def chosung_signature(word: str) -> str | None:
     return "".join(_initial(char) for char in word)
 
 
+def expand_korean_noun_particles(words: Iterable[str]) -> tuple[str, ...]:
+    """완성형 한글 명사에 자주 쓰이는 조사를 결정론적으로 확장한다.
+
+    사용자·도메인 사전용 opt-in helper이며 일반 빈도 사전에는 자동 적용하지 않는다.
+    """
+
+    expanded: list[str] = []
+    seen: set[str] = set()
+    for raw_word in words:
+        if not isinstance(raw_word, str):
+            raise TypeError("lexicon 단어는 str이어야 합니다.")
+        word = raw_word.strip()
+        signature = chosung_signature(word)
+        if signature is None:
+            variants = (word,)
+        else:
+            jongseong = (ord(word[-1]) - HANGUL_BASE) % 28
+            has_final = jongseong != 0
+            variants = (
+                word,
+                word + ("은" if has_final else "는"),
+                word + ("이" if has_final else "가"),
+                word + ("을" if has_final else "를"),
+                word + ("과" if has_final else "와"),
+                word + ("으로" if has_final and jongseong != 8 else "로"),
+                word + "의",
+                word + "에",
+                word + "에서",
+                word + "도",
+                word + "만",
+            )
+        for variant in variants:
+            if variant not in seen:
+                seen.add(variant)
+                expanded.append(variant)
+    return tuple(expanded)
+
+
 @dataclass(frozen=True)
 class LexiconEntry:
     word: str
     rank: int
     signature: str
+    source: str = "default"
+    source_rank: int = 0
 
 
 class ChosungLexicon:
@@ -51,29 +91,84 @@ class ChosungLexicon:
         min_word_length: int = 2,
         max_word_length: int = 12,
     ) -> None:
+        self._build(
+            (("default", words),),
+            min_word_length=min_word_length,
+            max_word_length=max_word_length,
+        )
+
+    @classmethod
+    def from_sources(
+        cls,
+        sources: Iterable[tuple[str, Iterable[str]]],
+        *,
+        min_word_length: int = 2,
+        max_word_length: int = 12,
+    ) -> ChosungLexicon:
+        """앞에 둔 source를 우선해 여러 어휘 iterable을 하나로 병합한다.
+
+        동일 단어가 여러 source에 있으면 가장 먼저 선언한 source만 보존한다.
+        """
+
+        instance = cls.__new__(cls)
+        instance._build(
+            sources,
+            min_word_length=min_word_length,
+            max_word_length=max_word_length,
+        )
+        return instance
+
+    def _build(
+        self,
+        sources: Iterable[tuple[str, Iterable[str]]],
+        *,
+        min_word_length: int,
+        max_word_length: int,
+    ) -> None:
         if min_word_length < 1 or max_word_length < min_word_length:
             raise ValueError("단어 길이 범위가 잘못됐습니다.")
 
         by_length: dict[int, list[LexiconEntry]] = {}
         by_signature: dict[str, list[LexiconEntry]] = {}
+        source_counts: dict[str, int] = {}
         seen: set[str] = set()
-        for rank, raw_word in enumerate(words):
-            word = raw_word.strip()
-            if word in seen or not min_word_length <= len(word) <= max_word_length:
-                continue
-            signature = chosung_signature(word)
-            if signature is None:
-                continue
-            seen.add(word)
-            entry = LexiconEntry(word=word, rank=rank, signature=signature)
-            by_length.setdefault(len(word), []).append(entry)
-            by_signature.setdefault(signature, []).append(entry)
+        global_rank = 0
+        for source, words in sources:
+            if not isinstance(source, str) or not source.strip():
+                raise ValueError("lexicon source 이름은 비어 있지 않은 str이어야 합니다.")
+            source = source.strip()
+            if source in source_counts:
+                raise ValueError(f"중복 lexicon source: {source}")
+            source_counts[source] = 0
+            for source_rank, raw_word in enumerate(words):
+                if not isinstance(raw_word, str):
+                    raise TypeError("lexicon 단어는 str이어야 합니다.")
+                word = raw_word.strip()
+                rank = global_rank
+                global_rank += 1
+                if word in seen or not min_word_length <= len(word) <= max_word_length:
+                    continue
+                signature = chosung_signature(word)
+                if signature is None:
+                    continue
+                seen.add(word)
+                source_counts[source] += 1
+                entry = LexiconEntry(
+                    word=word,
+                    rank=rank,
+                    signature=signature,
+                    source=source,
+                    source_rank=source_rank,
+                )
+                by_length.setdefault(len(word), []).append(entry)
+                by_signature.setdefault(signature, []).append(entry)
 
         self._by_length = {length: tuple(entries) for length, entries in by_length.items()}
         self._by_signature = {
             signature: tuple(entries) for signature, entries in by_signature.items()
         }
         self.word_count = len(seen)
+        self.source_counts = tuple(source_counts.items())
 
     def match(self, pattern: str, limit: int) -> tuple[LexiconEntry, ...]:
         """한글 음절은 그대로, 호환 초성은 후보 음절의 초성과 대조한다."""
@@ -104,6 +199,8 @@ class ChosungReplacement:
     after: str
     lexicon_rank: int
     alternatives: int
+    lexicon_source: str = "default"
+    source_rank: int = 0
 
 
 @dataclass(frozen=True)
@@ -196,6 +293,8 @@ def generate_chosung_candidates(
                     option.word,
                     option.rank,
                     alternatives,
+                    option.source,
+                    option.source_rank,
                 )
                 expanded.append(
                     ChosungCandidate(
@@ -247,5 +346,6 @@ __all__ = [
     "ChosungReplacement",
     "LexiconEntry",
     "chosung_signature",
+    "expand_korean_noun_particles",
     "generate_chosung_candidates",
 ]

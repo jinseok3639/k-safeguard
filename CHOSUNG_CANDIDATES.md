@@ -32,6 +32,25 @@ for candidate in result.candidates:
     print(candidate.text, candidate.lossy)
 ```
 
+사용자·도메인 사전을 일반 사전보다 먼저 적용할 때는 source 순서를 명시한다. 같은 단어가 여러 source에
+있으면 첫 source가 소유하며 후보 replacement에도 출처가 기록된다.
+
+```python
+from k_safeguard import ChosungLexicon, expand_korean_noun_particles
+
+user_words = expand_korean_noun_particles(["보안정책", "시스템프롬프트"])
+lexicon = ChosungLexicon.from_sources(
+    [
+        ("user", user_words),
+        ("general", ["시스템", "산사태"]),
+    ]
+)
+```
+
+조사 확장은 opt-in이며 명사형 사용자 사전에만 적용한다. 기본 `ChosungLexicon(words)`와 Gateway에는
+자동 적용되지 않는다. `k-safeguard[wordfreq]` 사용자는 `WordfreqChosungProvider`의
+`priority_words`와 `expand_priority_particles=True`로 같은 구성을 만들 수 있다.
+
 `ChosungLexicon`은 특정 라이브러리에 의존하지 않는다. 실험에서는 빈도순 한국어 단어를 제공하는
 [`wordfreq`](https://github.com/rspeer/wordfreq) 3.1.1을 선택했다. 코드 라이선스는 Apache-2.0이며
 포함 데이터에는 CC BY-SA 4.0 자료가 있으므로, 단어 목록을 별도 CSV로 복제·재배포하지 않고 런타임에
@@ -58,3 +77,8 @@ coverage 확인용이며, 문맥 이해도·semantic fidelity·가드레일 방�
 실패 원인을 후보 미생성·과잉 복원 proxy·정답 후보 누락·순위 오류로 분리한 개선 전 기준선은
 [`experiments/benchmark/CHOSUNG_ERROR_ANALYSIS.md`](./experiments/benchmark/CHOSUNG_ERROR_ANALYSIS.md)에
 기록한다. 후속 provider 개선은 같은 `chosung-error-v1` taxonomy로 비교한다.
+
+사용자·도메인 사전 50개와 조사 확장을 일반 빈도 사전과 비교한 결과는
+[`experiments/benchmark/CHOSUNG_LEXICON_COMPARISON.md`](./experiments/benchmark/CHOSUNG_LEXICON_COMPARISON.md)에
+기록한다. 평균 초성 위치 복원은 0.92%p 올랐지만 문장 exact 성공은 여전히 0건이므로 기본 활성화는
+계속 보류한다.

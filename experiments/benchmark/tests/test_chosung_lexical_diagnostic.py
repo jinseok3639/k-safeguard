@@ -1,5 +1,7 @@
 import unittest
 from dataclasses import replace
+from pathlib import Path
+import tempfile
 
 from experiments.benchmark.run_chosung_lexical_diagnostic import (
     DiagnosticObservation,
@@ -9,6 +11,7 @@ from experiments.benchmark.run_chosung_lexical_diagnostic import (
     OUTCOME_SUCCESS,
     OUTCOME_TARGET_NOT_IN_CANDIDATES,
     classify_observation,
+    load_priority_words,
     observe_row,
     outcome_examples,
     summarize,
@@ -134,6 +137,17 @@ class ChosungDiagnosticTest(unittest.TestCase):
             examples[OUTCOME_CANDIDATE_NOT_GENERATED][0]["row_id"],
             "variant-1",
         )
+
+    def test_loads_priority_words_without_comments_or_duplicates(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "lexicon.txt"
+            path.write_text("# provenance\n\n보안정책\n가드레일\n", encoding="utf-8")
+
+            self.assertEqual(load_priority_words(path), ("보안정책", "가드레일"))
+
+            path.write_text("보안정책\n보안정책\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "중복"):
+                load_priority_words(path)
 
 
 if __name__ == "__main__":

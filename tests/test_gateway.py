@@ -40,12 +40,16 @@ class GatewayTest(unittest.TestCase):
         self.assertFalse(result.changed)
 
     def test_chosung_provider_is_explicit_opt_in(self) -> None:
-        provider = ChosungLexiconProvider(ChosungLexicon(["시스템", "산사태"]))
+        lexicon = ChosungLexicon.from_sources(
+            [("user", ["시스템"]), ("general", ["산사태"])]
+        )
+        provider = ChosungLexiconProvider(lexicon)
         result = Gateway(providers=[provider]).process("ㅅㅅㅌ 점검")
         self.assertEqual(result.views[0].text, "ㅅㅅㅌ 점검")
         self.assertIn("시스템 점검", [view.text for view in result.views])
         self.assertTrue(result.has_lossy_views)
         self.assertEqual(result.views[1].provider, "chosung_lexicon")
+        self.assertIn(("lexicon_sources", "user"), result.views[1].metadata)
 
     def test_provider_failure_is_recorded_by_default(self) -> None:
         result = Gateway(providers=[_FailingProvider()]).process("안녕")

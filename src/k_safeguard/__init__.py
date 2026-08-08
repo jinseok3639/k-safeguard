@@ -7,6 +7,7 @@ from .chosung import (
     ChosungLexicon,
     ChosungReplacement,
     chosung_signature,
+    expand_korean_noun_particles,
     generate_chosung_candidates,
 )
 from .gateway import (
@@ -42,6 +43,7 @@ __all__ = [
     "TextView",
     "__version__",
     "chosung_signature",
+    "expand_korean_noun_particles",
     "generate_chosung_candidates",
     "normalize_korean",
 ]

@@ -33,6 +33,11 @@ class ChosungLexiconProvider:
             max_candidates=self._max_candidates,
         )
         for candidate in result.candidates[1:]:
+            lexicon_sources = tuple(
+                dict.fromkeys(
+                    replacement.lexicon_source for replacement in candidate.replacements
+                )
+            )
             yield CandidateProposal(
                 text=candidate.text,
                 lossy=True,
@@ -40,6 +45,7 @@ class ChosungLexiconProvider:
                 metadata=(
                     ("covered_initials", str(candidate.covered_initials)),
                     ("rank_score", str(candidate.rank_score)),
+                    ("lexicon_sources", ",".join(lexicon_sources)),
                     ("generator_version", result.version),
                 ),
             )
