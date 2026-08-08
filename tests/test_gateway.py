@@ -56,6 +56,16 @@ class GatewayTest(unittest.TestCase):
         self.assertEqual(result.provider_errors, ("failing:RuntimeError",))
         self.assertEqual(result.views[0].text, "안녕")
 
+    def test_chosung_provider_can_opt_in_to_segmented_candidates(self) -> None:
+        lexicon = ChosungLexicon.from_sources(
+            [("domain", ["시스템", "프롬프트"])]
+        )
+        provider = ChosungLexiconProvider(lexicon, allow_segmentation=True)
+
+        result = Gateway(providers=[provider]).process("ㅅㅅㅌㅍㄹㅍㅌ")
+        self.assertEqual(result.views[1].text, "시스템프롬프트")
+        self.assertIn(("max_segment_count", "2"), result.views[1].metadata)
+
     def test_strict_provider_failure_is_raised(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "provider failure"):
             Gateway(providers=[_FailingProvider()], strict_providers=True).process("안녕")

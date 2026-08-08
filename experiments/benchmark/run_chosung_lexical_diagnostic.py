@@ -78,6 +78,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--priority-source", default="domain")
     parser.add_argument("--expand-priority-particles", action="store_true")
+    parser.add_argument("--allow-segmentation", action="store_true")
+    parser.add_argument("--max-segments", type=int, default=2)
+    parser.add_argument("--max-options-per-segment", type=int, default=1)
     parser.add_argument("--output", type=Path)
     return parser.parse_args()
 
@@ -97,6 +100,9 @@ def observe_row(
     min_initials: int,
     max_options_per_span: int,
     max_candidates: int,
+    allow_segmentation: bool = False,
+    max_segments: int = 2,
+    max_options_per_segment: int = 1,
     row_id: str | None = None,
     seed_id: str | None = None,
 ) -> DiagnosticObservation:
@@ -107,6 +113,9 @@ def observe_row(
         min_initials=min_initials,
         max_options_per_span=max_options_per_span,
         max_candidates=max_candidates,
+        allow_segmentation=allow_segmentation,
+        max_segments=max_segments,
+        max_options_per_segment=max_options_per_segment,
     )
     expanded = result.candidates[1:]
     initial_positions = _initial_positions(exact_normalized)
@@ -271,6 +280,8 @@ def main() -> int:
         raise ValueError("--word-limit은 1 이상이어야 합니다.")
     if args.max_candidates < 1 or args.max_options_per_span < 1:
         raise ValueError("후보 제한은 1 이상이어야 합니다.")
+    if not 2 <= args.max_segments <= 4 or not 1 <= args.max_options_per_segment <= 4:
+        raise ValueError("분할 제한이 잘못됐습니다.")
     if args.examples_per_outcome < 1:
         raise ValueError("--examples-per-outcome은 1 이상이어야 합니다.")
 
@@ -328,6 +339,9 @@ def main() -> int:
             min_initials=args.min_initials,
             max_options_per_span=args.max_options_per_span,
             max_candidates=args.max_candidates,
+            allow_segmentation=args.allow_segmentation,
+            max_segments=args.max_segments,
+            max_options_per_segment=args.max_options_per_segment,
             row_id=row.row_id,
             seed_id=row.seed_id,
         )
@@ -357,6 +371,9 @@ def main() -> int:
             "min_initials": args.min_initials,
             "max_options_per_span": args.max_options_per_span,
             "max_candidates": args.max_candidates,
+            "allow_segmentation": args.allow_segmentation,
+            "max_segments": args.max_segments,
+            "max_options_per_segment": args.max_options_per_segment,
         },
         "metrics": summarize(observations),
         "error_analysis": {
