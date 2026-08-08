@@ -1,0 +1,5 @@
+include LICENSE
+include README.md
+include PACKAGING.md
+include RELEASING.md
+include tools/release/verify_artifacts.py

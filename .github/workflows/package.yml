@@ -8,12 +8,18 @@ on:
       - "pyproject.toml"
       - "README.md"
       - "PACKAGING.md"
+      - "RELEASING.md"
+      - "MANIFEST.in"
+      - "tools/release/**"
       - ".github/workflows/package.yml"
+      - ".github/workflows/testpypi.yml"
   push:
     branches: [main]
     paths:
       - "src/**"
       - "tests/**"
+      - "tools/release/**"
+      - "MANIFEST.in"
       - "pyproject.toml"
 
 jobs:
@@ -38,6 +44,8 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Build wheel and source distribution
         run: python -m build
+      - name: Verify source and distribution boundaries
+        run: python tools/release/verify_artifacts.py
       - name: Reinstall built wheel
         shell: bash
         run: |

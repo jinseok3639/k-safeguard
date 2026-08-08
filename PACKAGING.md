@@ -79,9 +79,11 @@ src/k_safeguard/
 ```bash
 python -m pip install --upgrade build
 python -m build
+python tools/release/verify_artifacts.py
 python -m pip install --force-reinstall --no-deps dist/k_safeguard-0.1.0-py3-none-any.whl
 python -m unittest discover -s tests -v
 ```
 
 PR CI는 Windows, Linux, macOS와 지원 Python 버전에서 editable 설치, core 테스트, wheel 빌드와 wheel
-재설치를 확인한다. PyPI 배포 전에는 TestPyPI에서 같은 설치 검증을 한 번 더 수행한다.
+재설치를 확인한다. PyPI 배포 전에는 수동 승인형 TestPyPI workflow에서 같은 설치 검증을 한 번 더
+수행한다. 버전 변경, Trusted Publisher 최초 설정과 배포 순서는 [릴리스 절차](./RELEASING.md)를 따른다.
