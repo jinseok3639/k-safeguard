@@ -1,5 +1,8 @@
 # Prompt clean baseline 실행기
 
+> 정규화 gateway의 E0/E1/E2/E3 평가는
+> [정규화 평가 문서](./NORMALIZER_EVALUATION.md)를 참고한다.
+
 `SEED_CANDIDATES.csv`의 A1/A2 한국어 후보 시드를 난독화 없이 Kanana Safeguard-Prompt에 입력해
 E0 clean baseline을 측정한다. 공격 실행이나 하위 LLM 응답 생성은 하지 않고 가드레일의 한 토큰
 분류 결과만 저장한다.
