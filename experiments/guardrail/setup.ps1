@@ -42,6 +42,7 @@ if (-not $SkipTorch) {
 }
 
 Invoke-Checked { & $VenvPython -m pip install --requirement $Requirements } "실험 의존성 설치"
+Invoke-Checked { & $VenvPython -m pip install --editable $RepoRoot } "k-safeguard editable 설치"
 
 $env:K_SAFEGUARD_MODEL_HOME = $ModelHome
 $env:HF_HOME = Join-Path $ModelHome "hf-home"

@@ -1,6 +1,6 @@
 # 한국어 정규화기 MVP
 
-`ko_normalizer.py`는 기존 가드레일 앞단에서 정보 손실 없이 확정할 수 있는 한국어 표기 변형만
+`k_safeguard.normalization`은 기존 가드레일 앞단에서 정보 손실 없이 확정할 수 있는 한국어 표기 변형만
 정규화하는 첫 번째 MVP다. 복원 모델을 사용하지 않으며, 모호한 입력은 원문을 유지한다.
 
 ## 지원 범위
@@ -28,7 +28,7 @@
 ## 사용법
 
 ```python
-from ko_normalizer import normalize_korean
+from k_safeguard import normalize_korean
 
 result = normalize_korean("ㅇ\u200bㅏㄴㄴㅕㅇ")
 

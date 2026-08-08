@@ -31,7 +31,11 @@ from experiments.benchmark.run_clean_baseline import (
     read_spec_version,
     sha256_file,
 )
-from ko_normalizer import NORMALIZER_VERSION, NormalizationResult, normalize_korean
+from k_safeguard.normalization import (
+    NORMALIZER_VERSION,
+    NormalizationResult,
+    normalize_korean,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

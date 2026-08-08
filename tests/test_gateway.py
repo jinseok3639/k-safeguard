@@ -1,0 +1,75 @@
+import unittest
+from importlib.metadata import version
+
+from k_safeguard import CandidateProposal, Gateway, __version__
+from k_safeguard.chosung import ChosungLexicon
+from k_safeguard.providers import ChosungLexiconProvider
+
+
+class _FailingProvider:
+    name = "failing"
+
+    def generate(self, text: str):
+        raise RuntimeError("provider failure")
+
+
+class _DuplicateProvider:
+    name = "duplicate"
+
+    def generate(self, text: str):
+        yield CandidateProposal(text)
+        yield CandidateProposal(text + "-1")
+        yield CandidateProposal(text + "-2")
+
+
+class GatewayTest(unittest.TestCase):
+    def test_distribution_and_public_api_versions_match(self) -> None:
+        self.assertEqual(version("k-safeguard"), __version__)
+
+    def test_default_gateway_has_no_external_dependency_or_lossy_view(self) -> None:
+        result = Gateway().process("ㅇㅏㄴㄴㅕㅇ")
+        self.assertEqual(result.original, "ㅇㅏㄴㄴㅕㅇ")
+        self.assertEqual(result.normalized, "안녕")
+        self.assertEqual([view.kind for view in result.views], ["original", "normalized"])
+        self.assertFalse(result.has_lossy_views)
+        self.assertEqual(result.provider_errors, ())
+
+    def test_clean_input_has_one_view(self) -> None:
+        result = Gateway().process("안녕하세요")
+        self.assertEqual([view.text for view in result.views], ["안녕하세요"])
+        self.assertFalse(result.changed)
+
+    def test_chosung_provider_is_explicit_opt_in(self) -> None:
+        provider = ChosungLexiconProvider(ChosungLexicon(["시스템", "산사태"]))
+        result = Gateway(providers=[provider]).process("ㅅㅅㅌ 점검")
+        self.assertEqual(result.views[0].text, "ㅅㅅㅌ 점검")
+        self.assertIn("시스템 점검", [view.text for view in result.views])
+        self.assertTrue(result.has_lossy_views)
+        self.assertEqual(result.views[1].provider, "chosung_lexicon")
+
+    def test_provider_failure_is_recorded_by_default(self) -> None:
+        result = Gateway(providers=[_FailingProvider()]).process("안녕")
+        self.assertEqual(result.provider_errors, ("failing:RuntimeError",))
+        self.assertEqual(result.views[0].text, "안녕")
+
+    def test_strict_provider_failure_is_raised(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "provider failure"):
+            Gateway(providers=[_FailingProvider()], strict_providers=True).process("안녕")
+
+    def test_deduplicates_and_caps_views(self) -> None:
+        result = Gateway(providers=[_DuplicateProvider()], max_views=2).process("안녕")
+        self.assertEqual([view.text for view in result.views], ["안녕", "안녕-1"])
+        self.assertTrue(result.truncated)
+
+    def test_rejects_invalid_view_limit(self) -> None:
+        with self.assertRaisesRegex(ValueError, "1 이상"):
+            Gateway(max_views=0)
+
+    def test_marks_omitted_normalized_view_as_truncated(self) -> None:
+        result = Gateway(max_views=1).process("ㅇㅏㄴ")
+        self.assertEqual([view.kind for view in result.views], ["original"])
+        self.assertTrue(result.truncated)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -48,4 +48,4 @@ gateway는 원문을 알 수 없으므로 이는 배포 성능이 아니라 현�
 4. attack TPR뿐 아니라 초성 통신체 hard-negative ΔFPR을 함께 측정한다.
 5. 새로운 locked test를 확보하기 전 결과는 최종 방어 성능으로 사용하지 않는다.
 
-현재 구현한 `ko_chosung.py`는 이 후속 실험을 위한 dependency-free 후보 생성·추적 계층으로 유지한다.
+현재 구현한 `k_safeguard.chosung`은 이 후속 실험을 위한 dependency-free 후보 생성·추적 계층으로 유지한다.

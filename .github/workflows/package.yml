@@ -1,0 +1,46 @@
+name: Python package
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "README.md"
+      - "PACKAGING.md"
+      - ".github/workflows/package.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+
+jobs:
+  test-wheel:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.10", "3.12", "3.14"]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install build tools and editable package
+        run: |
+          python -m pip install --upgrade pip build
+          python -m pip install --editable .
+      - name: Run dependency-free core tests
+        run: python -m unittest discover -s tests -v
+      - name: Build wheel and source distribution
+        run: python -m build
+      - name: Reinstall built wheel
+        shell: bash
+        run: |
+          python -m pip uninstall --yes k-safeguard
+          python -m pip install --no-deps dist/*.whl
+          python -c "from k_safeguard import Gateway; assert Gateway().process('ㅇㅏㄴ').normalized == '안'"
