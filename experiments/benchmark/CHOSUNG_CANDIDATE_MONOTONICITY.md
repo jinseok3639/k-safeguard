@@ -3,6 +3,8 @@
 > 상태: `PROVISIONAL_DEV_ONLY`
 >
 > 개선 기준선: [`baselines/chosung_guardrail_impact_monotonic_v2.json`](./baselines/chosung_guardrail_impact_monotonic_v2.json)
+>
+> 후속 view 예산 선택은 [초성 후보 view budget 선택](./CHOSUNG_VIEW_BUDGET.md)을 참고한다.
 
 ## 문제
 

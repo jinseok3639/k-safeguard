@@ -40,6 +40,7 @@
 ```powershell
 .\.venv-experiment\Scripts\python `
   -m experiments.benchmark.run_chosung_guardrail_evaluation `
+  --max-candidates 16 `
   --bootstrap-samples 10000 `
   --run-id <unique-run-id>
 ```

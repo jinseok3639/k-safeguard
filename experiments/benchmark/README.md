@@ -8,6 +8,8 @@
 캐시하고 OR 집계의 TPR·NRR·ΔFPR과 인접 정책의 새 block/allow 전환을 함께 산출한다.
 후보 상한에서 확장 정책이 이전 후보를 밀어내지 않게 수정한 후속 비교는
 [초성 후보 정책 단조성 개선](./CHOSUNG_CANDIDATE_MONOTONICITY.md)을 참고한다.
+정렬된 후보를 몇 개까지 가드레일에 전달할지는
+[초성 후보 view budget 선택](./CHOSUNG_VIEW_BUDGET.md)에서 비교하며, 현재 기본 총 예산은 10이다.
 
 ```powershell
 .\.venv-experiment\Scripts\python `
