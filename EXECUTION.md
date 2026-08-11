@@ -1,8 +1,8 @@
 # 가드레일 실행·집계 API
 
-`Gateway.evaluate()`는 정규화·후보 생성 결과를 호출자가 제공한 classifier에 순서대로 전달하고,
-하나라도 block이면 최종 block하는 OR 정책을 적용한다. 특정 모델 SDK, Torch, Transformers나 네트워크
-클라이언트에 의존하지 않는다.
+`Gateway.evaluate()`와 `Gateway.evaluate_async()`는 정규화·후보 생성 결과를 호출자가 제공한
+classifier에 순서대로 전달하고, 하나라도 block이면 최종 block하는 OR 정책을 적용한다. 특정 모델
+SDK, Torch, Transformers나 네트워크 클라이언트에 의존하지 않는다.
 
 ## 최소 사용법
 
@@ -22,6 +22,34 @@ if result.block:
 
 기본값은 첫 block에서 평가를 중단한다. 초성 provider처럼 여러 view를 사용하는 경우 뒤쪽 모델 호출을
 생략할 수 있다. 모든 view의 관측 결과가 필요하면 `stop_on_block=False`를 지정한다.
+
+## 비동기 classifier
+
+원격 API나 async 웹 프레임워크에서는 문자열을 받아 awaitable 판정을 반환하는 classifier를
+`Gateway.evaluate_async()`에 전달한다.
+
+```python
+from k_safeguard import Gateway
+
+async def classifier(text: str) -> bool:
+    response = await guardrail_client.classify(text=text)
+    return response.blocked
+
+result = await Gateway().evaluate_async(
+    "사용자 입력",
+    classifier,
+    error_mode="block",
+)
+```
+
+비동기 API도 view 순서, OR 집계, `stop_on_block`과 `error_mode` 계약이 동기 API와 같다. view를
+동시에 호출하지 않고 순차적으로 await하므로 첫 block 조기 종료가 보장되고, 로컬 모델이나 호출량 제한이
+있는 원격 API에 갑작스러운 병렬 부하를 만들지 않는다. 여러 요청 자체의 동시성은 웹 서버나 호출자가
+관리하고, 한 요청 안의 batch 실행은 별도 후속 API로 다룬다.
+
+동기 classifier는 `evaluate()`에, async classifier는 `evaluate_async()`에 전달해야 한다. 비동기
+classifier가 반환한 `bool`과 `ClassifierResult`는 동기 API와 동일하게 정규화된다. task 취소는
+classifier 오류로 변환하지 않고 호출자에게 전파한다.
 
 ## 구조화된 판정
 
@@ -106,7 +134,7 @@ result = Gateway().evaluate("사용자 입력", adapter, error_mode="block")
 
 ## 현재 경계
 
-- 동기 callable API만 제공한다.
-- batching, 비동기 실행, retry와 circuit breaker는 호출자 또는 adapter 계층의 책임이다.
+- 동기·비동기 classifier callable API를 제공하며, candidate provider 생성은 동기 방식이다.
+- 한 요청 안의 batching, retry와 circuit breaker는 호출자 또는 adapter 계층의 책임이다.
 - 기본 Gateway는 여전히 무손실 정규화만 활성화하며 lossy provider는 명시적으로 주입해야 한다.
 - `error_mode="allow"`는 보안 경계를 약화할 수 있으므로 서비스 위협 모델에 따라 선택한다.

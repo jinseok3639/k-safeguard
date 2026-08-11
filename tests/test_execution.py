@@ -1,3 +1,4 @@
+import asyncio
 import unittest
 
 from k_safeguard import (
@@ -5,6 +6,7 @@ from k_safeguard import (
     ClassifierExecutionError,
     ClassifierResult,
     Gateway,
+    evaluate_gateway_async,
 )
 
 
@@ -177,6 +179,122 @@ class GatewayExecutionTest(unittest.TestCase):
             ClassifierResult(block=False, error="warning")
         with self.assertRaisesRegex(TypeError, "error"):
             ClassifierResult(block=None, error=3)
+
+
+class AsyncGatewayExecutionTest(unittest.IsolatedAsyncioTestCase):
+    def setUp(self) -> None:
+        self.gateway = Gateway(providers=[_ViewsProvider()])
+
+    async def test_async_classifier_preserves_order_and_stops_at_first_block(self) -> None:
+        calls = []
+
+        async def classifier(text: str) -> bool:
+            await asyncio.sleep(0)
+            calls.append(text)
+            return text.endswith("-1")
+
+        result = await self.gateway.evaluate_async("입력", classifier)
+
+        self.assertTrue(result.block)
+        self.assertEqual(result.decision_source, "classifier")
+        self.assertEqual(result.trigger_view_index, 1)
+        self.assertEqual(calls, ["입력", "입력-1"])
+        self.assertEqual(result.evaluated_view_count, 2)
+        self.assertTrue(result.stopped_early)
+
+    async def test_async_classifier_can_evaluate_all_views(self) -> None:
+        async def classifier(text: str) -> ClassifierResult:
+            return ClassifierResult(
+                block=text.endswith("-1"),
+                category="A1" if text.endswith("-1") else None,
+                metadata=(("transport", "async"),),
+            )
+
+        result = await self.gateway.evaluate_async(
+            "입력",
+            classifier,
+            stop_on_block=False,
+        )
+
+        self.assertTrue(result.block)
+        self.assertEqual(result.category, "A1")
+        self.assertEqual(result.evaluated_view_count, 3)
+        self.assertFalse(result.stopped_early)
+        self.assertEqual(
+            result.evaluations[1].result.metadata,
+            (("transport", "async"),),
+        )
+
+    async def test_async_exception_uses_same_error_policy_and_cause(self) -> None:
+        async def classifier(text: str) -> bool:
+            raise OSError("secret detail")
+
+        with self.assertRaises(ClassifierExecutionError) as caught:
+            await self.gateway.evaluate_async("입력", classifier)
+
+        self.assertEqual(caught.exception.view_index, 0)
+        self.assertEqual(caught.exception.error_type, "OSError")
+        self.assertIsInstance(caught.exception.__cause__, OSError)
+        self.assertNotIn("secret detail", str(caught.exception))
+
+    async def test_async_fail_closed_blocks_on_explicit_error(self) -> None:
+        async def classifier(text: str) -> ClassifierResult:
+            return ClassifierResult(block=None, error="timeout")
+
+        result = await self.gateway.evaluate_async(
+            "입력",
+            classifier,
+            error_mode="block",
+        )
+
+        self.assertTrue(result.block)
+        self.assertEqual(result.decision_source, "error_policy")
+        self.assertEqual(result.classifier_errors, ("view[0]:timeout",))
+        self.assertEqual(result.evaluated_view_count, 1)
+
+    async def test_async_fail_open_continues_to_later_block(self) -> None:
+        async def classifier(text: str):
+            if text == "입력":
+                return ClassifierResult(block=None, error="timeout")
+            return text.endswith("-1")
+
+        result = await self.gateway.evaluate_async(
+            "입력",
+            classifier,
+            error_mode="allow",
+        )
+
+        self.assertTrue(result.block)
+        self.assertEqual(result.decision_source, "classifier")
+        self.assertEqual(result.trigger_view_index, 1)
+        self.assertEqual(result.classifier_errors, ("view[0]:timeout",))
+
+    async def test_async_api_rejects_sync_classifier_via_error_policy(self) -> None:
+        result = await self.gateway.evaluate_async(
+            "입력",
+            lambda text: False,
+            error_mode="block",
+        )
+
+        self.assertTrue(result.block)
+        self.assertEqual(result.classifier_errors, ("view[0]:TypeError",))
+
+    async def test_async_cancellation_is_not_converted_to_classifier_error(self) -> None:
+        async def classifier(text: str) -> bool:
+            raise asyncio.CancelledError
+
+        with self.assertRaises(asyncio.CancelledError):
+            await self.gateway.evaluate_async("입력", classifier, error_mode="block")
+
+    async def test_low_level_async_function_is_public(self) -> None:
+        async def classifier(text: str) -> bool:
+            return False
+
+        gateway_result = self.gateway.process("입력")
+        result = await evaluate_gateway_async(gateway_result, classifier)
+
+        self.assertFalse(result.block)
+        self.assertEqual(result.evaluated_view_count, 3)
 
 
 if __name__ == "__main__":

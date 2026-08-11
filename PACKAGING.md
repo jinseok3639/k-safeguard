@@ -54,6 +54,16 @@ decision = Gateway().evaluate(
 )
 ```
 
+원격 async client는 같은 정책을 유지하는 비동기 API에 직접 연결할 수 있다.
+
+```python
+async def classifier(text: str) -> bool:
+    response = await external_guardrail.classify(text)
+    return response.blocked
+
+decision = await Gateway().evaluate_async("사용자 입력", classifier)
+```
+
 classifier 오류 기본 정책은 `raise`다. fail-closed가 필요하면 `error_mode="block"`, 별도 장애 격리가
 있는 환경에서만 `error_mode="allow"`를 명시한다. 전체 계약과 trace 스키마는
 [실행·집계 API 문서](./EXECUTION.md)를 참고한다.
@@ -84,6 +94,7 @@ CPU-only 환경은 core만 설치하고, GPU 사용자는 자신에게 맞는 pr
 ```text
 src/k_safeguard/
 ├── __init__.py
+├── execution.py
 ├── normalization.py
 ├── chosung.py
 ├── gateway.py

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
-from typing import Callable, Literal, TypeAlias
+from dataclasses import dataclass, field
+from typing import Awaitable, Callable, Literal, TypeAlias
 
 from .gateway import GatewayResult, Metadata, TextView
 
@@ -36,6 +36,7 @@ class ClassifierResult:
 
 ClassifierOutput: TypeAlias = bool | ClassifierResult
 GuardrailClassifier: TypeAlias = Callable[[str], ClassifierOutput]
+AsyncGuardrailClassifier: TypeAlias = Callable[[str], Awaitable[ClassifierOutput]]
 
 
 @dataclass(frozen=True)
@@ -85,6 +86,82 @@ def _normalize_output(output: ClassifierOutput) -> ClassifierResult:
     raise TypeError("classifier는 bool 또는 ClassifierResult를 반환해야 합니다.")
 
 
+def _validate_execution_options(
+    classifier: object,
+    error_mode: ClassifierErrorMode,
+    stop_on_block: bool,
+) -> None:
+    if error_mode not in {"raise", "block", "allow"}:
+        raise ValueError("error_mode는 raise, block, allow 중 하나여야 합니다.")
+    if not callable(classifier):
+        raise TypeError("classifier는 호출 가능해야 합니다.")
+    if not isinstance(stop_on_block, bool):
+        raise TypeError("stop_on_block은 bool이어야 합니다.")
+
+
+@dataclass
+class _EvaluationAccumulator:
+    """동기·비동기 실행 경로가 공유하는 판정 정책 상태."""
+
+    gateway_result: GatewayResult
+    error_mode: ClassifierErrorMode
+    stop_on_block: bool
+    evaluations: list[ViewEvaluation] = field(default_factory=list)
+    classifier_errors: list[str] = field(default_factory=list)
+    blocked: bool = False
+    category: str | None = None
+    decision_source: Literal["classifier", "error_policy", "no_block"] = "no_block"
+    trigger_view_index: int | None = None
+
+    def record(
+        self,
+        index: int,
+        view: TextView,
+        result: ClassifierResult,
+        latency_ms: float,
+        cause: Exception | None,
+    ) -> bool:
+        """하나의 판정을 기록하고 남은 view 평가 중단 여부를 반환한다."""
+        self.evaluations.append(ViewEvaluation(index, view, result, latency_ms))
+
+        if result.error is not None:
+            error_type = result.error
+            self.classifier_errors.append(f"view[{index}]:{error_type}")
+            if self.error_mode == "raise":
+                error = ClassifierExecutionError(index, error_type)
+                if cause is not None:
+                    raise error from cause
+                raise error
+            if self.error_mode == "block":
+                if not self.blocked:
+                    self.blocked = True
+                    self.decision_source = "error_policy"
+                    self.trigger_view_index = index
+                return self.stop_on_block
+            return False
+
+        if result.block:
+            if not self.blocked:
+                self.category = result.category
+                self.decision_source = "classifier"
+                self.trigger_view_index = index
+            self.blocked = True
+            return self.stop_on_block
+        return False
+
+    def finish(self) -> GatewayEvaluation:
+        return GatewayEvaluation(
+            gateway=self.gateway_result,
+            block=self.blocked,
+            category=self.category,
+            evaluations=tuple(self.evaluations),
+            classifier_errors=tuple(self.classifier_errors),
+            decision_source=self.decision_source,
+            trigger_view_index=self.trigger_view_index,
+            stopped_early=len(self.evaluations) < len(self.gateway_result.views),
+        )
+
+
 def evaluate_gateway(
     gateway_result: GatewayResult,
     classifier: GuardrailClassifier,
@@ -93,19 +170,8 @@ def evaluate_gateway(
     stop_on_block: bool = True,
 ) -> GatewayEvaluation:
     """정렬된 Gateway view를 판정하고 OR 정책으로 최종 block을 계산한다."""
-    if error_mode not in {"raise", "block", "allow"}:
-        raise ValueError("error_mode는 raise, block, allow 중 하나여야 합니다.")
-    if not callable(classifier):
-        raise TypeError("classifier는 호출 가능해야 합니다.")
-    if not isinstance(stop_on_block, bool):
-        raise TypeError("stop_on_block은 bool이어야 합니다.")
-
-    evaluations: list[ViewEvaluation] = []
-    classifier_errors: list[str] = []
-    blocked = False
-    category: str | None = None
-    decision_source: Literal["classifier", "error_policy", "no_block"] = "no_block"
-    trigger_view_index: int | None = None
+    _validate_execution_options(classifier, error_mode, stop_on_block)
+    accumulator = _EvaluationAccumulator(gateway_result, error_mode, stop_on_block)
 
     for index, view in enumerate(gateway_result.views):
         started = time.perf_counter()
@@ -119,47 +185,43 @@ def evaluate_gateway(
                 error=f"{type(exc).__name__}",
             )
         latency_ms = (time.perf_counter() - started) * 1000
-        evaluations.append(ViewEvaluation(index, view, result, latency_ms))
+        if accumulator.record(index, view, result, latency_ms, cause):
+            break
 
-        if result.error is not None:
-            error_type = result.error
-            classifier_errors.append(f"view[{index}]:{error_type}")
-            if error_mode == "raise":
-                error = ClassifierExecutionError(index, error_type)
-                if cause is not None:
-                    raise error from cause
-                raise error
-            if error_mode == "block":
-                if not blocked:
-                    blocked = True
-                    decision_source = "error_policy"
-                    trigger_view_index = index
-                if stop_on_block:
-                    break
-            continue
+    return accumulator.finish()
 
-        if result.block:
-            if not blocked:
-                category = result.category
-                decision_source = "classifier"
-                trigger_view_index = index
-            blocked = True
-            if stop_on_block:
-                break
 
-    return GatewayEvaluation(
-        gateway=gateway_result,
-        block=blocked,
-        category=category,
-        evaluations=tuple(evaluations),
-        classifier_errors=tuple(classifier_errors),
-        decision_source=decision_source,
-        trigger_view_index=trigger_view_index,
-        stopped_early=len(evaluations) < len(gateway_result.views),
-    )
+async def evaluate_gateway_async(
+    gateway_result: GatewayResult,
+    classifier: AsyncGuardrailClassifier,
+    *,
+    error_mode: ClassifierErrorMode = "raise",
+    stop_on_block: bool = True,
+) -> GatewayEvaluation:
+    """async classifier로 view를 순차 판정하고 동기 API와 같은 정책을 적용한다."""
+    _validate_execution_options(classifier, error_mode, stop_on_block)
+    accumulator = _EvaluationAccumulator(gateway_result, error_mode, stop_on_block)
+
+    for index, view in enumerate(gateway_result.views):
+        started = time.perf_counter()
+        cause: Exception | None = None
+        try:
+            result = _normalize_output(await classifier(view.text))
+        except Exception as exc:
+            cause = exc
+            result = ClassifierResult(
+                block=None,
+                error=f"{type(exc).__name__}",
+            )
+        latency_ms = (time.perf_counter() - started) * 1000
+        if accumulator.record(index, view, result, latency_ms, cause):
+            break
+
+    return accumulator.finish()
 
 
 __all__ = [
+    "AsyncGuardrailClassifier",
     "ClassifierErrorMode",
     "ClassifierExecutionError",
     "ClassifierOutput",
@@ -168,4 +230,5 @@ __all__ = [
     "GuardrailClassifier",
     "ViewEvaluation",
     "evaluate_gateway",
+    "evaluate_gateway_async",
 ]

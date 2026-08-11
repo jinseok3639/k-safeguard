@@ -20,6 +20,7 @@ from .gateway import (
     TextView,
 )
 from .execution import (
+    AsyncGuardrailClassifier,
     ClassifierErrorMode,
     ClassifierExecutionError,
     ClassifierOutput,
@@ -28,6 +29,7 @@ from .execution import (
     GuardrailClassifier,
     ViewEvaluation,
     evaluate_gateway,
+    evaluate_gateway_async,
 )
 from .normalization import (
     NORMALIZER_VERSION,
@@ -45,6 +47,7 @@ __all__ = [
     "NORMALIZER_VERSION",
     "CandidateProposal",
     "CandidateProvider",
+    "AsyncGuardrailClassifier",
     "ClassifierErrorMode",
     "ClassifierExecutionError",
     "ClassifierOutput",
@@ -66,6 +69,7 @@ __all__ = [
     "chosung_signature",
     "expand_korean_noun_particles",
     "evaluate_gateway",
+    "evaluate_gateway_async",
     "generate_chosung_candidates",
     "normalize_korean",
 ]

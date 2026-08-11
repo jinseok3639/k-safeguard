@@ -10,6 +10,7 @@ from .normalization import NormalizationResult, normalize_korean
 
 if TYPE_CHECKING:
     from .execution import (
+        AsyncGuardrailClassifier,
         ClassifierErrorMode,
         GatewayEvaluation,
         GuardrailClassifier,
@@ -165,6 +166,24 @@ class Gateway:
         from .execution import evaluate_gateway
 
         return evaluate_gateway(
+            self.process(text),
+            classifier,
+            error_mode=error_mode,
+            stop_on_block=stop_on_block,
+        )
+
+    async def evaluate_async(
+        self,
+        text: str,
+        classifier: AsyncGuardrailClassifier,
+        *,
+        error_mode: ClassifierErrorMode = "raise",
+        stop_on_block: bool = True,
+    ) -> GatewayEvaluation:
+        """생성한 view를 async classifier로 순차 판정하고 trace를 반환한다."""
+        from .execution import evaluate_gateway_async
+
+        return await evaluate_gateway_async(
             self.process(text),
             classifier,
             error_mode=error_mode,
