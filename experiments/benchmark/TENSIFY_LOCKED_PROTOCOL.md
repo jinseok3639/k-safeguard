@@ -4,7 +4,8 @@
 
 이 프로토콜은 개발 시드에서 선택한 `ratio_0.10` activation이 독립 한국어 시드에서도
 `all`과 같은 회복력을 유지하면서 정상 입력 비용을 줄이는지 한 번만 확인한다. 현재 상태는
-`SOURCE_SELECTION_FROZEN / REVIEW_PENDING`이다. 모델 예측은 아직 실행하지 않았다.
+`SOURCE_SELECTION_FROZEN / READY_TO_SEAL`이다. 2026-08-11 사람 검수를 완료했으며 모델 예측은
+아직 실행하지 않았다.
 
 사람 검수가 끝나기 전에는 `validate_tensify_locked_set.py`가 seal 생성을 거부하고,
 `run_tensify_locked_evaluation.py`도 seal·데이터·정책 해시가 모두 맞지 않으면 모델을 로드하지 않는다.
@@ -22,8 +23,9 @@
 원천 후보와 순서는
 `baselines/tensify_locked_source_selection_v1.json`, 번역 후보는
 `data/tensify_locked_candidates_v1.csv`에 고정했다. 원천 문장은 공개 데이터 provenance와 SHA-256으로
-결합하며, 검수자가 영어 원문과 한국어 번역을 한 행에서 대조할 수 있게 둘 다 저장한다. 번역은 아직
-`team_review_needed`이며 이 파일의 내용 변경은 seal 전에만 허용한다.
+결합하며, 검수자가 영어 원문과 한국어 번역을 한 행에서 대조할 수 있게 둘 다 저장한다. 검수 완료
+상태와 전후 hash는 `baselines/tensify_human_review_v1.json`에 기록했다. 이후 내용 변경은 seal 전에만
+허용한다.
 
 ## 사람 검수 체크리스트
 

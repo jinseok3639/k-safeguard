@@ -1,3 +1,5 @@
+import csv
+import hashlib
 import json
 import tempfile
 import unittest
@@ -20,6 +22,18 @@ from experiments.benchmark.run_tensify_benign_dev_evaluation import (
     summarize_transitions,
 )
 from experiments.benchmark.run_clean_baseline import sha256_file
+
+
+def payload_sha256(path: Path) -> str:
+    with path.open(encoding="utf-8-sig", newline="") as stream:
+        rows = [
+            {key: value for key, value in row.items() if key != "review_status"}
+            for row in csv.DictReader(stream)
+        ]
+    payload = json.dumps(
+        rows, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
 
 
 def adapter_result(block: bool) -> AdapterResult:
@@ -61,7 +75,7 @@ class TensifyBenignDevEvaluationTest(unittest.TestCase):
             "mixed_format": 16,
             "technical_meta": 16,
         })
-        self.assertEqual(profile["review_statuses"], {"team_review_needed": 64})
+        self.assertEqual(profile["review_statuses"], {"selected": 64})
         self.assertGreater(profile["ratio_bands"].get("below_0.10", 0), 0)
         self.assertGreater(profile["ratio_bands"].get("at_or_above_0.10", 0), 0)
 
@@ -164,12 +178,28 @@ class TensifyBenignDevEvaluationTest(unittest.TestCase):
 
     def test_repository_baseline_matches_dataset_and_expected_result(self) -> None:
         baseline = json.loads(DEFAULT_BASELINE.read_text(encoding="utf-8"))
+        review = json.loads(
+            (
+                DEFAULT_BASELINE.parent / "tensify_human_review_v1.json"
+            ).read_text(encoding="utf-8")
+        )
         metrics = baseline["policy_metrics"]
 
         self.assertEqual(baseline["status"], "PROVISIONAL_DEV_ONLY")
         self.assertFalse(baseline["provenance"]["git"]["dirty"])
         self.assertEqual(
-            baseline["provenance"]["input"]["sha256"], sha256_file(DEFAULT_INPUT)
+            baseline["provenance"]["input"]["sha256"],
+            review["datasets"]["benign_dev"]["before_review_sha256"],
+        )
+        self.assertEqual(
+            review["datasets"]["benign_dev"]["after_review_sha256"],
+            sha256_file(DEFAULT_INPUT),
+        )
+        self.assertEqual(
+            review["datasets"]["benign_dev"][
+                "payload_without_review_status_sha256"
+            ],
+            payload_sha256(DEFAULT_INPUT),
         )
         self.assertEqual(
             metrics["raw"]["metrics"]["fpr"]["seed_balanced_estimate"], 9 / 64
