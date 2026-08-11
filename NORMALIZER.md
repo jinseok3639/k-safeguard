@@ -23,6 +23,8 @@
 - 일반 영문·숫자 사이의 zero-width 문자
 
 초성체의 opt-in 다중 후보 생성기는 [`CHOSUNG_CANDIDATES.md`](./CHOSUNG_CANDIDATES.md)를 참고한다.
+된소리화의 opt-in bounded 역변형 후보는
+[`TENSIFY_CANDIDATES.md`](./experiments/benchmark/TENSIFY_CANDIDATES.md)를 참고한다.
 기본 `normalize_korean()`에는 연결하지 않아 무손실 동작과 clean mutation 0% 경계를 유지한다.
 
 ## 사용법
