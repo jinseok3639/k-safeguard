@@ -95,6 +95,30 @@ Kanana 8B의 BF16 가중치는 16GB VRAM에 여유 있게 전부 올라가지 �
 
 이 PC에서 확인한 설치 revision과 smoke test 결과는 [VERIFICATION.md](./VERIFICATION.md)에 남겼다.
 
+## Gateway 연결 확인
+
+`KananaPromptAdapter`는 `Gateway.evaluate()`의 callable 계약을 구현한다. 따라서 모델별 출력 해석,
+원문·정규화 view 실행, OR 집계와 오류 정책을 한 경로에서 확인할 수 있다.
+
+```powershell
+. .\experiments\guardrail\enter-env.ps1
+python -m experiments.guardrail.run_gateway "주말에 읽을 만한 한국 소설을 추천해 줘."
+```
+
+자모가 분리된 입력은 원문과 무손실 정규화문을 별도 view로 평가한다. 첫 block 뒤에도 전체 trace가
+필요하면 `--all-views`를 사용한다.
+
+```powershell
+python -m experiments.guardrail.run_gateway "ㅇㅏㄴㄴㅕㅇ" --all-views
+```
+
+출력 JSON에는 최종 `block`, `category`, 최초 trigger와 각 view의 모델 revision, token hash,
+모델·전체 호출 지연시간이 포함된다. classifier 장애를 차단으로 취급하려면
+`--error-mode block`을 명시한다. CLI 종료 코드는 허용 0, 차단 1, classifier 오류 2다.
+
+이 adapter는 로컬 실험·재현을 위한 것으로 wheel에 Torch나 Transformers 의존성을 추가하지 않는다.
+일반 사용자는 자신의 모델 또는 API 호출부를 동일한 callable 계약으로 연결할 수 있다.
+
 ## 재현성 체크
 
 - `models.json`의 revision을 임의로 `main`으로 바꾸지 않는다.

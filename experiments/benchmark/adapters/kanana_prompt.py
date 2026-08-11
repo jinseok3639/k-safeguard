@@ -7,6 +7,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from k_safeguard import ClassifierResult
+
 
 SAFE_TOKEN = "<SAFE>"
 UNSAFE_TOKENS = {
@@ -28,6 +30,33 @@ class AdapterResult:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+def to_classifier_result(
+    result: AdapterResult,
+    *,
+    model_id: str,
+    revision: str,
+) -> ClassifierResult:
+    """벤치마크용 상세 결과를 Gateway classifier 계약으로 변환한다."""
+    metadata = (
+        ("model_id", model_id),
+        ("revision", revision),
+        ("raw_output", result.raw_output),
+        ("model_latency_ms", f"{result.latency_ms:.6f}"),
+        ("input_token_count", str(result.input_token_count)),
+        ("tokenized_input_sha256", result.tokenized_input_sha256),
+        (
+            "generated_token_id",
+            "" if result.generated_token_id is None else str(result.generated_token_id),
+        ),
+    )
+    return ClassifierResult(
+        block=result.block,
+        category=result.category,
+        error=result.error_type,
+        metadata=metadata,
+    )
 
 
 def parse_kanana_prompt_output(raw_output: str) -> tuple[bool | None, str | None, str | None]:
@@ -162,4 +191,12 @@ class KananaPromptAdapter:
             input_token_count=len(token_ids),
             tokenized_input_sha256=tokenized_hash,
             generated_token_id=generated_token_id,
+        )
+
+    def __call__(self, text: str) -> ClassifierResult:
+        """Gateway.evaluate()에서 사용할 classifier callable 계약을 구현한다."""
+        return to_classifier_result(
+            self.classify(text),
+            model_id=self.model_id,
+            revision=self.revision,
         )
