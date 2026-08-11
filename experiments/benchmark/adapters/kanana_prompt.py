@@ -5,7 +5,7 @@ import json
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from k_safeguard import ClassifierResult
 
@@ -114,6 +114,7 @@ class KananaPromptAdapter:
             self.model_path,
             local_files_only=True,
         )
+        self.tokenizer.padding_side = "left"
         self.model = transformers.AutoModelForCausalLM.from_pretrained(
             self.model_path,
             local_files_only=True,
@@ -143,6 +144,7 @@ class KananaPromptAdapter:
             "cuda_available": torch.cuda.is_available(),
             "gpu_name": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
             "chat_template_sha256": self.chat_template_sha256,
+            "padding_side": self.tokenizer.padding_side,
             "messages_template": [{"role": "user", "content": "{text}"}],
             "decision_rule": {
                 "generated_tokens": 1,
@@ -152,22 +154,44 @@ class KananaPromptAdapter:
             },
         }
 
-    def classify(self, text: str) -> AdapterResult:
+    def classify_batch(self, texts: Sequence[str]) -> tuple[AdapterResult, ...]:
+        """여러 prompt를 왼쪽 padding해 한 번의 generate 호출로 판정한다."""
+        if isinstance(texts, (str, bytes)):
+            raise TypeError("texts는 문자열이 아닌 문자열 sequence여야 합니다.")
+        text_batch = tuple(texts)
+        if any(not isinstance(text, str) for text in text_batch):
+            raise TypeError("batch의 모든 입력은 str이어야 합니다.")
+        if not text_batch:
+            return ()
+
         torch = self._torch
         started = time.perf_counter()
-        messages = [{"role": "user", "content": text}]
-        input_ids = self.tokenizer.apply_chat_template(
-            messages,
+        conversations = [
+            [{"role": "user", "content": text}]
+            for text in text_batch
+        ]
+        encoded = self.tokenizer.apply_chat_template(
+            conversations,
             tokenize=True,
             return_tensors="pt",
+            padding=True,
+            return_dict=True,
         )
-        token_ids = [int(token) for token in input_ids[0].tolist()]
-        tokenized_hash = hash_token_ids(token_ids)
+        input_ids = encoded["input_ids"]
+        attention_mask = encoded["attention_mask"]
+        token_ids_by_row = [
+            [
+                int(token)
+                for token, included in zip(row.tolist(), mask.tolist())
+                if included
+            ]
+            for row, mask in zip(input_ids, attention_mask)
+        ]
         input_ids = input_ids.to(self.input_device)
+        attention_mask = attention_mask.to(self.input_device)
         pad_token_id = self.tokenizer.pad_token_id
         if pad_token_id is None:
             pad_token_id = self.tokenizer.eos_token_id
-        attention_mask = (input_ids != pad_token_id).long()
 
         with torch.inference_mode():
             output_ids = self.model.generate(
@@ -175,22 +199,51 @@ class KananaPromptAdapter:
                 attention_mask=attention_mask,
                 do_sample=False,
                 max_new_tokens=1,
-                pad_token_id=self.tokenizer.eos_token_id,
+                pad_token_id=pad_token_id,
             )
 
-        generated_token_id = int(output_ids[0][input_ids.shape[-1]].item())
-        raw_output = self.tokenizer.decode(generated_token_id, skip_special_tokens=True)
-        block, category, error_type = parse_kanana_prompt_output(raw_output)
+        input_width = input_ids.shape[-1]
+        generated_token_ids = [
+            int(output_ids[index][input_width].item())
+            for index in range(len(text_batch))
+        ]
         latency_ms = (time.perf_counter() - started) * 1000
-        return AdapterResult(
-            block=block,
-            category=category,
-            raw_output=raw_output,
-            error_type=error_type,
-            latency_ms=latency_ms,
-            input_token_count=len(token_ids),
-            tokenized_input_sha256=tokenized_hash,
-            generated_token_id=generated_token_id,
+        results: list[AdapterResult] = []
+        for token_ids, generated_token_id in zip(
+            token_ids_by_row,
+            generated_token_ids,
+        ):
+            raw_output = self.tokenizer.decode(
+                generated_token_id,
+                skip_special_tokens=True,
+            )
+            block, category, error_type = parse_kanana_prompt_output(raw_output)
+            results.append(
+                AdapterResult(
+                    block=block,
+                    category=category,
+                    raw_output=raw_output,
+                    error_type=error_type,
+                    latency_ms=latency_ms,
+                    input_token_count=len(token_ids),
+                    tokenized_input_sha256=hash_token_ids(token_ids),
+                    generated_token_id=generated_token_id,
+                )
+            )
+        return tuple(results)
+
+    def classify(self, text: str) -> AdapterResult:
+        return self.classify_batch((text,))[0]
+
+    def batch(self, texts: tuple[str, ...]) -> tuple[ClassifierResult, ...]:
+        """Gateway.evaluate_batch()에서 사용할 batch classifier 계약."""
+        return tuple(
+            to_classifier_result(
+                result,
+                model_id=self.model_id,
+                revision=self.revision,
+            )
+            for result in self.classify_batch(texts)
         )
 
     def __call__(self, text: str) -> ClassifierResult:

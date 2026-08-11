@@ -36,6 +36,17 @@ view, 모델 출력·오류 trace를 기록한다. 기본 variant는 기존 full
 회복 fixture에서 전체 관측 20회와 조기 종료 4회를 비교하며, 호출 절감은 classifier 추론에만
 해당하고 평균 성능 수치로 사용하지 않는다.
 
+동일한 20개 view를 단일 호출과 bounded batch로 판정한 처리량·지연시간·VRAM 비교는
+[Kanana Prompt batch 추론 진단](./KANANA_BATCH_BENCHMARK.md)을 참고한다. 실제 모델에서 batch
+2·4·10의 판정·생성 token·token hash parity를 확인하고 조건별 7회 중앙값을 기록했다.
+
+```powershell
+.\.venv-experiment\Scripts\python `
+  -m experiments.benchmark.run_kanana_batch_benchmark `
+  --run-id <unique-run-id> `
+  --require-parity
+```
+
 ```powershell
 .\.venv-experiment\Scripts\python `
   -m experiments.benchmark.run_chosung_guardrail_evaluation `

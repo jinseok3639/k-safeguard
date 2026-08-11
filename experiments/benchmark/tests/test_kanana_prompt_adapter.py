@@ -93,6 +93,65 @@ class ParseKananaPromptOutputTest(unittest.TestCase):
         self.assertTrue(result.block)
         self.assertEqual(result.category, "A1")
 
+    def test_adapter_batch_callable_converts_results_in_order(self) -> None:
+        adapter = object.__new__(KananaPromptAdapter)
+        adapter.model_id = "model"
+        adapter.revision = "revision"
+
+        def classify_batch(texts):
+            return tuple(
+                AdapterResult(
+                    block=text == "차단",
+                    category="A1" if text == "차단" else None,
+                    raw_output="<UNSAFE-A1>" if text == "차단" else "<SAFE>",
+                    error_type=None,
+                    latency_ms=2.0,
+                    input_token_count=index + 1,
+                    tokenized_input_sha256=f"hash-{index}",
+                    generated_token_id=index,
+                )
+                for index, text in enumerate(texts)
+            )
+
+        adapter.classify_batch = classify_batch
+        results = adapter.batch(("허용", "차단"))
+
+        self.assertEqual([result.block for result in results], [False, True])
+        self.assertEqual(results[1].category, "A1")
+        self.assertIn(("input_token_count", "2"), results[1].metadata)
+
+    def test_classify_delegates_to_one_item_batch(self) -> None:
+        adapter = object.__new__(KananaPromptAdapter)
+        expected = AdapterResult(
+            block=False,
+            category=None,
+            raw_output="<SAFE>",
+            error_type=None,
+            latency_ms=1.0,
+            input_token_count=1,
+            tokenized_input_sha256="hash",
+            generated_token_id=1,
+        )
+        calls = []
+
+        def classify_batch(texts):
+            calls.append(texts)
+            return (expected,)
+
+        adapter.classify_batch = classify_batch
+
+        self.assertIs(adapter.classify("입력"), expected)
+        self.assertEqual(calls, [("입력",)])
+
+    def test_batch_input_rejects_string_and_non_string_item(self) -> None:
+        adapter = object.__new__(KananaPromptAdapter)
+
+        with self.assertRaisesRegex(TypeError, "sequence"):
+            adapter.classify_batch("입력")
+        with self.assertRaisesRegex(TypeError, "str"):
+            adapter.classify_batch(("입력", 3))
+        self.assertEqual(adapter.classify_batch(()), ())
+
 
 if __name__ == "__main__":
     unittest.main()
