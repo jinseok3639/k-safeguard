@@ -66,9 +66,13 @@ def freeze_result(result_dir: Path) -> dict[str, Any]:
     model.pop("model_path", None)
     if not ARCHIVED_SEAL.exists():
         raise ValueError("추적 가능한 archived seal이 없습니다.")
-    archived_seal_sha = sha256_file(ARCHIVED_SEAL)
-    if archived_seal_sha != manifest["seal"]["sha256"]:
-        raise ValueError("실행 seal과 archived seal의 SHA-256이 다릅니다.")
+    execution_seal = Path(manifest["seal"]["path"])
+    if not execution_seal.exists():
+        raise ValueError("manifest가 가리키는 실행 seal이 없습니다.")
+    archived_seal = json.loads(ARCHIVED_SEAL.read_text(encoding="utf-8"))
+    executed_seal = json.loads(execution_seal.read_text(encoding="utf-8"))
+    if archived_seal != executed_seal:
+        raise ValueError("실행 seal과 archived seal의 JSON 내용이 다릅니다.")
     return {
         "schema_version": 1,
         "status": summary["status"],
