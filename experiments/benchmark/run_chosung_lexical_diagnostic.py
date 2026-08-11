@@ -10,12 +10,12 @@ from typing import Any
 
 from experiments.benchmark.run_clean_baseline import sha256_file
 from experiments.benchmark.run_normalizer_evaluation import DEFAULT_INPUT, load_benchmark
-from ko_chosung import (
+from k_safeguard.chosung import (
     CHOSUNG_CANDIDATE_VERSION,
     ChosungLexicon,
     generate_chosung_candidates,
 )
-from ko_normalizer import normalize_korean
+from k_safeguard.normalization import normalize_korean
 
 
 @dataclass(frozen=True)

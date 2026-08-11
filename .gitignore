@@ -1,5 +1,7 @@
 .venv-experiment/
 .venv-report/
+.venv-package/
+.venv-wheel-test/
 __pycache__/
 *.py[cod]
 experiments/guardrail/results/
@@ -7,3 +9,9 @@ experiments/benchmark/results/
 
 # 로컬 분석 자료: 참조 노트북 원본은 저장소에 포함하지 않는다.
 /참조용/**/*.ipynb
+
+# Python package build artifacts
+/build/
+/dist/
+/src/*.egg-info/
+/src/**/*.egg-info/

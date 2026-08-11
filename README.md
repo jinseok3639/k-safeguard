@@ -4,8 +4,38 @@
 
 팀 **온돌** · 2026 오픈소스 SW 개발대회 · 자유과제(보안·안전) 트랙
 
-> 현재 저장소에는 505개 시드 기반 벤치마크·난독화 생성기와 무손실 정규화 MVP가 구현되어 있다.
-> 문맥형 복원과 가드레일 E0/E1/E2/E3 평가는 다음 단계다.
+> 현재 저장소에는 505개 시드 기반 벤치마크·난독화 생성기, 무손실 정규화 MVP,
+> E0/E1/E2/E3 평가와 pip 패키징 MVP가 구현되어 있다.
+
+---
+
+## 설치
+
+PyPI 첫 배포 전에는 저장소 checkout에서 설치한다.
+
+```bash
+python -m pip install .
+```
+
+기본 설치에는 외부 런타임 의존성, Torch, Transformers와 모델 가중치가 없다.
+
+```python
+from k_safeguard import Gateway
+
+result = Gateway().process("ㅇㅏㄴㄴㅕㅇ")
+
+assert result.normalized == "안녕"
+assert result.has_lossy_views is False
+```
+
+실험적인 `wordfreq` 초성 후보 provider가 필요한 경우에만 extra를 설치한다.
+
+```bash
+python -m pip install ".[wordfreq]"
+```
+
+초성 후보는 정보 손실이 있어 기본 Gateway에 자동 연결되지 않는다. 패키지 구조, provider 경계와
+배포 검증 방법은 [패키징 문서](./PACKAGING.md)를 참고한다.
 
 ---
 
@@ -95,6 +125,7 @@
 - [x] 시드 확장 — 공격·benign hard-negative 505개, 파생 벤치마크 5,555행
 - [x] [로컬 가드레일 실험 환경](./experiments/guardrail/README.md) — 고정 revision 모델 3종, CUDA 격리 환경, 오프라인 smoke test
 - [x] 초성체 blind 복원 진단 — 일반 빈도 사전 후보만으로는 coverage가 낮아 기본 활성화 보류
+- [x] pip 패키징 MVP — 무의존 core, Gateway API, opt-in provider와 wheel 빌드 구성
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)
 - [ ] [정규화 하드닝 미들웨어](./NORMALIZER.md) — 자모·ZWSP 무손실 MVP 완료, 문맥형 복원·평가 연결 남음
 - [ ] 벤치마크·평가 하네스 코드화 (`kanana_test_suite.py`)

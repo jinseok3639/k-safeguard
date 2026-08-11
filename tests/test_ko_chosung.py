@@ -1,6 +1,10 @@
 import unittest
 
-from ko_chosung import ChosungLexicon, chosung_signature, generate_chosung_candidates
+from k_safeguard.chosung import (
+    ChosungLexicon,
+    chosung_signature,
+    generate_chosung_candidates,
+)
 
 
 class ChosungSignatureTest(unittest.TestCase):

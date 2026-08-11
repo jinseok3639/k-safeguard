@@ -1,7 +1,7 @@
 import unittest
 
 from hf_repo.ko_obfuscator import BASE, CHO, JONG, JUNG
-from ko_normalizer import (
+from k_safeguard.normalization import (
     COMPAT_CHO,
     COMPAT_JONG,
     COMPAT_JUNG,

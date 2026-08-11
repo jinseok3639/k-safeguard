@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "k-safeguard"
+version = "0.1.0"
+description = "Lightweight Korean text-normalization gateway for existing LLM guardrails"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+  { name = "Team Ondol" },
+]
+keywords = [
+  "korean",
+  "hangul",
+  "llm",
+  "guardrail",
+  "normalization",
+  "prompt-injection",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Security",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.optional-dependencies]
+wordfreq = ["wordfreq==3.1.1"]
+
+[project.urls]
+Homepage = "https://github.com/jinseok3639/k-safeguard"
+Repository = "https://github.com/jinseok3639/k-safeguard"
+Issues = "https://github.com/jinseok3639/k-safeguard/issues"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+k_safeguard = ["py.typed"]

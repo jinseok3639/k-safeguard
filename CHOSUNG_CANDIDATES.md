@@ -23,7 +23,7 @@ view를 함께 제공한다.
 ## API
 
 ```python
-from ko_chosung import ChosungLexicon, generate_chosung_candidates
+from k_safeguard import ChosungLexicon, generate_chosung_candidates
 
 lexicon = ChosungLexicon(["시스템", "산사태", "설정을", "설정은"])
 result = generate_chosung_candidates("ㅅㅅㅌ 점검", lexicon)

@@ -5,7 +5,7 @@ from experiments.benchmark.run_chosung_lexical_diagnostic import (
     observe_row,
     summarize,
 )
-from ko_chosung import ChosungLexicon
+from k_safeguard.chosung import ChosungLexicon
 
 
 class ChosungDiagnosticTest(unittest.TestCase):
