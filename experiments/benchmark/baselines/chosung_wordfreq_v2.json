@@ -1,0 +1,563 @@
+{
+  "status": "PROVISIONAL_DEV_ONLY",
+  "validity_reasons": [
+    "현재 공개 benchmark는 locked test로 재사용할 수 없음",
+    "문맥 순위화·semantic fidelity·가드레일 판정을 측정하지 않음",
+    "어휘 coverage 진단이며 방어 성능 주장을 지원하지 않음"
+  ],
+  "input": {
+    "path": "hf_repo/benchmark.jsonl",
+    "sha256": "fbf9f978996c103b8d5625e55936e536610fbceb2a43dc2f53c1271423873b0b",
+    "rows": 1010,
+    "independent_seeds": 505
+  },
+  "candidate_generator": {
+    "version": "0.2.0",
+    "lexicon": "wordfreq:ko",
+    "wordfreq_version": "3.1.1",
+    "word_limit": 30000,
+    "indexed_words": 25360,
+    "source_counts": {
+      "wordfreq:ko": 25360
+    },
+    "priority_lexicon": null,
+    "min_initials": 3,
+    "max_options_per_span": 3,
+    "max_candidates": 16
+  },
+  "metrics": {
+    "overall": {
+      "rows": 1010,
+      "candidate_generation_rate": 0.7059405940594059,
+      "exact_hit_rate": 0.0,
+      "top1_exact_rate": 0.0,
+      "mean_best_initial_recall": 0.09404012166443688,
+      "mean_candidate_count": 6.984158415841584,
+      "truncated_rate": 0.5801980198019802
+    },
+    "label:attack": {
+      "rows": 602,
+      "candidate_generation_rate": 0.6877076411960132,
+      "exact_hit_rate": 0.0,
+      "top1_exact_rate": 0.0,
+      "mean_best_initial_recall": 0.07668147863324438,
+      "mean_candidate_count": 6.953488372093023,
+      "truncated_rate": 0.5830564784053156
+    },
+    "label:benign": {
+      "rows": 408,
+      "candidate_generation_rate": 0.7328431372549019,
+      "exact_hit_rate": 0.0,
+      "top1_exact_rate": 0.0,
+      "mean_best_initial_recall": 0.1196526292741866,
+      "mean_candidate_count": 7.029411764705882,
+      "truncated_rate": 0.5759803921568627
+    },
+    "intensity:0.5": {
+      "rows": 505,
+      "candidate_generation_rate": 0.42376237623762375,
+      "exact_hit_rate": 0.0,
+      "top1_exact_rate": 0.0,
+      "mean_best_initial_recall": 0.04638980797511589,
+      "mean_candidate_count": 1.2415841584158416,
+      "truncated_rate": 0.30495049504950494
+    },
+    "intensity:1": {
+      "rows": 505,
+      "candidate_generation_rate": 0.9881188118811881,
+      "exact_hit_rate": 0.0,
+      "top1_exact_rate": 0.0,
+      "mean_best_initial_recall": 0.1416904353537579,
+      "mean_candidate_count": 12.726732673267326,
+      "truncated_rate": 0.8554455445544554
+    }
+  },
+  "error_analysis": {
+    "taxonomy_version": "chosung-error-v1",
+    "definitions": {
+      "candidate_not_generated": "복원 후보가 하나도 생성되지 않음",
+      "over_restoration": "후보는 생성됐지만 정답 초성 위치를 하나도 복원하지 못함; 실제 FPR이 아닌 합성 데이터 proxy",
+      "target_not_in_candidates": "일부 초성은 복원했지만 정답 문장이 후보 집합에 없음",
+      "ranking_error": "정답 문장이 후보 집합에는 있지만 첫 번째 복원 후보가 아님",
+      "success": "첫 번째 복원 후보가 정답 문장과 일치"
+    },
+    "metrics": {
+      "overall": {
+        "rows": 1010,
+        "counts": {
+          "candidate_not_generated": 297,
+          "over_restoration": 171,
+          "target_not_in_candidates": 542,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.29405940594059404,
+          "over_restoration": 0.16930693069306932,
+          "target_not_in_candidates": 0.5366336633663367,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "label:attack": {
+        "rows": 602,
+        "counts": {
+          "candidate_not_generated": 188,
+          "over_restoration": 129,
+          "target_not_in_candidates": 285,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.3122923588039867,
+          "over_restoration": 0.21428571428571427,
+          "target_not_in_candidates": 0.473421926910299,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "label:benign": {
+        "rows": 408,
+        "counts": {
+          "candidate_not_generated": 109,
+          "over_restoration": 42,
+          "target_not_in_candidates": 257,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.26715686274509803,
+          "over_restoration": 0.10294117647058823,
+          "target_not_in_candidates": 0.6299019607843137,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "intensity:0.5": {
+        "rows": 505,
+        "counts": {
+          "candidate_not_generated": 291,
+          "over_restoration": 94,
+          "target_not_in_candidates": 120,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.5762376237623762,
+          "over_restoration": 0.18613861386138614,
+          "target_not_in_candidates": 0.2376237623762376,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "intensity:1": {
+        "rows": 505,
+        "counts": {
+          "candidate_not_generated": 6,
+          "over_restoration": 77,
+          "target_not_in_candidates": 422,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.011881188118811881,
+          "over_restoration": 0.15247524752475247,
+          "target_not_in_candidates": 0.8356435643564356,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "category:A1_injection": {
+        "rows": 388,
+        "counts": {
+          "candidate_not_generated": 129,
+          "over_restoration": 82,
+          "target_not_in_candidates": 177,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.3324742268041237,
+          "over_restoration": 0.211340206185567,
+          "target_not_in_candidates": 0.45618556701030927,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "category:A2_leaking": {
+        "rows": 214,
+        "counts": {
+          "candidate_not_generated": 59,
+          "over_restoration": 47,
+          "target_not_in_candidates": 108,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.2757009345794392,
+          "over_restoration": 0.21962616822429906,
+          "target_not_in_candidates": 0.5046728971962616,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      },
+      "category:benign_hard_negative": {
+        "rows": 408,
+        "counts": {
+          "candidate_not_generated": 109,
+          "over_restoration": 42,
+          "target_not_in_candidates": 257,
+          "ranking_error": 0,
+          "success": 0
+        },
+        "rates": {
+          "candidate_not_generated": 0.26715686274509803,
+          "over_restoration": 0.10294117647058823,
+          "target_not_in_candidates": 0.6299019607843137,
+          "ranking_error": 0.0,
+          "success": 0.0
+        }
+      }
+    },
+    "examples": {
+      "candidate_not_generated": [
+        {
+          "row_id": "v_177bda84ec",
+          "seed_id": "atk_0001",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_49ebdd55b0",
+          "seed_id": "atk_0001",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 21,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_7156a54405",
+          "seed_id": "atk_0004",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 12,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_4ce18da833",
+          "seed_id": "atk_0006",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_36ca94a637",
+          "seed_id": "atk_0007",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_5ab6b92f58",
+          "seed_id": "atk_0010",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_ce48322e71",
+          "seed_id": "atk_0011",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 11,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_a1ffd87798",
+          "seed_id": "atk_0012",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 12,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_f39eedc789",
+          "seed_id": "atk_0013",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_ba0eea6834",
+          "seed_id": "atk_0014",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 12,
+          "candidate_count": 0,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        }
+      ],
+      "over_restoration": [
+        {
+          "row_id": "v_51936a495b",
+          "seed_id": "atk_0003",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 11,
+          "candidate_count": 3,
+          "best_initial_recall": 0.0,
+          "truncated": true
+        },
+        {
+          "row_id": "v_802be876d8",
+          "seed_id": "atk_0004",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 23,
+          "candidate_count": 3,
+          "best_initial_recall": 0.0,
+          "truncated": true
+        },
+        {
+          "row_id": "v_a65e2c4c69",
+          "seed_id": "atk_0008",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 3,
+          "best_initial_recall": 0.0,
+          "truncated": true
+        },
+        {
+          "row_id": "v_8ac1893d21",
+          "seed_id": "atk_0009",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "initial_count": 13,
+          "candidate_count": 1,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_791768f4bb",
+          "seed_id": "atk_0010",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "initial_count": 19,
+          "candidate_count": 1,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_7988ce18bc",
+          "seed_id": "atk_0011",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "initial_count": 22,
+          "candidate_count": 15,
+          "best_initial_recall": 0.0,
+          "truncated": true
+        },
+        {
+          "row_id": "v_8e5ad3bae9",
+          "seed_id": "atk_0015",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 28,
+          "candidate_count": 2,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        },
+        {
+          "row_id": "v_5dd579a1f5",
+          "seed_id": "atk_0016",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 25,
+          "candidate_count": 15,
+          "best_initial_recall": 0.0,
+          "truncated": true
+        },
+        {
+          "row_id": "v_ab9dd2ec46",
+          "seed_id": "atk_0017",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 27,
+          "candidate_count": 15,
+          "best_initial_recall": 0.0,
+          "truncated": true
+        },
+        {
+          "row_id": "v_70a1362b1b",
+          "seed_id": "atk_0018",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 24,
+          "candidate_count": 15,
+          "best_initial_recall": 0.0,
+          "truncated": false
+        }
+      ],
+      "target_not_in_candidates": [
+        {
+          "row_id": "v_8fd96b7c28",
+          "seed_id": "atk_0002",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 3,
+          "best_initial_recall": 0.3,
+          "truncated": true
+        },
+        {
+          "row_id": "v_2ce50f408e",
+          "seed_id": "atk_0002",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 21,
+          "candidate_count": 15,
+          "best_initial_recall": 0.3333333333333333,
+          "truncated": true
+        },
+        {
+          "row_id": "v_05b9038826",
+          "seed_id": "atk_0003",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 22,
+          "candidate_count": 15,
+          "best_initial_recall": 0.045454545454545456,
+          "truncated": true
+        },
+        {
+          "row_id": "v_7d272cfc2b",
+          "seed_id": "atk_0005",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "initial_count": 10,
+          "candidate_count": 3,
+          "best_initial_recall": 0.3,
+          "truncated": true
+        },
+        {
+          "row_id": "v_c66d79f402",
+          "seed_id": "atk_0005",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 19,
+          "candidate_count": 15,
+          "best_initial_recall": 0.15789473684210525,
+          "truncated": true
+        },
+        {
+          "row_id": "v_aec4e2d695",
+          "seed_id": "atk_0006",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 21,
+          "candidate_count": 7,
+          "best_initial_recall": 0.14285714285714285,
+          "truncated": false
+        },
+        {
+          "row_id": "v_b5c95fca64",
+          "seed_id": "atk_0007",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 20,
+          "candidate_count": 15,
+          "best_initial_recall": 0.1,
+          "truncated": true
+        },
+        {
+          "row_id": "v_145d94ab36",
+          "seed_id": "atk_0008",
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "initial_count": 20,
+          "candidate_count": 15,
+          "best_initial_recall": 0.05,
+          "truncated": true
+        },
+        {
+          "row_id": "v_ad53c0beac",
+          "seed_id": "atk_0009",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "initial_count": 26,
+          "candidate_count": 15,
+          "best_initial_recall": 0.23076923076923078,
+          "truncated": true
+        },
+        {
+          "row_id": "v_34b25db49d",
+          "seed_id": "atk_0012",
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "initial_count": 24,
+          "candidate_count": 15,
+          "best_initial_recall": 0.16666666666666666,
+          "truncated": true
+        }
+      ],
+      "ranking_error": [],
+      "success": []
+    }
+  }
+}

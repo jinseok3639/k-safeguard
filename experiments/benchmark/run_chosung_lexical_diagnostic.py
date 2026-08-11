@@ -13,6 +13,7 @@ from experiments.benchmark.run_normalizer_evaluation import DEFAULT_INPUT, load_
 from k_safeguard.chosung import (
     CHOSUNG_CANDIDATE_VERSION,
     ChosungLexicon,
+    expand_korean_noun_particles,
     generate_chosung_candidates,
 )
 from k_safeguard.normalization import normalize_korean
@@ -70,6 +71,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-initials", type=int, default=3)
     parser.add_argument("--limit-seeds", type=int)
     parser.add_argument("--examples-per-outcome", type=int, default=10)
+    parser.add_argument(
+        "--priority-lexicon",
+        type=Path,
+        help="wordfreq보다 먼저 검색할 줄 단위 사용자·도메인 사전",
+    )
+    parser.add_argument("--priority-source", default="domain")
+    parser.add_argument("--expand-priority-particles", action="store_true")
     parser.add_argument("--output", type=Path)
     return parser.parse_args()
 
@@ -241,6 +249,22 @@ def _portable_input_path(path: Path) -> str:
         return str(path)
 
 
+def load_priority_words(path: Path) -> tuple[str, ...]:
+    words: list[str] = []
+    seen: set[str] = set()
+    for line_number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        word = raw_line.strip()
+        if not word or word.startswith("#"):
+            continue
+        if word in seen:
+            raise ValueError(f"priority lexicon 중복 단어: {word} ({line_number}행)")
+        seen.add(word)
+        words.append(word)
+    if not words:
+        raise ValueError("priority lexicon에 단어가 없습니다.")
+    return tuple(words)
+
+
 def main() -> int:
     args = parse_args()
     if args.word_limit < 1:
@@ -265,7 +289,34 @@ def main() -> int:
         techniques={"chosung"},
     )
     variants = [row for row in rows if row.technique == "chosung"]
-    lexicon = ChosungLexicon(top_n_list("ko", args.word_limit))
+    wordfreq_words = top_n_list("ko", args.word_limit)
+    priority_metadata = None
+    if args.priority_lexicon is not None:
+        priority_path = args.priority_lexicon.resolve()
+        raw_priority_words = load_priority_words(priority_path)
+        priority_words = (
+            expand_korean_noun_particles(raw_priority_words)
+            if args.expand_priority_particles
+            else raw_priority_words
+        )
+        lexicon = ChosungLexicon.from_sources(
+            [
+                (args.priority_source, priority_words),
+                ("wordfreq:ko", wordfreq_words),
+            ]
+        )
+        priority_metadata = {
+            "path": _portable_input_path(priority_path),
+            "sha256": sha256_file(priority_path),
+            "source": args.priority_source,
+            "requested_words": len(raw_priority_words),
+            "indexed_variants_before_deduplication": len(priority_words),
+            "particle_expansion": args.expand_priority_particles,
+        }
+        lexicon_name = f"{args.priority_source}+wordfreq:ko"
+    else:
+        lexicon = ChosungLexicon.from_sources([("wordfreq:ko", wordfreq_words)])
+        lexicon_name = "wordfreq:ko"
     observations = [
         observe_row(
             row.text,
@@ -297,10 +348,12 @@ def main() -> int:
         },
         "candidate_generator": {
             "version": CHOSUNG_CANDIDATE_VERSION,
-            "lexicon": "wordfreq:ko",
+            "lexicon": lexicon_name,
             "wordfreq_version": version("wordfreq"),
             "word_limit": args.word_limit,
             "indexed_words": lexicon.word_count,
+            "source_counts": dict(lexicon.source_counts),
+            "priority_lexicon": priority_metadata,
             "min_initials": args.min_initials,
             "max_options_per_span": args.max_options_per_span,
             "max_candidates": args.max_candidates,

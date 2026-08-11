@@ -3,6 +3,7 @@ import unittest
 from k_safeguard.chosung import (
     ChosungLexicon,
     chosung_signature,
+    expand_korean_noun_particles,
     generate_chosung_candidates,
 )
 
@@ -14,6 +15,16 @@ class ChosungSignatureTest(unittest.TestCase):
     def test_rejects_non_hangul_words(self) -> None:
         self.assertIsNone(chosung_signature("AI모델"))
         self.assertIsNone(chosung_signature(""))
+
+    def test_expands_particles_by_final_consonant(self) -> None:
+        expanded = expand_korean_noun_particles(["정책", "가드레일", "보안"])
+
+        self.assertIn("정책은", expanded)
+        self.assertIn("정책으로", expanded)
+        self.assertIn("가드레일은", expanded)
+        self.assertIn("가드레일로", expanded)
+        self.assertIn("보안을", expanded)
+        self.assertNotIn("보안를", expanded)
 
 
 class ChosungLexiconTest(unittest.TestCase):
@@ -31,6 +42,28 @@ class ChosungLexiconTest(unittest.TestCase):
             [entry.word for entry in lexicon.match("ㅅ정ㅇ", 3)],
             ["설정을", "설정은", "수정이"],
         )
+
+    def test_prioritizes_sources_and_assigns_duplicate_to_first_source(self) -> None:
+        lexicon = ChosungLexicon.from_sources(
+            [
+                ("user", ["시스템", "산사태"]),
+                ("wordfreq:ko", ["산사태", "소식통"]),
+            ]
+        )
+
+        entries = lexicon.match("ㅅㅅㅌ", 3)
+        self.assertEqual([entry.word for entry in entries], ["시스템", "산사태", "소식통"])
+        self.assertEqual(
+            [entry.source for entry in entries],
+            ["user", "user", "wordfreq:ko"],
+        )
+        self.assertEqual(lexicon.source_counts, (("user", 2), ("wordfreq:ko", 1)))
+
+    def test_rejects_duplicate_or_empty_source_names(self) -> None:
+        with self.assertRaisesRegex(ValueError, "중복"):
+            ChosungLexicon.from_sources([("user", ["시스템"]), ("user", ["산사태"])])
+        with self.assertRaisesRegex(ValueError, "비어 있지 않은"):
+            ChosungLexicon.from_sources([("", ["시스템"])])
 
 
 class GenerateChosungCandidatesTest(unittest.TestCase):
@@ -76,6 +109,17 @@ class GenerateChosungCandidatesTest(unittest.TestCase):
         replacement = result.candidates[1].replacements[0]
         self.assertEqual((replacement.source_start, replacement.source_end), (2, 5))
         self.assertEqual((replacement.before, replacement.after), ("ㅅㅅㅌ", "시스템"))
+
+    def test_tracks_priority_lexicon_source(self) -> None:
+        lexicon = ChosungLexicon.from_sources(
+            [("domain", ["보안정책"]), ("general", ["병원정책"])]
+        )
+
+        result = generate_chosung_candidates("ㅂㅇㅈㅊ", lexicon)
+        replacement = result.candidates[1].replacements[0]
+        self.assertEqual(replacement.after, "보안정책")
+        self.assertEqual(replacement.lexicon_source, "domain")
+        self.assertEqual(replacement.source_rank, 0)
 
     def test_rejects_non_string_input(self) -> None:
         with self.assertRaisesRegex(TypeError, "str"):
