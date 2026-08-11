@@ -29,6 +29,10 @@ class TensifyInverseProviderTest(unittest.TestCase):
             (
                 ("replacement_count", "2"),
                 ("total_tense_syllables", "2"),
+                ("total_hangul_syllables", "2"),
+                ("tense_ratio", "1.000000"),
+                ("min_tense_syllables", "1"),
+                ("min_tense_ratio", "0.000000"),
                 ("source_positions", "0,1"),
                 ("generator_version", TENSIFY_CANDIDATE_VERSION),
             ),
@@ -46,9 +50,30 @@ class TensifyInverseProviderTest(unittest.TestCase):
     def test_returns_no_candidate_without_tense_syllable(self) -> None:
         self.assertEqual(list(TensifyInverseProvider().generate("시스템 점검")), [])
 
+    def test_minimum_tense_count_is_opt_in(self) -> None:
+        provider = TensifyInverseProvider(min_tense_syllables=2)
+
+        self.assertEqual(list(provider.generate("진짜 좋아")), [])
+        self.assertTrue(list(provider.generate("진짜 짱이야")))
+
+    def test_minimum_tense_ratio_uses_completed_hangul_syllables(self) -> None:
+        provider = TensifyInverseProvider(min_tense_ratio=0.25)
+
+        accepted = list(provider.generate("까나다라"))
+        rejected = list(provider.generate("까나다라마"))
+
+        self.assertTrue(accepted)
+        self.assertEqual(rejected, [])
+        self.assertIn(("tense_ratio", "0.250000"), accepted[0].metadata)
+
     def test_rejects_invalid_candidate_limit(self) -> None:
         with self.assertRaisesRegex(ValueError, "1 이상"):
             TensifyInverseProvider(max_candidates=0)
+
+        with self.assertRaisesRegex(ValueError, "min_tense_syllables"):
+            TensifyInverseProvider(min_tense_syllables=0)
+        with self.assertRaisesRegex(ValueError, "min_tense_ratio"):
+            TensifyInverseProvider(min_tense_ratio=1.1)
 
     def test_rejects_non_string_direct_call(self) -> None:
         with self.assertRaisesRegex(TypeError, "str"):

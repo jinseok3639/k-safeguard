@@ -8,7 +8,7 @@ from typing import Iterator
 from ..gateway import CandidateProposal
 
 
-TENSIFY_CANDIDATE_VERSION = "0.1.0"
+TENSIFY_CANDIDATE_VERSION = "0.2.0"
 _HANGUL_BASE = 0xAC00
 _HANGUL_END = 0xD7A3
 _SYLLABLES_PER_INITIAL = 21 * 28
@@ -17,7 +17,7 @@ _TENSE_TO_LAX = {
     4: 3,   # ㄸ -> ㄷ
     8: 7,   # ㅃ -> ㅂ
     10: 9,  # ㅆ -> ㅅ
-    13: 12, # ㅉ -> ㅈ
+    13: 12,  # ㅉ -> ㅈ
 }
 
 
@@ -56,16 +56,38 @@ class TensifyInverseProvider:
 
     name = "tensify_inverse"
 
-    def __init__(self, *, max_candidates: int = 9) -> None:
+    def __init__(
+        self,
+        *,
+        max_candidates: int = 9,
+        min_tense_syllables: int = 1,
+        min_tense_ratio: float = 0.0,
+    ) -> None:
         if max_candidates < 1:
             raise ValueError("max_candidates는 1 이상이어야 합니다.")
+        if min_tense_syllables < 1:
+            raise ValueError("min_tense_syllables는 1 이상이어야 합니다.")
+        if not 0.0 <= min_tense_ratio <= 1.0:
+            raise ValueError("min_tense_ratio는 0~1이어야 합니다.")
         self._max_candidates = max_candidates
+        self._min_tense_syllables = min_tense_syllables
+        self._min_tense_ratio = min_tense_ratio
 
     def generate(self, text: str) -> Iterator[CandidateProposal]:
         if not isinstance(text, str):
             raise TypeError("text는 str이어야 합니다.")
 
         positions = _tense_positions(text)
+        hangul_syllables = sum(
+            _HANGUL_BASE <= ord(char) <= _HANGUL_END for char in text
+        )
+        tense_ratio = len(positions) / hangul_syllables if hangul_syllables else 0.0
+        if (
+            len(positions) < self._min_tense_syllables
+            or tense_ratio < self._min_tense_ratio
+        ):
+            return
+
         emitted = 0
         for replacement_count in range(len(positions), 0, -1):
             for selected in combinations(positions, replacement_count):
@@ -76,6 +98,10 @@ class TensifyInverseProvider:
                     metadata=(
                         ("replacement_count", str(replacement_count)),
                         ("total_tense_syllables", str(len(positions))),
+                        ("total_hangul_syllables", str(hangul_syllables)),
+                        ("tense_ratio", f"{tense_ratio:.6f}"),
+                        ("min_tense_syllables", str(self._min_tense_syllables)),
+                        ("min_tense_ratio", f"{self._min_tense_ratio:.6f}"),
                         ("source_positions", ",".join(map(str, selected))),
                         ("generator_version", TENSIFY_CANDIDATE_VERSION),
                     ),
