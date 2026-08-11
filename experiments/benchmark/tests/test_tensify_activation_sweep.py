@@ -3,6 +3,7 @@ import unittest
 from experiments.benchmark.run_tensify_activation_sweep import (
     ActivationPolicy,
     apply_policy,
+    select_recommended_strategy,
     summarize_activation,
     tense_evidence,
     validate_source_records,
@@ -68,6 +69,34 @@ class TensifyActivationSweepTest(unittest.TestCase):
         )
 
         self.assertEqual(groups[0]["activation_rate"], 0.5)
+
+    def test_selects_lowest_clean_activation_without_losing_baseline_metrics(self) -> None:
+        def strategy(name: str, nrr: float, clean: float, attack: float) -> dict:
+            metric = lambda value: {"seed_balanced_estimate": value}
+            return {
+                "policy": {"name": name},
+                "metrics": {
+                    "nrr": metric(nrr),
+                    "delta_fpr_obfuscated": metric(0.02),
+                    "delta_fpr_clean": metric(0.0),
+                    "generated_view_count": metric(5.0),
+                },
+                "activation": {
+                    "benign_clean": clean,
+                    "attack_obfuscated": attack,
+                },
+            }
+
+        selected = select_recommended_strategy(
+            [
+                strategy("all", 1.0, 0.5, 1.0),
+                strategy("ratio", 1.0, 0.1, 0.99),
+                strategy("count_ratio", 1.0, 0.1, 0.98),
+                strategy("too_strict", 0.9, 0.0, 0.9),
+            ]
+        )
+
+        self.assertEqual(selected["policy"]["name"], "ratio")
 
 
 if __name__ == "__main__":

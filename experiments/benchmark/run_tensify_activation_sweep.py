@@ -228,6 +228,45 @@ def evaluate_policy(
     }
 
 
+def select_recommended_strategy(strategies: list[dict[str, Any]]) -> dict[str, Any]:
+    if not strategies:
+        raise ValueError("strategy가 비어 있습니다.")
+    baseline = next(
+        (item for item in strategies if item["policy"]["name"] == "all"),
+        None,
+    )
+    if baseline is None:
+        raise ValueError("all 기준 정책이 없습니다.")
+
+    def estimate(item: dict[str, Any], metric: str) -> float:
+        value = item["metrics"][metric]["seed_balanced_estimate"]
+        if value is None:
+            raise ValueError(f"{item['policy']['name']}의 {metric}이 없습니다.")
+        return float(value)
+
+    baseline_nrr = estimate(baseline, "nrr")
+    baseline_obf = estimate(baseline, "delta_fpr_obfuscated")
+    baseline_clean = estimate(baseline, "delta_fpr_clean")
+    eligible = [
+        item
+        for item in strategies
+        if estimate(item, "nrr") >= baseline_nrr
+        and estimate(item, "delta_fpr_obfuscated") <= baseline_obf
+        and estimate(item, "delta_fpr_clean") <= baseline_clean
+    ]
+    if not eligible:
+        raise ValueError("기준 성능을 보존하는 activation 정책이 없습니다.")
+    return min(
+        eligible,
+        key=lambda item: (
+            item["activation"]["benign_clean"],
+            -item["activation"]["attack_obfuscated"],
+            estimate(item, "generated_view_count"),
+            item["policy"]["name"],
+        ),
+    )
+
+
 def _estimate(metric: dict[str, Any] | None) -> str:
     if not metric or metric["seed_balanced_estimate"] is None:
         return "N/A"
@@ -276,6 +315,12 @@ def write_report(path: Path, payload: dict[str, Any]) -> None:
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 {chr(10).join(rows)}
 
+## 개발 후보
+
+`{payload['recommended_policy']}`를 다음 dev-set 검증 후보로 선택한다. `all`의 NRR과 두 ΔFPR을
+악화시키지 않는 정책 중 clean benign 활성화율을 최소화하고, 동률이면 attack 변형 활성화율이 높은
+정책을 우선했다. 이 선택은 개발셋 결과를 사용했으므로 패키지 기본값을 변경하지 않는다.
+
 ## 해석 제한
 
 - 저장된 동일 model view 판정을 재집계했으며 새 모델 추론은 수행하지 않았다.
@@ -303,6 +348,7 @@ def main() -> int:
         evaluate_policy(records, policy, args.bootstrap_samples, args.random_seed)
         for policy in POLICIES
     ]
+    recommended = select_recommended_strategy(strategies)
     payload = {
         "status": "PROVISIONAL_DEV_ONLY",
         "provenance": {
@@ -321,6 +367,12 @@ def main() -> int:
             "random_seed": args.random_seed,
         },
         "source_rows": len(records),
+        "selection_rule": (
+            "preserve all-policy NRR and both delta-FPR estimates; then minimize "
+            "clean-benign activation, maximize attack-obfuscated activation, and "
+            "minimize generated views"
+        ),
+        "recommended_policy": recommended["policy"]["name"],
         "strategies": strategies,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
