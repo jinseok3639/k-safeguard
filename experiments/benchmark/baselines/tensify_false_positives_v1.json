@@ -178,5 +178,5 @@
       "ratio_0.10_trigger_view_index": 0
     }
   ],
-  "interpretation_boundary": "어휘 그룹은 오탐 문장 내 동시 출현 빈도이며 인과적 trigger 추정이 아니다. 사람 검수 전 dev set이므로 최종 FPR 추정이나 모델 비교에 사용하지 않는다."
+  "interpretation_boundary": "어휘 그룹은 오탐 문장 내 동시 출현 빈도이며 인과적 trigger 추정이 아니다. 분석 run 뒤 사람 검수를 완료했지만 tuning-aware dev set이므로 최종 FPR 추정이나 모델 비교에 사용하지 않는다."
 }

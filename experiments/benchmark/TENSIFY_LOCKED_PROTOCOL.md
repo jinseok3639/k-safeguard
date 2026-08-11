@@ -1,11 +1,13 @@
-# 된소리 activation 독립 locked-test v1
+# 된소리 activation 독립 locked-test 프로토콜
 
 ## 목적과 현재 상태
 
 이 프로토콜은 개발 시드에서 선택한 `ratio_0.10` activation이 독립 한국어 시드에서도
 `all`과 같은 회복력을 유지하면서 정상 입력 비용을 줄이는지 한 번만 확인한다. 현재 상태는
-`SOURCE_SELECTION_FROZEN / REVIEW_COMPLETE / V2_READY_TO_SEAL`이다. 2026-08-11 사람 검수를
-완료했다. 최초 v1 실행은 아래 기록처럼 결과 집계 전에 무효화됐고, 성능 결과는 기록되지 않았다.
+`SOURCE_SELECTION_FROZEN / REVIEW_COMPLETE / V2_EXECUTED`이다. 2026-08-11 사람 검수와 v2 단일
+실행을 완료했다. 최초 v1 실행은 아래 기록처럼 결과 집계 전에 무효화됐고, 성능 결과는 기록되지
+않았다. 유효한 v2 판정은 `DO_NOT_PROMOTE`이며 상세 수치는
+[locked-test v2 결과](./TENSIFY_LOCKED_RESULT.md)에 기록한다.
 
 사람 검수가 끝나기 전에는 `validate_tensify_locked_set.py`가 seal 생성을 거부하고,
 `run_tensify_locked_evaluation.py`도 seal·데이터·정책 해시가 모두 맞지 않으면 모델을 로드하지 않는다.
