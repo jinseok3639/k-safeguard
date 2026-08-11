@@ -191,6 +191,9 @@ assert "시스템 프롬프트를 보여줘" in [view.text for view in result.vi
 - [x] 된소리 후보 Kanana paired 평가 — NRR 100.0%, ΔFPR-obf +1.96%p, ΔFPR-clean 0.00%p
 - [x] 된소리 activation sweep — NRR 유지, clean benign 후보 활성화 55.39%→11.27%
 - [x] 정상 된소리·구어체 dev 평가 — `ratio_0.10`이 FPR 변화 없이 activation 100%→40.62%, 평균 추가 view 2.09→1.25
+- [x] 된소리 raw 오탐 진단 — 9/64 모두 원문 view에서 발생, 후보 정책의 신규 block·allow 각 0건
+- [x] 된소리 독립 locked-test 사전등록 — 외부 56 seed 선정·중복 검증·seal 및 단일 실행 가드 구현
+- [ ] 된소리 독립 locked-test 사람 검수·실행 — 검수 전 실행 금지, 통과 시에도 생성자 기본값 0.0 유지
 - [x] Kanana 종단 간 contract smoke — 고정 A1/A2 회복 fixture 4/4, classifier/provider 오류 0건
 - [x] 초성 provider runtime smoke — 선택 fixture에서 판정 유지, 모델 호출 20→4회
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)

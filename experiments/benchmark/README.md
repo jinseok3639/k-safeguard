@@ -23,6 +23,13 @@
 [정상 한국어 된소리 activation dev 평가](./TENSIFY_BENIGN_DEV.md)에 기록한다. 데이터는
 `data/tensify_benign_dev_v1.csv`에 있으며 정책 선택 뒤 작성한 사람 검수 전 dev set이다.
 
+관측된 raw 오탐 9건과 후보 정책의 판정 전환 분리는
+[된소리 benign dev raw 오탐 분석](./TENSIFY_FALSE_POSITIVES.md), 기본값 유지와 preset 승격 조건은
+[된소리 activation 채택 결정](./TENSIFY_ACTIVATION_DECISION.md)에 기록한다. 개발 결과를 본 뒤 별도로
+고정한 56개 seed의 데이터·seal·단일 실행 절차는
+[된소리 activation 독립 locked-test v1](./TENSIFY_LOCKED_PROTOCOL.md)을 따른다. 현재 후보는 사람
+검수 전이므로 locked 모델 추론은 실행하지 않았다.
+
 ```powershell
 .\.venv-experiment\Scripts\python `
   -m experiments.benchmark.run_tensify_benign_dev_evaluation `
