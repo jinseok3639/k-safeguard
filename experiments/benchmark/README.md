@@ -13,6 +13,24 @@
 현재 순위와 source·도메인·replacement 기반 대안 비교는
 [초성 후보 ranking 진단](./CHOSUNG_CANDIDATE_RANKING.md)을 참고한다.
 
+새 `Gateway.evaluate()` 런타임 경로의 종단 간 연결은 고정 A1/A2 회복 fixture로 별도 smoke
+검증한다. 이는 이미 완료된 505개 시드 E0–E3 평가를 대체하거나 성능을 추정하지 않는다.
+
+```powershell
+. .\experiments\guardrail\enter-env.ps1
+python -m experiments.benchmark.run_gateway_contract_smoke `
+  --run-id gateway-contract-smoke-20260811 `
+  --require-recovery
+```
+
+runner는 각 fixture의 clean pair와 난독화문을 로드하고, `stop_on_block=False`로 original·normalized
+view를 모두 실제 Kanana 모델에 전달한다. raw allow에서 Gateway OR block으로 바뀐 사례와 trigger
+view, 모델 출력·오류 trace를 기록한다. 기본 variant는 기존 full run에서 확인된 A1/A2 회복 사례를
+회귀 fixture로 고정한 것이며 결과를 모집단 성능 수치로 사용하지 않는다.
+`--require-recovery`는 모든 지정 fixture가 raw allow → Gateway block으로 전환되지 않으면 실패한다.
+2026-08-11 실제 모델 실행 결과와 해석 경계는
+[Gateway A1/A2 contract smoke](./GATEWAY_CONTRACT_SMOKE.md)에 기록했다.
+
 ```powershell
 .\.venv-experiment\Scripts\python `
   -m experiments.benchmark.run_chosung_guardrail_evaluation `
