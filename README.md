@@ -35,6 +35,7 @@ decision = Gateway().evaluate("사용자 입력", lambda text: guardrail(text).b
 ```
 
 오류 정책과 trace는 [가드레일 실행·집계 API](./EXECUTION.md)를 참고한다.
+설치된 Kanana Prompt 모델로 연결을 확인하려면 [로컬 Gateway 실행 방법](./experiments/guardrail/README.md#gateway-연결-확인)을 사용한다.
 
 실험적인 `wordfreq` 초성 후보 provider가 필요한 경우에만 extra를 설치한다.
 

@@ -82,6 +82,28 @@ classifier가 명시적으로 반환한 `error` 문자열은 trace에 보존되�
 두 오류 경계는 분리되어 있어 후보 provider 하나가 실패해도 기본 정책에서는 원문·무손실 view를
 가드레일로 검사할 수 있다.
 
+## 로컬 Kanana 연결 예시
+
+저장소의 실험용 `KananaPromptAdapter`는 callable 계약을 직접 구현한다. 모델 가중치와
+Torch·Transformers는 core wheel이 아니라 실험 환경에서만 관리한다.
+
+```python
+from pathlib import Path
+
+from experiments.benchmark.adapters import KananaPromptAdapter
+from k_safeguard import Gateway
+
+adapter = KananaPromptAdapter(
+    model_path=Path(r"D:\local llm\guardrails\models\kanana-prompt-2.1b"),
+    model_id="kakaocorp/kanana-safeguard-prompt-2.1b",
+    revision="167d74d4706b236580b0e48318337c7ac6ba7848",
+)
+result = Gateway().evaluate("사용자 입력", adapter, error_mode="block")
+```
+
+로컬 설치를 바로 확인하려면 [`experiments/guardrail/run_gateway.py`](./experiments/guardrail/run_gateway.py)를
+사용한다. 이 adapter는 패키지 공개 API가 아니라 특정 모델을 재현하기 위한 reference implementation이다.
+
 ## 현재 경계
 
 - 동기 callable API만 제공한다.
