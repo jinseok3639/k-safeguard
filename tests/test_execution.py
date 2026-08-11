@@ -2,11 +2,13 @@ import asyncio
 import unittest
 
 from k_safeguard import (
+    BatchClassifierOutputError,
     CandidateProposal,
     ClassifierExecutionError,
     ClassifierResult,
     Gateway,
     evaluate_gateway_async,
+    evaluate_gateway_batch,
 )
 
 
@@ -42,6 +44,8 @@ class GatewayExecutionTest(unittest.TestCase):
         self.assertEqual(result.decision_source, "classifier")
         self.assertEqual(result.trigger_view_index, 1)
         self.assertEqual(result.evaluated_view_count, 2)
+        self.assertEqual(result.classifier_call_count, 2)
+        self.assertEqual(result.classifier_calls[1].view_indices, (1,))
         self.assertEqual(len(calls), 2)
         self.assertTrue(result.stopped_early)
         self.assertEqual(result.classifier_errors, ())
@@ -200,6 +204,7 @@ class AsyncGatewayExecutionTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.trigger_view_index, 1)
         self.assertEqual(calls, ["입력", "입력-1"])
         self.assertEqual(result.evaluated_view_count, 2)
+        self.assertEqual(result.classifier_call_count, 2)
         self.assertTrue(result.stopped_early)
 
     async def test_async_classifier_can_evaluate_all_views(self) -> None:
@@ -295,6 +300,225 @@ class AsyncGatewayExecutionTest(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(result.block)
         self.assertEqual(result.evaluated_view_count, 3)
+
+
+class BatchGatewayExecutionTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.gateway = Gateway(providers=[_ViewsProvider()])
+
+    def test_batch_classifier_receives_all_views_in_one_ordered_call(self) -> None:
+        calls = []
+
+        def classifier(texts: tuple[str, ...]):
+            calls.append(texts)
+            return [text.endswith("-1") for text in texts]
+
+        result = self.gateway.evaluate_batch("입력", classifier)
+
+        self.assertTrue(result.block)
+        self.assertEqual(result.trigger_view_index, 1)
+        self.assertEqual(calls, [("입력", "입력-1", "입력-2")])
+        self.assertEqual(result.evaluated_view_count, 3)
+        self.assertEqual(result.classifier_call_count, 1)
+        self.assertEqual(result.classifier_calls[0].view_indices, (0, 1, 2))
+        self.assertFalse(result.stopped_early)
+        self.assertTrue(
+            all(
+                item.latency_ms == result.classifier_calls[0].latency_ms
+                for item in result.evaluations
+            )
+        )
+
+    def test_bounded_batch_stops_before_next_chunk(self) -> None:
+        calls = []
+
+        def classifier(texts: tuple[str, ...]):
+            calls.append(texts)
+            return [text.endswith("-1") for text in texts]
+
+        result = self.gateway.evaluate_batch("입력", classifier, batch_size=2)
+
+        self.assertTrue(result.block)
+        self.assertEqual(calls, [("입력", "입력-1")])
+        self.assertEqual(result.evaluated_view_count, 2)
+        self.assertEqual(result.classifier_call_count, 1)
+        self.assertTrue(result.stopped_early)
+
+    def test_batch_can_run_all_chunks_without_short_circuit(self) -> None:
+        calls = []
+
+        def classifier(texts: tuple[str, ...]):
+            calls.append(texts)
+            return [text.endswith("-1") for text in texts]
+
+        result = self.gateway.evaluate_batch(
+            "입력",
+            classifier,
+            batch_size=2,
+            stop_on_block=False,
+        )
+
+        self.assertTrue(result.block)
+        self.assertEqual(calls, [("입력", "입력-1"), ("입력-2",)])
+        self.assertEqual(result.classifier_call_count, 2)
+        self.assertEqual(result.classifier_calls[1].view_indices, (2,))
+        self.assertFalse(result.stopped_early)
+
+    def test_batch_preserves_structured_result_and_first_category(self) -> None:
+        def classifier(texts: tuple[str, ...]):
+            return [
+                ClassifierResult(
+                    block=text.endswith("-1"),
+                    category="A1" if text.endswith("-1") else None,
+                    metadata=(("mode", "batch"),),
+                )
+                for text in texts
+            ]
+
+        result = self.gateway.evaluate_batch("입력", classifier)
+
+        self.assertEqual(result.category, "A1")
+        self.assertEqual(
+            result.evaluations[1].result.metadata,
+            (("mode", "batch"),),
+        )
+
+    def test_batch_output_count_mismatch_raises_with_safe_context(self) -> None:
+        with self.assertRaises(ClassifierExecutionError) as caught:
+            self.gateway.evaluate_batch("입력", lambda texts: [False])
+
+        self.assertEqual(caught.exception.view_index, 0)
+        self.assertEqual(
+            caught.exception.error_type,
+            "BatchClassifierOutputError",
+        )
+        self.assertIsInstance(
+            caught.exception.__cause__,
+            BatchClassifierOutputError,
+        )
+
+    def test_fail_closed_records_every_view_submitted_in_failed_batch(self) -> None:
+        result = self.gateway.evaluate_batch(
+            "입력",
+            lambda texts: [False],
+            batch_size=2,
+            error_mode="block",
+        )
+
+        self.assertTrue(result.block)
+        self.assertEqual(result.trigger_view_index, 0)
+        self.assertEqual(result.evaluated_view_count, 2)
+        self.assertEqual(
+            result.classifier_errors,
+            (
+                "view[0]:BatchClassifierOutputError",
+                "view[1]:BatchClassifierOutputError",
+            ),
+        )
+        self.assertTrue(result.stopped_early)
+
+    def test_invalid_item_uses_error_policy_without_discarding_valid_items(self) -> None:
+        result = self.gateway.evaluate_batch(
+            "입력",
+            lambda texts: [False, "SAFE", True],
+            error_mode="allow",
+        )
+
+        self.assertTrue(result.block)
+        self.assertEqual(result.trigger_view_index, 2)
+        self.assertEqual(result.classifier_errors, ("view[1]:TypeError",))
+        self.assertEqual(result.evaluated_view_count, 3)
+
+    def test_batch_exception_fail_open_covers_every_submitted_view(self) -> None:
+        calls = []
+
+        def classifier(texts: tuple[str, ...]):
+            calls.append(texts)
+            raise TimeoutError("secret detail")
+
+        result = self.gateway.evaluate_batch(
+            "입력",
+            classifier,
+            batch_size=2,
+            error_mode="allow",
+        )
+
+        self.assertFalse(result.block)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(result.evaluated_view_count, 3)
+        self.assertEqual(len(result.classifier_errors), 3)
+        self.assertTrue(
+            all(error.endswith(":TimeoutError") for error in result.classifier_errors)
+        )
+
+    def test_rejects_invalid_batch_size(self) -> None:
+        classifier = lambda texts: [False for _ in texts]
+        with self.assertRaisesRegex(ValueError, "1 이상"):
+            self.gateway.evaluate_batch("입력", classifier, batch_size=0)
+        with self.assertRaisesRegex(TypeError, "int"):
+            self.gateway.evaluate_batch("입력", classifier, batch_size=True)
+        with self.assertRaisesRegex(TypeError, "int"):
+            self.gateway.evaluate_batch("입력", classifier, batch_size=1.5)
+
+    def test_low_level_batch_function_is_public(self) -> None:
+        gateway_result = self.gateway.process("입력")
+        result = evaluate_gateway_batch(
+            gateway_result,
+            lambda texts: [False for _ in texts],
+        )
+
+        self.assertFalse(result.block)
+        self.assertEqual(result.classifier_call_count, 1)
+
+
+class AsyncBatchGatewayExecutionTest(unittest.IsolatedAsyncioTestCase):
+    def setUp(self) -> None:
+        self.gateway = Gateway(providers=[_ViewsProvider()])
+
+    async def test_async_batch_classifier_uses_bounded_chunks(self) -> None:
+        calls = []
+
+        async def classifier(texts: tuple[str, ...]):
+            await asyncio.sleep(0)
+            calls.append(texts)
+            return [text.endswith("-1") for text in texts]
+
+        result = await self.gateway.evaluate_batch_async(
+            "입력",
+            classifier,
+            batch_size=2,
+        )
+
+        self.assertTrue(result.block)
+        self.assertEqual(calls, [("입력", "입력-1")])
+        self.assertEqual(result.evaluated_view_count, 2)
+        self.assertEqual(result.classifier_call_count, 1)
+        self.assertTrue(result.stopped_early)
+
+    async def test_async_batch_can_evaluate_all_chunks(self) -> None:
+        async def classifier(texts: tuple[str, ...]):
+            return [False for _ in texts]
+
+        result = await self.gateway.evaluate_batch_async(
+            "입력",
+            classifier,
+            batch_size=2,
+        )
+
+        self.assertFalse(result.block)
+        self.assertEqual(result.evaluated_view_count, 3)
+        self.assertEqual(result.classifier_call_count, 2)
+
+    async def test_async_batch_cancellation_is_propagated(self) -> None:
+        async def classifier(texts: tuple[str, ...]):
+            raise asyncio.CancelledError
+
+        with self.assertRaises(asyncio.CancelledError):
+            await self.gateway.evaluate_batch_async(
+                "입력",
+                classifier,
+                error_mode="block",
+            )
 
 
 if __name__ == "__main__":

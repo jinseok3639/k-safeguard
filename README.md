@@ -43,6 +43,16 @@ async def classifier(text: str) -> bool:
 decision = await Gateway().evaluate_async("사용자 입력", classifier)
 ```
 
+여러 후보 view를 지원하는 모델은 bounded batch로 호출 수를 줄일 수 있다.
+
+```python
+decision = Gateway().evaluate_batch(
+    "사용자 입력",
+    lambda texts: [item.blocked for item in guardrail.classify_batch(texts)],
+    batch_size=4,
+)
+```
+
 오류 정책과 trace는 [가드레일 실행·집계 API](./EXECUTION.md)를 참고한다.
 설치된 Kanana Prompt 모델로 연결을 확인하려면 [로컬 Gateway 실행 방법](./experiments/guardrail/README.md#gateway-연결-확인)을 사용한다.
 
@@ -151,6 +161,7 @@ python -m pip install ".[wordfreq]"
 - [x] pip 패키징 MVP — 무의존 core, Gateway API, opt-in provider와 wheel 빌드 구성
 - [x] 모델 독립 가드레일 실행 API — OR 집계, 첫 block 조기 종료, 명시적 오류 정책과 view trace
 - [x] 비동기 가드레일 실행 API — 무의존 async callable, 순차 await, 동기 API와 동일한 판정 정책
+- [x] batch 가드레일 실행 API — bounded chunk, 호출 단위 trace, sync·async classifier 지원
 - [x] Kanana 종단 간 contract smoke — 고정 A1/A2 회복 fixture 4/4, classifier/provider 오류 0건
 - [x] 초성 provider runtime smoke — 선택 fixture에서 판정 유지, 모델 호출 20→4회
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)

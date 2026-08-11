@@ -64,6 +64,20 @@ async def classifier(text: str) -> bool:
 decision = await Gateway().evaluate_async("사용자 입력", classifier)
 ```
 
+여러 후보 view를 한 번의 로컬 모델 호출이나 batch endpoint로 처리하려면 같은 길이의 판정 iterable을
+반환하는 batch callable을 사용한다.
+
+```python
+def batch_classifier(texts: tuple[str, ...]):
+    return [item.blocked for item in external_guardrail.classify_batch(texts)]
+
+decision = Gateway().evaluate_batch(
+    "사용자 입력",
+    batch_classifier,
+    batch_size=4,
+)
+```
+
 classifier 오류 기본 정책은 `raise`다. fail-closed가 필요하면 `error_mode="block"`, 별도 장애 격리가
 있는 환경에서만 `error_mode="allow"`를 명시한다. 전체 계약과 trace 스키마는
 [실행·집계 API 문서](./EXECUTION.md)를 참고한다.
