@@ -12,6 +12,7 @@ from .chosung import (
     generate_chosung_candidates,
 )
 from .gateway import (
+    DEFAULT_MAX_VIEWS,
     CandidateProposal,
     CandidateProvider,
     Gateway,
@@ -30,6 +31,7 @@ __version__ = "0.1.0"
 
 __all__ = [
     "CHOSUNG_CANDIDATE_VERSION",
+    "DEFAULT_MAX_VIEWS",
     "NORMALIZER_VERSION",
     "CandidateProposal",
     "CandidateProvider",

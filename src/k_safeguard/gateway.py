@@ -9,6 +9,7 @@ from .normalization import NormalizationResult, normalize_korean
 
 
 Metadata = tuple[tuple[str, str], ...]
+DEFAULT_MAX_VIEWS = 10
 
 
 @dataclass(frozen=True)
@@ -73,7 +74,7 @@ class Gateway:
         self,
         *,
         providers: Iterable[CandidateProvider] = (),
-        max_views: int = 16,
+        max_views: int = DEFAULT_MAX_VIEWS,
         strict_providers: bool = False,
     ) -> None:
         if max_views < 1:
@@ -146,6 +147,7 @@ class Gateway:
 
 
 __all__ = [
+    "DEFAULT_MAX_VIEWS",
     "CandidateProposal",
     "CandidateProvider",
     "Gateway",

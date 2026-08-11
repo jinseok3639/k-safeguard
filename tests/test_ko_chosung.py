@@ -184,6 +184,63 @@ class GenerateChosungCandidatesTest(unittest.TestCase):
         self.assertEqual(replacement.segment_words, ("시스템", "프롬프트"))
         self.assertEqual(replacement.segment_sources, ("domain", "domain"))
 
+    def test_segmentation_uses_only_slots_left_after_direct_candidates(self) -> None:
+        lexicon = ChosungLexicon(
+            ["가가", "나다", "고기너도", "구구누두", "기게노디"]
+        )
+        direct = generate_chosung_candidates(
+            "ㄱㄱㄴㄷ",
+            lexicon,
+            max_options_per_span=3,
+            max_candidates=4,
+        )
+        segmented = generate_chosung_candidates(
+            "ㄱㄱㄴㄷ",
+            lexicon,
+            max_options_per_span=3,
+            max_candidates=4,
+            allow_segmentation=True,
+        )
+
+        direct_texts = {candidate.text for candidate in direct.candidates}
+        segmented_texts = {candidate.text for candidate in segmented.candidates}
+
+        self.assertEqual(len(direct_texts), 4)
+        self.assertLessEqual(direct_texts, segmented_texts)
+        self.assertNotIn("가가나다", segmented_texts)
+        self.assertTrue(segmented.truncated)
+
+    def test_partial_policy_preserves_segmented_candidate_set_at_cap(self) -> None:
+        lexicon = ChosungLexicon.from_sources(
+            [
+                ("domain", ["가가", "나다"]),
+                ("general", ["고기너도", "구구누두"]),
+            ]
+        )
+        segmented = generate_chosung_candidates(
+            "ㄱㄱㄴㄷ",
+            lexicon,
+            max_options_per_span=3,
+            max_candidates=4,
+            allow_segmentation=True,
+        )
+        partial = generate_chosung_candidates(
+            "ㄱㄱㄴㄷ",
+            lexicon,
+            max_options_per_span=3,
+            max_candidates=4,
+            allow_segmentation=True,
+            allow_partial_restoration=True,
+            partial_sources=("domain",),
+            min_partial_initials=2,
+        )
+
+        segmented_texts = {candidate.text for candidate in segmented.candidates}
+        partial_texts = {candidate.text for candidate in partial.candidates}
+
+        self.assertLessEqual(segmented_texts, partial_texts)
+        self.assertTrue(partial.truncated)
+
     def test_partial_restoration_preserves_unmatched_initials_and_traces_range(self) -> None:
         lexicon = ChosungLexicon.from_sources(
             [("domain", ["시스템"]), ("general", ["산사태"])]

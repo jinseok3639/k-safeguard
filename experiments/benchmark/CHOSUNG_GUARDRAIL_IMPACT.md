@@ -3,6 +3,9 @@
 > 상태: `PROVISIONAL_DEV_ONLY`
 >
 > 기준선: [`baselines/chosung_guardrail_impact_v1.json`](./baselines/chosung_guardrail_impact_v1.json)
+>
+> 이 문서는 candidate generator 0.4.0 기준이다. 후보 집합 단조성을 보장한 0.5.0 재평가는
+> [초성 후보 정책 단조성 개선](./CHOSUNG_CANDIDATE_MONOTONICITY.md)을 참고한다.
 
 ## 질문
 
@@ -37,6 +40,7 @@
 ```powershell
 .\.venv-experiment\Scripts\python `
   -m experiments.benchmark.run_chosung_guardrail_evaluation `
+  --max-candidates 16 `
   --bootstrap-samples 10000 `
   --run-id <unique-run-id>
 ```

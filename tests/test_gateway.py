@@ -1,7 +1,7 @@
 import unittest
 from importlib.metadata import version
 
-from k_safeguard import CandidateProposal, Gateway, __version__
+from k_safeguard import CandidateProposal, DEFAULT_MAX_VIEWS, Gateway, __version__
 from k_safeguard.chosung import ChosungLexicon
 from k_safeguard.providers import ChosungLexiconProvider
 
@@ -22,6 +22,14 @@ class _DuplicateProvider:
         yield CandidateProposal(text + "-2")
 
 
+class _ManyProvider:
+    name = "many"
+
+    def generate(self, text: str):
+        for index in range(20):
+            yield CandidateProposal(f"{text}-{index}")
+
+
 class GatewayTest(unittest.TestCase):
     def test_distribution_and_public_api_versions_match(self) -> None:
         self.assertEqual(version("k-safeguard"), __version__)
@@ -38,6 +46,13 @@ class GatewayTest(unittest.TestCase):
         result = Gateway().process("안녕하세요")
         self.assertEqual([view.text for view in result.views], ["안녕하세요"])
         self.assertFalse(result.changed)
+
+    def test_default_gateway_caps_total_views_at_recommended_budget(self) -> None:
+        result = Gateway(providers=[_ManyProvider()]).process("안녕")
+
+        self.assertEqual(DEFAULT_MAX_VIEWS, 10)
+        self.assertEqual(len(result.views), DEFAULT_MAX_VIEWS)
+        self.assertTrue(result.truncated)
 
     def test_chosung_provider_is_explicit_opt_in(self) -> None:
         lexicon = ChosungLexicon.from_sources(

@@ -102,7 +102,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--priority-source", default="guardrail-domain-v1")
     parser.add_argument("--word-limit", type=int, default=30_000)
     parser.add_argument("--max-options-per-span", type=int, default=3)
-    parser.add_argument("--max-candidates", type=int, default=16)
+    parser.add_argument("--max-candidates", type=int, default=10)
     parser.add_argument("--min-initials", type=int, default=3)
     parser.add_argument("--max-segments", type=int, default=2)
     parser.add_argument("--max-options-per-segment", type=int, default=1)

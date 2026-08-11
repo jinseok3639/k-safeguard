@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 
-CHOSUNG_CANDIDATE_VERSION = "0.4.0"
+CHOSUNG_CANDIDATE_VERSION = "0.5.0"
 HANGUL_BASE = 0xAC00
 COMPAT_CHO = (
     "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ",
@@ -345,6 +345,7 @@ class _LexiconOption:
     source_rank: int
     segment_words: tuple[str, ...]
     segment_sources: tuple[str, ...]
+    layer_rank: int
 
     @property
     def source(self) -> str:
@@ -376,6 +377,7 @@ def _lexicon_options(
             entry.source_rank,
             (entry.word,),
             (entry.source,),
+            0,
         )
         for entry in direct
     ]
@@ -398,6 +400,7 @@ def _lexicon_options(
                 sum(entry.source_rank for entry in item.entries),
                 tuple(entry.word for entry in item.entries),
                 tuple(entry.source for entry in item.entries),
+                1,
             )
             for item in segmented
         )
@@ -421,6 +424,7 @@ def _lexicon_options(
                 item.entry.source_rank,
                 (item.entry.word,),
                 (item.entry.source,),
+                2,
             )
             for item in partial_matches
         )
@@ -429,12 +433,14 @@ def _lexicon_options(
     for option in options:
         previous = deduplicated.get(option.span_text)
         key = (
+            option.layer_rank,
             -option.covered_initials,
             option.rank_score,
             len(option.segment_words),
             option.span_text,
         )
         if previous is None or key < (
+            previous.layer_rank,
             -previous.covered_initials,
             previous.rank_score,
             len(previous.segment_words),
@@ -444,6 +450,7 @@ def _lexicon_options(
     ranked = sorted(
         deduplicated.values(),
         key=lambda item: (
+            item.layer_rank,
             -item.covered_initials,
             item.rank_score,
             len(item.segment_words),
@@ -495,6 +502,15 @@ def _is_repeated_chat_initials(pattern: str) -> bool:
     )
 
 
+def _candidate_layer_rank(candidate: ChosungCandidate) -> int:
+    """기존 정책 후보가 확장 정책 후보보다 먼저 상한을 사용하게 한다."""
+    if any(replacement.partial for replacement in candidate.replacements):
+        return 2
+    if any(len(replacement.segment_words) > 1 for replacement in candidate.replacements):
+        return 1
+    return 0
+
+
 def generate_chosung_candidates(
     text: str,
     lexicon: ChosungLexicon,
@@ -512,7 +528,8 @@ def generate_chosung_candidates(
 ) -> ChosungCandidateResult:
     """원문 view와 제한된 초성 복원 후보를 결정론적으로 반환한다.
 
-    후보는 더 많은 초성을 복원한 문장, 사전 빈도 순위 합이 낮은 문장 순으로 정렬한다.
+    direct 후보를 먼저 보존한 뒤 segmented, partial 후보가 남은 상한을 사용한다. 같은 계층에서는
+    더 많은 초성을 복원한 문장, 사전 빈도 순위 합이 낮은 문장 순으로 정렬한다.
     반복 초성만으로 된 통신체(`ㅋㅋ`, `ㅎㅎㅎ` 등)는 과잉 복원을 피하기 위해 건너뛴다.
     """
     if not isinstance(text, str):
@@ -599,8 +616,14 @@ def generate_chosung_candidates(
         deduplicated: dict[str, ChosungCandidate] = {}
         for candidate in expanded:
             previous = deduplicated.get(candidate.text)
-            rank_key = (-candidate.covered_initials, candidate.rank_score, candidate.text)
+            rank_key = (
+                _candidate_layer_rank(candidate),
+                -candidate.covered_initials,
+                candidate.rank_score,
+                candidate.text,
+            )
             if previous is None or rank_key < (
+                _candidate_layer_rank(previous),
                 -previous.covered_initials,
                 previous.rank_score,
                 previous.text,
@@ -609,6 +632,7 @@ def generate_chosung_candidates(
         ranked = sorted(
             (candidate for candidate in deduplicated.values() if candidate.text != text),
             key=lambda candidate: (
+                _candidate_layer_rank(candidate),
                 -candidate.covered_initials,
                 candidate.rank_score,
                 candidate.text,

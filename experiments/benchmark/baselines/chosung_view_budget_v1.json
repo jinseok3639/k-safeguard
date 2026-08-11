@@ -1,0 +1,602 @@
+{
+  "status": "PROVISIONAL_DEV_ONLY",
+  "source": {
+    "run_id": "chosung-impact-monotonic-20260808",
+    "git_commit": "487f1cf3f46f56a735032a3d619a0800f200e6ed",
+    "dataset_sha256": "fbf9f978996c103b8d5625e55936e536610fbceb2a43dc2f53c1271423873b0b",
+    "candidate_generator_version": "0.5.0",
+    "model_id": "kakaocorp/kanana-safeguard-prompt-2.1b",
+    "model_revision": "167d74d4706b236580b0e48318337c7ac6ba7848",
+    "source_max_views": 16
+  },
+  "method": "prefix replay; block if any retained view blocks",
+  "policy": "segmented",
+  "bootstrap_samples": 10000,
+  "random_seed": 2026,
+  "budgets": [
+    {
+      "budget": 1,
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.1893687707641196,
+          "seed_balanced_estimate": 0.1893687707641196,
+          "ci95_low": 0.15946843853820597,
+          "ci95_high": 0.21926910299003322,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 453,
+          "seeds": 276,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 0.7455445544554455,
+          "seed_balanced_estimate": 0.7455445544554455,
+          "ci95_low": 0.7227722772277227,
+          "ci95_high": 0.7673267326732673,
+          "bootstrap_samples": 10000
+        }
+      },
+      "costs": {
+        "mean_total_views": 1.0,
+        "mean_additional_views": 0.0,
+        "mean_model_latency_sum_ms": 27.11067326732673
+      }
+    },
+    {
+      "budget": 2,
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.2558139534883721,
+          "seed_balanced_estimate": 0.2558139534883721,
+          "ci95_low": 0.22093023255813954,
+          "ci95_high": 0.292358803986711,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 453,
+          "seeds": 276,
+          "micro_estimate": 0.08609271523178808,
+          "seed_balanced_estimate": 0.09601449275362318,
+          "ci95_low": 0.06702898550724638,
+          "ci95_high": 0.12681159420289856,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.0664451827242525,
+          "seed_balanced_estimate": 0.0664451827242525,
+          "ci95_low": 0.04817275747508306,
+          "ci95_high": 0.08637873754152824,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.0024509803921568627,
+          "seed_balanced_estimate": 0.0024509803921568627,
+          "ci95_low": 0.0,
+          "ci95_high": 0.007352941176470588,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 0.7455445544554455,
+          "seed_balanced_estimate": 0.7455445544554455,
+          "ci95_low": 0.7227722772277227,
+          "ci95_high": 0.7673267326732673,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 0.69009900990099,
+          "seed_balanced_estimate": 0.69009900990099,
+          "ci95_low": 0.6683168316831684,
+          "ci95_high": 0.7108910891089109,
+          "bootstrap_samples": 10000
+        }
+      },
+      "costs": {
+        "mean_total_views": 1.7455445544554455,
+        "mean_additional_views": 0.7455445544554455,
+        "mean_model_latency_sum_ms": 47.316810891089105
+      }
+    },
+    {
+      "budget": 4,
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.26744186046511625,
+          "seed_balanced_estimate": 0.26744186046511625,
+          "ci95_low": 0.23089700996677742,
+          "ci95_high": 0.30398671096345514,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 453,
+          "seeds": 276,
+          "micro_estimate": 0.10154525386313466,
+          "seed_balanced_estimate": 0.11413043478260869,
+          "ci95_low": 0.08152173913043478,
+          "ci95_high": 0.14855072463768115,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.07807308970099668,
+          "seed_balanced_estimate": 0.07807308970099668,
+          "ci95_low": 0.05647840531561462,
+          "ci95_high": 0.09966777408637874,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.0024509803921568627,
+          "seed_balanced_estimate": 0.0024509803921568627,
+          "ci95_low": 0.0,
+          "ci95_high": 0.007352941176470588,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 2.108910891089109,
+          "seed_balanced_estimate": 2.108910891089109,
+          "ci95_low": 2.0475247524752476,
+          "ci95_high": 2.1683168316831685,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 0.6544554455445545,
+          "seed_balanced_estimate": 0.6544554455445545,
+          "ci95_low": 0.6336633663366337,
+          "ci95_high": 0.6752475247524753,
+          "bootstrap_samples": 10000
+        }
+      },
+      "costs": {
+        "mean_total_views": 3.108910891089109,
+        "mean_additional_views": 2.108910891089109,
+        "mean_model_latency_sum_ms": 84.19208910891089
+      }
+    },
+    {
+      "budget": 6,
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.2707641196013289,
+          "seed_balanced_estimate": 0.2707641196013289,
+          "ci95_low": 0.23421926910299004,
+          "ci95_high": 0.3073089700996678,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 453,
+          "seeds": 276,
+          "micro_estimate": 0.10596026490066225,
+          "seed_balanced_estimate": 0.11775362318840579,
+          "ci95_low": 0.08514492753623189,
+          "ci95_high": 0.15217391304347827,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.08139534883720931,
+          "seed_balanced_estimate": 0.08139534883720931,
+          "ci95_low": 0.059800664451827246,
+          "ci95_high": 0.10465116279069768,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.004901960784313725,
+          "seed_balanced_estimate": 0.004901960784313725,
+          "ci95_low": 0.0,
+          "ci95_high": 0.012254901960784314,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 3.124752475247525,
+          "seed_balanced_estimate": 3.124752475247525,
+          "ci95_low": 3.0554455445544555,
+          "ci95_high": 3.1940594059405942,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 0.6465346534653466,
+          "seed_balanced_estimate": 0.6465346534653466,
+          "ci95_low": 0.6257425742574257,
+          "ci95_high": 0.6683168316831684,
+          "bootstrap_samples": 10000
+        }
+      },
+      "costs": {
+        "mean_total_views": 4.124752475247525,
+        "mean_additional_views": 3.124752475247525,
+        "mean_model_latency_sum_ms": 111.71832277227722
+      }
+    },
+    {
+      "budget": 8,
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.2757475083056478,
+          "seed_balanced_estimate": 0.2757475083056478,
+          "ci95_low": 0.23920265780730898,
+          "ci95_high": 0.313953488372093,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 453,
+          "seeds": 276,
+          "micro_estimate": 0.11258278145695365,
+          "seed_balanced_estimate": 0.125,
+          "ci95_low": 0.09057971014492754,
+          "ci95_high": 0.161231884057971,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.08637873754152824,
+          "seed_balanced_estimate": 0.08637873754152824,
+          "ci95_low": 0.06312292358803986,
+          "ci95_high": 0.11129568106312292,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.004901960784313725,
+          "seed_balanced_estimate": 0.004901960784313725,
+          "ci95_low": 0.0,
+          "ci95_high": 0.012254901960784314,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 4.124752475247525,
+          "seed_balanced_estimate": 4.124752475247525,
+          "ci95_low": 4.044554455445544,
+          "ci95_high": 4.204950495049505,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 0.6435643564356436,
+          "seed_balanced_estimate": 0.6435643564356436,
+          "ci95_low": 0.6227722772277228,
+          "ci95_high": 0.6653465346534654,
+          "bootstrap_samples": 10000
+        }
+      },
+      "costs": {
+        "mean_total_views": 5.124752475247525,
+        "mean_additional_views": 4.124752475247525,
+        "mean_model_latency_sum_ms": 138.81400198019801
+      }
+    },
+    {
+      "budget": 10,
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.27740863787375414,
+          "seed_balanced_estimate": 0.27740863787375414,
+          "ci95_low": 0.24086378737541528,
+          "ci95_high": 0.31561461794019935,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 453,
+          "seeds": 276,
+          "micro_estimate": 0.11479028697571744,
+          "seed_balanced_estimate": 0.1286231884057971,
+          "ci95_low": 0.09239130434782608,
+          "ci95_high": 0.16485507246376813,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.08803986710963455,
+          "seed_balanced_estimate": 0.08803986710963455,
+          "ci95_low": 0.06478405315614617,
+          "ci95_high": 0.11295681063122924,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.007352941176470588,
+          "seed_balanced_estimate": 0.007352941176470588,
+          "ci95_low": 0.0,
+          "ci95_high": 0.01715686274509804,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 5.09009900990099,
+          "seed_balanced_estimate": 5.09009900990099,
+          "ci95_low": 4.9990099009900995,
+          "ci95_high": 5.182178217821782,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 0.6425742574257426,
+          "seed_balanced_estimate": 0.6425742574257426,
+          "ci95_low": 0.6217821782178218,
+          "ci95_high": 0.6643564356435644,
+          "bootstrap_samples": 10000
+        }
+      },
+      "costs": {
+        "mean_total_views": 6.09009900990099,
+        "mean_additional_views": 5.09009900990099,
+        "mean_model_latency_sum_ms": 164.90842673267326
+      }
+    },
+    {
+      "budget": 12,
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.27740863787375414,
+          "seed_balanced_estimate": 0.27740863787375414,
+          "ci95_low": 0.24086378737541528,
+          "ci95_high": 0.31561461794019935,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 453,
+          "seeds": 276,
+          "micro_estimate": 0.11479028697571744,
+          "seed_balanced_estimate": 0.1286231884057971,
+          "ci95_low": 0.09239130434782608,
+          "ci95_high": 0.16485507246376813,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.08803986710963455,
+          "seed_balanced_estimate": 0.08803986710963455,
+          "ci95_low": 0.06478405315614617,
+          "ci95_high": 0.11295681063122924,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.007352941176470588,
+          "seed_balanced_estimate": 0.007352941176470588,
+          "ci95_low": 0.0,
+          "ci95_high": 0.01715686274509804,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 6.054455445544554,
+          "seed_balanced_estimate": 6.054455445544554,
+          "ci95_low": 5.9485148514851485,
+          "ci95_high": 6.161386138613861,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 0.6336633663366337,
+          "seed_balanced_estimate": 0.6336633663366337,
+          "ci95_low": 0.6108910891089109,
+          "ci95_high": 0.6564356435643565,
+          "bootstrap_samples": 10000
+        }
+      },
+      "costs": {
+        "mean_total_views": 7.054455445544554,
+        "mean_additional_views": 6.054455445544554,
+        "mean_model_latency_sum_ms": 191.0717099009901
+      }
+    },
+    {
+      "budget": 16,
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.27740863787375414,
+          "seed_balanced_estimate": 0.27740863787375414,
+          "ci95_low": 0.24086378737541528,
+          "ci95_high": 0.31561461794019935,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 453,
+          "seeds": 276,
+          "micro_estimate": 0.11479028697571744,
+          "seed_balanced_estimate": 0.1286231884057971,
+          "ci95_low": 0.09239130434782608,
+          "ci95_high": 0.16485507246376813,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.08803986710963455,
+          "seed_balanced_estimate": 0.08803986710963455,
+          "ci95_low": 0.06478405315614617,
+          "ci95_high": 0.11295681063122924,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.007352941176470588,
+          "seed_balanced_estimate": 0.007352941176470588,
+          "ci95_low": 0.0,
+          "ci95_high": 0.01715686274509804,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 7.93960396039604,
+          "seed_balanced_estimate": 7.93960396039604,
+          "ci95_low": 7.799009900990099,
+          "ci95_high": 8.078217821782179,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1010,
+          "seeds": 505,
+          "micro_estimate": 0.6297029702970297,
+          "seed_balanced_estimate": 0.6297029702970297,
+          "ci95_low": 0.6069306930693069,
+          "ci95_high": 0.6534653465346535,
+          "bootstrap_samples": 10000
+        }
+      },
+      "costs": {
+        "mean_total_views": 8.93960396039604,
+        "mean_additional_views": 7.93960396039604,
+        "mean_model_latency_sum_ms": 242.08447326732673
+      }
+    }
+  ]
+}

@@ -13,7 +13,9 @@ view를 함께 제공한다.
 - 완전 초성 토큰과 `ㅅ정ㅇ` 같은 부분 초성 토큰을 모두 지원한다.
 - 기본값은 초성이 3개 이상인 span만 확장한다.
 - `ㅋㅋ`, `ㅎㅎㅎ`처럼 같은 초성이 반복된 통신체는 확장하지 않는다.
-- 한 span당 3개, 문장당 원문 포함 16개로 후보 폭발을 제한한다.
+- primitive는 한 span당 3개, 문장당 원문 포함 최대 16개로 후보 폭발을 제한한다.
+- 실제 Gateway 기본 총 view 예산은 평가로 선택한 10개이며 호출자가 재정의할 수 있다.
+- 후보 상한은 direct, segmented, partial 순으로 배정해 확장 정책이 이전 후보를 밀어내지 않는다.
 - 복원 후보에는 `lossy=true`, 원문 offset, 사전 rank와 대안 수를 기록한다.
 
 기본 정규화와 분리한 이유는 정상 입력을 조용히 다른 문장으로 바꾸지 않기 위해서다. 실제 gateway는
@@ -85,6 +87,16 @@ provider = ChosungLexiconProvider(
 이 기능은 현재 benchmark에서 복원률을 개선하지 못했으므로 기본 활성화하거나 방어 개선으로 해석하지
 않는다. 비교 결과는
 [`experiments/benchmark/CHOSUNG_PARTIAL_RESTORATION_COMPARISON.md`](./experiments/benchmark/CHOSUNG_PARTIAL_RESTORATION_COMPARISON.md)에
+기록한다.
+
+candidate generator 0.5.0은 같은 설정에서 `direct ⊆ segmented ⊆ partial` 후보 집합을 보장한다.
+이전 버전에서 segmentation 활성화가 direct 후보를 밀어내던 문제와 전체 재평가 결과는
+[`experiments/benchmark/CHOSUNG_CANDIDATE_MONOTONICITY.md`](./experiments/benchmark/CHOSUNG_CANDIDATE_MONOTONICITY.md)에
+기록한다.
+
+16개 전체 후보 결과를 예산별로 재집계한 결과, 총 10 view부터 공격 block rate·NRR·ΔFPR이
+16과 같았다. 이에 따라 Gateway 기본 `max_views`는 10으로 낮췄다. 선택 근거와 비용 곡선은
+[`experiments/benchmark/CHOSUNG_VIEW_BUDGET.md`](./experiments/benchmark/CHOSUNG_VIEW_BUDGET.md)에
 기록한다.
 
 Kanana 가드레일에 후보 view를 직접 연결한 평가에서도 segmented 대비 partial의 판정 변화는 0건이었다.
