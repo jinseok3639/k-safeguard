@@ -89,6 +89,28 @@ class ChosungLexiconTest(unittest.TestCase):
                 max_options_per_segment=5,
             )
 
+    def test_matches_only_bounded_partial_words_from_trusted_sources(self) -> None:
+        lexicon = ChosungLexicon.from_sources(
+            [
+                ("domain", ["시스템"]),
+                ("general", ["시스템프롬프트"]),
+            ]
+        )
+
+        matches = lexicon.match_partial(
+            "ㄱㄱㅅㅅㅌㄴ",
+            3,
+            sources=("domain",),
+        )
+
+        self.assertEqual(len(matches), 1)
+        self.assertEqual((matches[0].start, matches[0].end), (2, 5))
+        self.assertEqual(matches[0].entry.word, "시스템")
+        self.assertEqual(
+            lexicon.match_partial("ㅅㅅㅌ", 3, sources=("domain",)),
+            (),
+        )
+
 
 class GenerateChosungCandidatesTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -161,6 +183,42 @@ class GenerateChosungCandidatesTest(unittest.TestCase):
         replacement = enabled.candidates[1].replacements[0]
         self.assertEqual(replacement.segment_words, ("시스템", "프롬프트"))
         self.assertEqual(replacement.segment_sources, ("domain", "domain"))
+
+    def test_partial_restoration_preserves_unmatched_initials_and_traces_range(self) -> None:
+        lexicon = ChosungLexicon.from_sources(
+            [("domain", ["시스템"]), ("general", ["산사태"])]
+        )
+        disabled = generate_chosung_candidates("ㄱㄱㅅㅅㅌㄴ", lexicon)
+        enabled = generate_chosung_candidates(
+            "ㄱㄱㅅㅅㅌㄴ",
+            lexicon,
+            allow_partial_restoration=True,
+            partial_sources=("domain",),
+        )
+
+        self.assertEqual(len(disabled.candidates), 1)
+        self.assertEqual(enabled.candidates[1].text, "ㄱㄱ시스템ㄴ")
+        self.assertEqual(enabled.candidates[1].covered_initials, 3)
+        replacement = enabled.candidates[1].replacements[0]
+        self.assertTrue(replacement.partial)
+        self.assertEqual((replacement.source_start, replacement.source_end), (2, 5))
+        self.assertEqual((replacement.before, replacement.after), ("ㅅㅅㅌ", "시스템"))
+        self.assertEqual(replacement.lexicon_source, "domain")
+
+    def test_partial_restoration_requires_explicit_trusted_source(self) -> None:
+        with self.assertRaisesRegex(ValueError, "source"):
+            generate_chosung_candidates(
+                "ㄱㄱㅅㅅㅌㄴ",
+                self.lexicon,
+                allow_partial_restoration=True,
+            )
+        with self.assertRaisesRegex(TypeError, "iterable"):
+            generate_chosung_candidates(
+                "ㄱㄱㅅㅅㅌㄴ",
+                self.lexicon,
+                allow_partial_restoration=True,
+                partial_sources="domain",
+            )
 
     def test_rejects_non_string_input(self) -> None:
         with self.assertRaisesRegex(TypeError, "str"):

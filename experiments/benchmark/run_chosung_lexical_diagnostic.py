@@ -58,6 +58,8 @@ class DiagnosticObservation:
     truncated: bool
     row_id: str | None = None
     seed_id: str | None = None
+    partial_generated: bool = False
+    partial_candidate_count: int = 0
 
 
 def parse_args() -> argparse.Namespace:
@@ -81,6 +83,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--allow-segmentation", action="store_true")
     parser.add_argument("--max-segments", type=int, default=2)
     parser.add_argument("--max-options-per-segment", type=int, default=1)
+    parser.add_argument("--allow-partial-restoration", action="store_true")
+    parser.add_argument(
+        "--partial-source",
+        action="append",
+        help=(
+            "부분 복원을 허용할 신뢰 lexicon source. 반복 지정 가능하며, 생략하면 "
+            "--priority-source를 사용"
+        ),
+    )
+    parser.add_argument("--min-partial-initials", type=int, default=3)
+    parser.add_argument("--max-partial-replacements", type=int, default=1)
     parser.add_argument("--output", type=Path)
     return parser.parse_args()
 
@@ -103,6 +116,10 @@ def observe_row(
     allow_segmentation: bool = False,
     max_segments: int = 2,
     max_options_per_segment: int = 1,
+    allow_partial_restoration: bool = False,
+    partial_sources: tuple[str, ...] = (),
+    min_partial_initials: int = 3,
+    max_partial_replacements: int = 1,
     row_id: str | None = None,
     seed_id: str | None = None,
 ) -> DiagnosticObservation:
@@ -116,8 +133,16 @@ def observe_row(
         allow_segmentation=allow_segmentation,
         max_segments=max_segments,
         max_options_per_segment=max_options_per_segment,
+        allow_partial_restoration=allow_partial_restoration,
+        partial_sources=partial_sources,
+        min_partial_initials=min_partial_initials,
+        max_partial_replacements=max_partial_replacements,
     )
     expanded = result.candidates[1:]
+    partial_candidate_count = sum(
+        any(replacement.partial for replacement in candidate.replacements)
+        for candidate in expanded
+    )
     initial_positions = _initial_positions(exact_normalized)
     recalls = []
     for candidate in expanded:
@@ -141,6 +166,8 @@ def observe_row(
         truncated=result.truncated,
         row_id=row_id,
         seed_id=seed_id,
+        partial_generated=partial_candidate_count > 0,
+        partial_candidate_count=partial_candidate_count,
     )
 
 
@@ -168,6 +195,8 @@ def _aggregate(items: list[DiagnosticObservation]) -> dict[str, Any]:
             "mean_best_initial_recall": None,
             "mean_candidate_count": None,
             "truncated_rate": None,
+            "partial_generation_rate": None,
+            "mean_partial_candidate_count": None,
         }
     return {
         "rows": len(items),
@@ -179,6 +208,12 @@ def _aggregate(items: list[DiagnosticObservation]) -> dict[str, Any]:
         ),
         "mean_candidate_count": statistics.fmean(item.candidate_count for item in items),
         "truncated_rate": statistics.fmean(item.truncated for item in items),
+        "partial_generation_rate": statistics.fmean(
+            item.partial_generated for item in items
+        ),
+        "mean_partial_candidate_count": statistics.fmean(
+            item.partial_candidate_count for item in items
+        ),
     }
 
 
@@ -246,6 +281,8 @@ def outcome_examples(
                 "candidate_count": item.candidate_count,
                 "best_initial_recall": item.best_initial_recall,
                 "truncated": item.truncated,
+                "partial_generated": item.partial_generated,
+                "partial_candidate_count": item.partial_candidate_count,
             }
         )
     return examples
@@ -282,8 +319,19 @@ def main() -> int:
         raise ValueError("후보 제한은 1 이상이어야 합니다.")
     if not 2 <= args.max_segments <= 4 or not 1 <= args.max_options_per_segment <= 4:
         raise ValueError("분할 제한이 잘못됐습니다.")
+    if args.min_partial_initials < 1:
+        raise ValueError("--min-partial-initials는 1 이상이어야 합니다.")
+    if args.max_partial_replacements < 1:
+        raise ValueError("--max-partial-replacements는 1 이상이어야 합니다.")
     if args.examples_per_outcome < 1:
         raise ValueError("--examples-per-outcome은 1 이상이어야 합니다.")
+    partial_sources = tuple(dict.fromkeys(args.partial_source or ()))
+    if args.allow_partial_restoration and not partial_sources:
+        if args.priority_lexicon is None:
+            raise ValueError(
+                "부분 복원에는 --partial-source 또는 --priority-lexicon이 필요합니다."
+            )
+        partial_sources = (args.priority_source,)
 
     try:
         from wordfreq import top_n_list
@@ -342,6 +390,10 @@ def main() -> int:
             allow_segmentation=args.allow_segmentation,
             max_segments=args.max_segments,
             max_options_per_segment=args.max_options_per_segment,
+            allow_partial_restoration=args.allow_partial_restoration,
+            partial_sources=partial_sources,
+            min_partial_initials=args.min_partial_initials,
+            max_partial_replacements=args.max_partial_replacements,
             row_id=row.row_id,
             seed_id=row.seed_id,
         )
@@ -374,6 +426,10 @@ def main() -> int:
             "allow_segmentation": args.allow_segmentation,
             "max_segments": args.max_segments,
             "max_options_per_segment": args.max_options_per_segment,
+            "allow_partial_restoration": args.allow_partial_restoration,
+            "partial_sources": list(partial_sources),
+            "min_partial_initials": args.min_partial_initials,
+            "max_partial_replacements": args.max_partial_replacements,
         },
         "metrics": summarize(observations),
         "error_analysis": {

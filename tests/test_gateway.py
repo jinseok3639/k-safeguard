@@ -66,6 +66,31 @@ class GatewayTest(unittest.TestCase):
         self.assertEqual(result.views[1].text, "시스템프롬프트")
         self.assertIn(("max_segment_count", "2"), result.views[1].metadata)
 
+    def test_chosung_provider_can_restore_one_trusted_partial_range(self) -> None:
+        lexicon = ChosungLexicon.from_sources(
+            [("domain", ["시스템"]), ("general", ["산사태"])]
+        )
+        provider = ChosungLexiconProvider(
+            lexicon,
+            allow_partial_restoration=True,
+            partial_sources=("domain",),
+        )
+
+        result = Gateway(providers=[provider]).process("ㄱㄱㅅㅅㅌㄴ")
+
+        self.assertEqual(result.views[1].text, "ㄱㄱ시스템ㄴ")
+        self.assertIn(("partial_replacement_count", "1"), result.views[1].metadata)
+        self.assertIn(("partial_ranges", "2:5"), result.views[1].metadata)
+
+    def test_chosung_provider_rejects_one_string_as_partial_sources(self) -> None:
+        lexicon = ChosungLexicon.from_sources([("domain", ["시스템"])])
+        with self.assertRaisesRegex(TypeError, "iterable"):
+            ChosungLexiconProvider(
+                lexicon,
+                allow_partial_restoration=True,
+                partial_sources="domain",
+            )
+
     def test_strict_provider_failure_is_raised(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "provider failure"):
             Gateway(providers=[_FailingProvider()], strict_providers=True).process("안녕")

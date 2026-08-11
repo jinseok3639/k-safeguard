@@ -62,10 +62,9 @@ span 분할은 무의존 opt-in 기능으로 유지할 만큼 부분 복원 개�
 여전히 0건이며 `target_not_in_candidates`가 608건이다. 따라서 아직 문맥 ranker 학습·도입 단계가
 아니다.
 
-다음 후보 recall 단계는 span 전체를 모두 덮는 분할뿐 아니라, 긴 span 내부에서 신뢰도 높은 도메인
-부분어만 복원하고 나머지 초성을 보존하는 bounded partial restoration이다. 이 단계에서도 원문 view를
-보존하고, 부분 복원 개수·범위와 source를 추적하며, 강도 1.0 truncation을 추가로 악화시키지 않는
-조건을 우선한다.
+후속 bounded partial restoration 비교는
+[`CHOSUNG_PARTIAL_RESTORATION_COMPARISON.md`](./CHOSUNG_PARTIAL_RESTORATION_COMPARISON.md)에 기록했다.
+현재 공백 보존 초성 benchmark에서는 복원률 개선이 없어 기본 활성화 근거를 얻지 못했다.
 
 ## 재현
 
