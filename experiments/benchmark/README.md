@@ -34,7 +34,9 @@
 같은 56행을 Qwen3Guard-Gen에 재사용하는 교차 검증은
 [Qwen3Guard 된소리 교차 모델 검증 규격](./TENSIFY_QWEN_CROSS_MODEL_PROTOCOL.md)을 따른다.
 이 데이터는 Kanana 결과를 확인한 뒤 재사용하므로 새 locked test가 아니며, Qwen 결과의 일반화
-증거만 기술하고 threshold 조정이나 preset 채택 판단에는 사용하지 않는다.
+증거만 기술하고 threshold 조정이나 preset 채택 판단에는 사용하지 않는다. 실행 결과는 원문 공격
+coverage 부족과 난독화 정상문 고오탐 때문에 `LIMITED_BASELINE_COVERAGE`이며,
+[Qwen3Guard 교차 모델 결과](./TENSIFY_QWEN_CROSS_MODEL_RESULT.md)에 기록했다.
 
 ```powershell
 .\.venv-experiment\Scripts\python `
