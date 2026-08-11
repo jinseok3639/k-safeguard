@@ -79,6 +79,10 @@ block에서 조기 종료할 수 있으므로 요청별 실행 view와 latency�
 3. 기본 활성화 전 별도 정상 된소리·구어체 locked set에서 FPR을 재검증한다.
 4. 운영 비용은 조기 종료 및 batch runtime 평가로 따로 측정한다.
 
+후속 [activation 정책 sweep](./TENSIFY_ACTIVATION_SWEEP.md)에서는 경음 음절 비율 10% 조건이
+NRR과 ΔFPR을 유지하면서 clean benign 후보 활성화를 55.39%에서 11.27%로 줄였다. 이 조건도 같은
+개발셋에서 선택했으므로 정상 구어체 dev set 검증 전에는 기본값으로 승격하지 않는다.
+
 이 결과는 Prompt track 한 모델의 개발용 근거이며 Content track, 다른 한국어 가드레일 또는 실제
 하위 LLM의 안전성을 일반화하지 않는다.
 

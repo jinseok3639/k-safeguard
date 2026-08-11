@@ -1,0 +1,3686 @@
+{
+  "status": "PROVISIONAL_DEV_ONLY",
+  "provenance": {
+    "created_at": "2026-08-11T07:08:41.794183+00:00",
+    "git": {
+      "commit": "54a46acdf542cba78913eaa22c06f2a739f96c28",
+      "branch": "feature/tensify-activation-policy",
+      "dirty": false
+    },
+    "source_run_id": "tensify-impact-v1-20260811",
+    "source_git": {
+      "commit": "59afd607326024078b8f7bad126e56c4d4583d57",
+      "branch": "experiment/tensify-guardrail-evaluation",
+      "dirty": false
+    },
+    "source_predictions_sha256": "411de9d52c43134e0f67f19ca5521479b8064a687ac65e82250b2857b246bb5a",
+    "source_model": {
+      "model_id": "kakaocorp/kanana-safeguard-prompt-2.1b",
+      "revision": "167d74d4706b236580b0e48318337c7ac6ba7848"
+    },
+    "source_candidate_generator": {
+      "name": "tensify_inverse",
+      "version": "0.1.0",
+      "normalizer_version": "0.1.0",
+      "max_candidates": 9,
+      "max_views": 10,
+      "decision_rule": "block if any retained view blocks"
+    },
+    "activation_provider_version": "0.2.0",
+    "bootstrap_samples": 10000,
+    "random_seed": 2026
+  },
+  "source_rows": 3030,
+  "selection_rule": "preserve all-policy NRR and both delta-FPR estimates; then minimize clean-benign activation, maximize attack-obfuscated activation, and minimize generated views",
+  "recommended_policy": "ratio_0.10",
+  "strategies": [
+    {
+      "policy": {
+        "name": "all",
+        "min_tense_syllables": 1,
+        "min_tense_ratio": 0.0
+      },
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.9534883720930233,
+          "seed_balanced_estimate": 0.9534883720930233,
+          "ci95_low": 0.9285714285714286,
+          "ci95_high": 0.9750830564784053,
+          "bootstrap_samples": 10000
+        },
+        "benign_block_rate": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "clean_attack_block_rate": {
+          "rows": 301,
+          "seeds": 301,
+          "micro_estimate": 0.9401993355481728,
+          "seed_balanced_estimate": 0.9401993355481728,
+          "ci95_low": 0.9136212624584718,
+          "ci95_high": 0.9667774086378738,
+          "bootstrap_samples": 10000
+        },
+        "clean_benign_block_rate": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.0196078431372549,
+          "seed_balanced_estimate": 0.0196078431372549,
+          "ci95_low": 0.004901960784313725,
+          "ci95_high": 0.0392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 6.038943894389439,
+          "seed_balanced_estimate": 6.038943894389439,
+          "ci95_low": 5.976897689768977,
+          "ci95_high": 6.097029702970297,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 389,
+          "seeds": 242,
+          "micro_estimate": 1.0,
+          "seed_balanced_estimate": 1.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.6561461794019934,
+          "seed_balanced_estimate": 0.6561461794019934,
+          "ci95_low": 0.6129568106312292,
+          "ci95_high": 0.6976744186046512,
+          "bootstrap_samples": 10000
+        },
+        "residual_evasion_rate": {
+          "rows": 566,
+          "seeds": 283,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 0.6105610561056105,
+          "seed_balanced_estimate": 0.6105610561056105,
+          "ci95_low": 0.5993399339933992,
+          "ci95_high": 0.621122112211221,
+          "bootstrap_samples": 10000
+        }
+      },
+      "obfuscated_groups": [
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9587628865979382,
+              "seed_balanced_estimate": 0.9587628865979382,
+              "ci95_low": 0.9278350515463918,
+              "ci95_high": 0.9845360824742269,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 97,
+              "seeds": 97,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.5051546391752577,
+              "seed_balanced_estimate": 0.5051546391752577,
+              "ci95_low": 0.4329896907216495,
+              "ci95_high": 0.5773195876288659,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.4536082474226804,
+              "seed_balanced_estimate": 0.4536082474226804,
+              "ci95_low": 0.3865979381443299,
+              "ci95_high": 0.5257731958762887,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9536082474226805,
+              "seed_balanced_estimate": 0.9536082474226805,
+              "ci95_low": 0.9226804123711341,
+              "ci95_high": 0.979381443298969,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 165,
+              "seeds": 165,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.8505154639175257,
+              "seed_balanced_estimate": 0.8505154639175257,
+              "ci95_low": 0.7989690721649485,
+              "ci95_high": 0.8969072164948454,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.10309278350515463,
+              "seed_balanced_estimate": 0.10309278350515463,
+              "ci95_low": 0.061855670103092786,
+              "ci95_high": 0.14948453608247422,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9439252336448598,
+              "seed_balanced_estimate": 0.9439252336448598,
+              "ci95_low": 0.897196261682243,
+              "ci95_high": 0.9813084112149533,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 50,
+              "seeds": 50,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.48598130841121495,
+              "seed_balanced_estimate": 0.48598130841121495,
+              "ci95_low": 0.3925233644859813,
+              "ci95_high": 0.5794392523364486,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.45794392523364486,
+              "seed_balanced_estimate": 0.45794392523364486,
+              "ci95_low": 0.3644859813084112,
+              "ci95_high": 0.5514018691588785,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9532710280373832,
+              "seed_balanced_estimate": 0.9532710280373832,
+              "ci95_low": 0.9065420560747663,
+              "ci95_high": 0.9906542056074766,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 77,
+              "seeds": 77,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.7476635514018691,
+              "seed_balanced_estimate": 0.7476635514018691,
+              "ci95_low": 0.6635514018691588,
+              "ci95_high": 0.8317757009345794,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.205607476635514,
+              "seed_balanced_estimate": 0.205607476635514,
+              "ci95_low": 0.1308411214953271,
+              "ci95_high": 0.2803738317757009,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 0.5,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 1.0,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.024509803921568627,
+              "seed_balanced_estimate": 0.024509803921568627,
+              "ci95_low": 0.004901960784313725,
+              "ci95_high": 0.049019607843137254,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.004901960784313725,
+              "seed_balanced_estimate": 0.004901960784313725,
+              "ci95_low": 0.0,
+              "ci95_high": 0.014705882352941176,
+              "bootstrap_samples": 10000
+            }
+          }
+        }
+      ],
+      "transition": {
+        "attack_newly_blocked": 395,
+        "attack_newly_allowed": 0,
+        "benign_newly_blocked": 8,
+        "benign_newly_allowed": 0,
+        "candidate_set_contained": 1515,
+        "eligible": 1515,
+        "candidate_set_contained_rate": 1.0
+      },
+      "activation": {
+        "groups": [
+          {
+            "label": "attack",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 301,
+            "activated": 116,
+            "activation_rate": 0.3853820598006645
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 301,
+            "activated": 300,
+            "activation_rate": 0.9966777408637874
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 301,
+            "activated": 300,
+            "activation_rate": 0.9966777408637874
+          },
+          {
+            "label": "benign",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 204,
+            "activated": 113,
+            "activation_rate": 0.553921568627451
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          }
+        ],
+        "attack_obfuscated": 0.9966777408637874,
+        "benign_obfuscated": 1.0,
+        "benign_clean": 0.553921568627451
+      }
+    },
+    {
+      "policy": {
+        "name": "count_2",
+        "min_tense_syllables": 2,
+        "min_tense_ratio": 0.0
+      },
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.9534883720930233,
+          "seed_balanced_estimate": 0.9534883720930233,
+          "ci95_low": 0.9285714285714286,
+          "ci95_high": 0.9750830564784053,
+          "bootstrap_samples": 10000
+        },
+        "benign_block_rate": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "clean_attack_block_rate": {
+          "rows": 301,
+          "seeds": 301,
+          "micro_estimate": 0.9401993355481728,
+          "seed_balanced_estimate": 0.9401993355481728,
+          "ci95_low": 0.9136212624584718,
+          "ci95_high": 0.9667774086378738,
+          "bootstrap_samples": 10000
+        },
+        "clean_benign_block_rate": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.0196078431372549,
+          "seed_balanced_estimate": 0.0196078431372549,
+          "ci95_low": 0.004901960784313725,
+          "ci95_high": 0.0392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 5.917491749174918,
+          "seed_balanced_estimate": 5.917491749174918,
+          "ci95_low": 5.855445544554455,
+          "ci95_high": 5.975577557755775,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 389,
+          "seeds": 242,
+          "micro_estimate": 1.0,
+          "seed_balanced_estimate": 1.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.6561461794019934,
+          "seed_balanced_estimate": 0.6561461794019934,
+          "ci95_low": 0.6129568106312292,
+          "ci95_high": 0.6976744186046512,
+          "bootstrap_samples": 10000
+        },
+        "residual_evasion_rate": {
+          "rows": 566,
+          "seeds": 283,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 0.6105610561056105,
+          "seed_balanced_estimate": 0.6105610561056105,
+          "ci95_low": 0.5993399339933992,
+          "ci95_high": 0.621122112211221,
+          "bootstrap_samples": 10000
+        }
+      },
+      "obfuscated_groups": [
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9587628865979382,
+              "seed_balanced_estimate": 0.9587628865979382,
+              "ci95_low": 0.9278350515463918,
+              "ci95_high": 0.9845360824742269,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 97,
+              "seeds": 97,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.5051546391752577,
+              "seed_balanced_estimate": 0.5051546391752577,
+              "ci95_low": 0.4329896907216495,
+              "ci95_high": 0.5773195876288659,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.4536082474226804,
+              "seed_balanced_estimate": 0.4536082474226804,
+              "ci95_low": 0.3865979381443299,
+              "ci95_high": 0.5257731958762887,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9536082474226805,
+              "seed_balanced_estimate": 0.9536082474226805,
+              "ci95_low": 0.9226804123711341,
+              "ci95_high": 0.979381443298969,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 165,
+              "seeds": 165,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.8505154639175257,
+              "seed_balanced_estimate": 0.8505154639175257,
+              "ci95_low": 0.7989690721649485,
+              "ci95_high": 0.8969072164948454,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.10309278350515463,
+              "seed_balanced_estimate": 0.10309278350515463,
+              "ci95_low": 0.061855670103092786,
+              "ci95_high": 0.14948453608247422,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9439252336448598,
+              "seed_balanced_estimate": 0.9439252336448598,
+              "ci95_low": 0.897196261682243,
+              "ci95_high": 0.9813084112149533,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 50,
+              "seeds": 50,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.48598130841121495,
+              "seed_balanced_estimate": 0.48598130841121495,
+              "ci95_low": 0.3925233644859813,
+              "ci95_high": 0.5794392523364486,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.45794392523364486,
+              "seed_balanced_estimate": 0.45794392523364486,
+              "ci95_low": 0.3644859813084112,
+              "ci95_high": 0.5514018691588785,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9532710280373832,
+              "seed_balanced_estimate": 0.9532710280373832,
+              "ci95_low": 0.9065420560747663,
+              "ci95_high": 0.9906542056074766,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 77,
+              "seeds": 77,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.7476635514018691,
+              "seed_balanced_estimate": 0.7476635514018691,
+              "ci95_low": 0.6635514018691588,
+              "ci95_high": 0.8317757009345794,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.205607476635514,
+              "seed_balanced_estimate": 0.205607476635514,
+              "ci95_low": 0.1308411214953271,
+              "ci95_high": 0.2803738317757009,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 0.5,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 1.0,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.024509803921568627,
+              "seed_balanced_estimate": 0.024509803921568627,
+              "ci95_low": 0.004901960784313725,
+              "ci95_high": 0.049019607843137254,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.004901960784313725,
+              "seed_balanced_estimate": 0.004901960784313725,
+              "ci95_low": 0.0,
+              "ci95_high": 0.014705882352941176,
+              "bootstrap_samples": 10000
+            }
+          }
+        }
+      ],
+      "transition": {
+        "attack_newly_blocked": 395,
+        "attack_newly_allowed": 0,
+        "benign_newly_blocked": 8,
+        "benign_newly_allowed": 0,
+        "candidate_set_contained": 1515,
+        "eligible": 1515,
+        "candidate_set_contained_rate": 1.0
+      },
+      "activation": {
+        "groups": [
+          {
+            "label": "attack",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 301,
+            "activated": 15,
+            "activation_rate": 0.04983388704318937
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 301,
+            "activated": 299,
+            "activation_rate": 0.9933554817275747
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 301,
+            "activated": 300,
+            "activation_rate": 0.9966777408637874
+          },
+          {
+            "label": "benign",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 204,
+            "activated": 31,
+            "activation_rate": 0.15196078431372548
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          }
+        ],
+        "attack_obfuscated": 0.9950166112956811,
+        "benign_obfuscated": 1.0,
+        "benign_clean": 0.15196078431372548
+      }
+    },
+    {
+      "policy": {
+        "name": "count_3",
+        "min_tense_syllables": 3,
+        "min_tense_ratio": 0.0
+      },
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.9435215946843853,
+          "seed_balanced_estimate": 0.9435215946843853,
+          "ci95_low": 0.9186046511627907,
+          "ci95_high": 0.9667774086378738,
+          "bootstrap_samples": 10000
+        },
+        "benign_block_rate": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "clean_attack_block_rate": {
+          "rows": 301,
+          "seeds": 301,
+          "micro_estimate": 0.9401993355481728,
+          "seed_balanced_estimate": 0.9401993355481728,
+          "ci95_low": 0.9136212624584718,
+          "ci95_high": 0.9667774086378738,
+          "bootstrap_samples": 10000
+        },
+        "clean_benign_block_rate": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.0196078431372549,
+          "seed_balanced_estimate": 0.0196078431372549,
+          "ci95_low": 0.004901960784313725,
+          "ci95_high": 0.0392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 5.790759075907591,
+          "seed_balanced_estimate": 5.790759075907591,
+          "ci95_low": 5.7194719471947195,
+          "ci95_high": 5.856105610561056,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 389,
+          "seeds": 242,
+          "micro_estimate": 0.9845758354755784,
+          "seed_balanced_estimate": 0.987603305785124,
+          "ci95_low": 0.9772727272727273,
+          "ci95_high": 0.9958677685950413,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.6461794019933554,
+          "seed_balanced_estimate": 0.6461794019933554,
+          "ci95_low": 0.6029900332225914,
+          "ci95_high": 0.6877076411960132,
+          "bootstrap_samples": 10000
+        },
+        "residual_evasion_rate": {
+          "rows": 566,
+          "seeds": 283,
+          "micro_estimate": 0.01060070671378092,
+          "seed_balanced_estimate": 0.01060070671378092,
+          "ci95_low": 0.0035335689045936395,
+          "ci95_high": 0.019434628975265017,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 0.6105610561056105,
+          "seed_balanced_estimate": 0.6105610561056105,
+          "ci95_low": 0.5993399339933992,
+          "ci95_high": 0.621122112211221,
+          "bootstrap_samples": 10000
+        }
+      },
+      "obfuscated_groups": [
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9587628865979382,
+              "seed_balanced_estimate": 0.9587628865979382,
+              "ci95_low": 0.9278350515463918,
+              "ci95_high": 0.9845360824742269,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 97,
+              "seeds": 97,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.5051546391752577,
+              "seed_balanced_estimate": 0.5051546391752577,
+              "ci95_low": 0.4329896907216495,
+              "ci95_high": 0.5773195876288659,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.4536082474226804,
+              "seed_balanced_estimate": 0.4536082474226804,
+              "ci95_low": 0.3865979381443299,
+              "ci95_high": 0.5257731958762887,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9536082474226805,
+              "seed_balanced_estimate": 0.9536082474226805,
+              "ci95_low": 0.9226804123711341,
+              "ci95_high": 0.979381443298969,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 165,
+              "seeds": 165,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.8505154639175257,
+              "seed_balanced_estimate": 0.8505154639175257,
+              "ci95_low": 0.7989690721649485,
+              "ci95_high": 0.8969072164948454,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.10309278350515463,
+              "seed_balanced_estimate": 0.10309278350515463,
+              "ci95_low": 0.061855670103092786,
+              "ci95_high": 0.14948453608247422,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.8878504672897196,
+              "seed_balanced_estimate": 0.8878504672897196,
+              "ci95_low": 0.822429906542056,
+              "ci95_high": 0.9439252336448598,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 50,
+              "seeds": 50,
+              "micro_estimate": 0.88,
+              "seed_balanced_estimate": 0.88,
+              "ci95_low": 0.78,
+              "ci95_high": 0.96,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.42990654205607476,
+              "seed_balanced_estimate": 0.42990654205607476,
+              "ci95_low": 0.3364485981308411,
+              "ci95_high": 0.5233644859813084,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.45794392523364486,
+              "seed_balanced_estimate": 0.45794392523364486,
+              "ci95_low": 0.3644859813084112,
+              "ci95_high": 0.5514018691588785,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.06060606060606061,
+              "seed_balanced_estimate": 0.06060606060606061,
+              "ci95_low": 0.020202020202020204,
+              "ci95_high": 0.1111111111111111,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9532710280373832,
+              "seed_balanced_estimate": 0.9532710280373832,
+              "ci95_low": 0.9065420560747663,
+              "ci95_high": 0.9906542056074766,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 77,
+              "seeds": 77,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.7476635514018691,
+              "seed_balanced_estimate": 0.7476635514018691,
+              "ci95_low": 0.6635514018691588,
+              "ci95_high": 0.8317757009345794,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.205607476635514,
+              "seed_balanced_estimate": 0.205607476635514,
+              "ci95_low": 0.1308411214953271,
+              "ci95_high": 0.2803738317757009,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 0.5,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 1.0,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.024509803921568627,
+              "seed_balanced_estimate": 0.024509803921568627,
+              "ci95_low": 0.004901960784313725,
+              "ci95_high": 0.049019607843137254,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.004901960784313725,
+              "seed_balanced_estimate": 0.004901960784313725,
+              "ci95_low": 0.0,
+              "ci95_high": 0.014705882352941176,
+              "bootstrap_samples": 10000
+            }
+          }
+        }
+      ],
+      "transition": {
+        "attack_newly_blocked": 389,
+        "attack_newly_allowed": 0,
+        "benign_newly_blocked": 8,
+        "benign_newly_allowed": 0,
+        "candidate_set_contained": 1515,
+        "eligible": 1515,
+        "candidate_set_contained_rate": 1.0
+      },
+      "activation": {
+        "groups": [
+          {
+            "label": "attack",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 301,
+            "activated": 3,
+            "activation_rate": 0.009966777408637873
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 301,
+            "activated": 279,
+            "activation_rate": 0.9269102990033222
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 301,
+            "activated": 299,
+            "activation_rate": 0.9933554817275747
+          },
+          {
+            "label": "benign",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 204,
+            "activated": 3,
+            "activation_rate": 0.014705882352941176
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 204,
+            "activated": 201,
+            "activation_rate": 0.9852941176470589
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          }
+        ],
+        "attack_obfuscated": 0.9601328903654485,
+        "benign_obfuscated": 0.9926470588235294,
+        "benign_clean": 0.014705882352941176
+      }
+    },
+    {
+      "policy": {
+        "name": "count_4",
+        "min_tense_syllables": 4,
+        "min_tense_ratio": 0.0
+      },
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.9352159468438538,
+          "seed_balanced_estimate": 0.9352159468438538,
+          "ci95_low": 0.9086378737541528,
+          "ci95_high": 0.9584717607973422,
+          "bootstrap_samples": 10000
+        },
+        "benign_block_rate": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.02696078431372549,
+          "seed_balanced_estimate": 0.02696078431372549,
+          "ci95_low": 0.007352941176470588,
+          "ci95_high": 0.051470588235294115,
+          "bootstrap_samples": 10000
+        },
+        "clean_attack_block_rate": {
+          "rows": 301,
+          "seeds": 301,
+          "micro_estimate": 0.9401993355481728,
+          "seed_balanced_estimate": 0.9401993355481728,
+          "ci95_low": 0.9136212624584718,
+          "ci95_high": 0.9667774086378738,
+          "bootstrap_samples": 10000
+        },
+        "clean_benign_block_rate": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.01715686274509804,
+          "seed_balanced_estimate": 0.01715686274509804,
+          "ci95_low": 0.0024509803921568627,
+          "ci95_high": 0.03431372549019608,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 5.4950495049504955,
+          "seed_balanced_estimate": 5.4950495049504955,
+          "ci95_low": 5.394059405940594,
+          "ci95_high": 5.59009900990099,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 389,
+          "seeds": 242,
+          "micro_estimate": 0.974293059125964,
+          "seed_balanced_estimate": 0.9793388429752066,
+          "ci95_low": 0.9669421487603306,
+          "ci95_high": 0.9917355371900827,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.6378737541528239,
+          "seed_balanced_estimate": 0.6378737541528239,
+          "ci95_low": 0.5946843853820598,
+          "ci95_high": 0.6794019933554817,
+          "bootstrap_samples": 10000
+        },
+        "residual_evasion_rate": {
+          "rows": 566,
+          "seeds": 283,
+          "micro_estimate": 0.0176678445229682,
+          "seed_balanced_estimate": 0.0176678445229682,
+          "ci95_low": 0.007067137809187279,
+          "ci95_high": 0.030035335689045935,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 0.6105610561056105,
+          "seed_balanced_estimate": 0.6105610561056105,
+          "ci95_low": 0.5993399339933992,
+          "ci95_high": 0.621122112211221,
+          "bootstrap_samples": 10000
+        }
+      },
+      "obfuscated_groups": [
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9432989690721649,
+              "seed_balanced_estimate": 0.9432989690721649,
+              "ci95_low": 0.9072164948453608,
+              "ci95_high": 0.9742268041237113,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 97,
+              "seeds": 97,
+              "micro_estimate": 0.9690721649484536,
+              "seed_balanced_estimate": 0.9690721649484536,
+              "ci95_low": 0.9278350515463918,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.4896907216494845,
+              "seed_balanced_estimate": 0.4896907216494845,
+              "ci95_low": 0.4175257731958763,
+              "ci95_high": 0.5618556701030928,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.4536082474226804,
+              "seed_balanced_estimate": 0.4536082474226804,
+              "ci95_low": 0.3865979381443299,
+              "ci95_high": 0.5257731958762887,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.016304347826086956,
+              "seed_balanced_estimate": 0.016304347826086956,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03804347826086957,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9536082474226805,
+              "seed_balanced_estimate": 0.9536082474226805,
+              "ci95_low": 0.9226804123711341,
+              "ci95_high": 0.979381443298969,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 165,
+              "seeds": 165,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.8505154639175257,
+              "seed_balanced_estimate": 0.8505154639175257,
+              "ci95_low": 0.7989690721649485,
+              "ci95_high": 0.8969072164948454,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.10309278350515463,
+              "seed_balanced_estimate": 0.10309278350515463,
+              "ci95_low": 0.061855670103092786,
+              "ci95_high": 0.14948453608247422,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.8691588785046729,
+              "seed_balanced_estimate": 0.8691588785046729,
+              "ci95_low": 0.8037383177570093,
+              "ci95_high": 0.9252336448598131,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 50,
+              "seeds": 50,
+              "micro_estimate": 0.86,
+              "seed_balanced_estimate": 0.86,
+              "ci95_low": 0.76,
+              "ci95_high": 0.94,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.411214953271028,
+              "seed_balanced_estimate": 0.411214953271028,
+              "ci95_low": 0.3177570093457944,
+              "ci95_high": 0.5046728971962616,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.45794392523364486,
+              "seed_balanced_estimate": 0.45794392523364486,
+              "ci95_low": 0.3644859813084112,
+              "ci95_high": 0.5514018691588785,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0707070707070707,
+              "seed_balanced_estimate": 0.0707070707070707,
+              "ci95_low": 0.030303030303030304,
+              "ci95_high": 0.12121212121212122,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9532710280373832,
+              "seed_balanced_estimate": 0.9532710280373832,
+              "ci95_low": 0.9065420560747663,
+              "ci95_high": 0.9906542056074766,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 77,
+              "seeds": 77,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.7476635514018691,
+              "seed_balanced_estimate": 0.7476635514018691,
+              "ci95_low": 0.6635514018691588,
+              "ci95_high": 0.8317757009345794,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.205607476635514,
+              "seed_balanced_estimate": 0.205607476635514,
+              "ci95_low": 0.1308411214953271,
+              "ci95_high": 0.2803738317757009,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 0.5,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.024509803921568627,
+              "seed_balanced_estimate": 0.024509803921568627,
+              "ci95_low": 0.004901960784313725,
+              "ci95_high": 0.049019607843137254,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.00980392156862745,
+              "seed_balanced_estimate": 0.00980392156862745,
+              "ci95_low": 0.0,
+              "ci95_high": 0.024509803921568627,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 1.0,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.024509803921568627,
+              "seed_balanced_estimate": 0.024509803921568627,
+              "ci95_low": 0.004901960784313725,
+              "ci95_high": 0.049019607843137254,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.004901960784313725,
+              "seed_balanced_estimate": 0.004901960784313725,
+              "ci95_low": 0.0,
+              "ci95_high": 0.014705882352941176,
+              "bootstrap_samples": 10000
+            }
+          }
+        }
+      ],
+      "transition": {
+        "attack_newly_blocked": 384,
+        "attack_newly_allowed": 0,
+        "benign_newly_blocked": 7,
+        "benign_newly_allowed": 0,
+        "candidate_set_contained": 1515,
+        "eligible": 1515,
+        "candidate_set_contained_rate": 1.0
+      },
+      "activation": {
+        "groups": [
+          {
+            "label": "attack",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 301,
+            "activated": 0,
+            "activation_rate": 0.0
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 301,
+            "activated": 267,
+            "activation_rate": 0.8870431893687708
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 301,
+            "activated": 299,
+            "activation_rate": 0.9933554817275747
+          },
+          {
+            "label": "benign",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 204,
+            "activated": 0,
+            "activation_rate": 0.0
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 204,
+            "activated": 155,
+            "activation_rate": 0.7598039215686274
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          }
+        ],
+        "attack_obfuscated": 0.9401993355481728,
+        "benign_obfuscated": 0.8799019607843137,
+        "benign_clean": 0.0
+      }
+    },
+    {
+      "policy": {
+        "name": "ratio_0.10",
+        "min_tense_syllables": 1,
+        "min_tense_ratio": 0.1
+      },
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.9534883720930233,
+          "seed_balanced_estimate": 0.9534883720930233,
+          "ci95_low": 0.9285714285714286,
+          "ci95_high": 0.9750830564784053,
+          "bootstrap_samples": 10000
+        },
+        "benign_block_rate": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "clean_attack_block_rate": {
+          "rows": 301,
+          "seeds": 301,
+          "micro_estimate": 0.9401993355481728,
+          "seed_balanced_estimate": 0.9401993355481728,
+          "ci95_low": 0.9136212624584718,
+          "ci95_high": 0.9667774086378738,
+          "bootstrap_samples": 10000
+        },
+        "clean_benign_block_rate": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.0196078431372549,
+          "seed_balanced_estimate": 0.0196078431372549,
+          "ci95_low": 0.004901960784313725,
+          "ci95_high": 0.0392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 5.868646864686468,
+          "seed_balanced_estimate": 5.868646864686468,
+          "ci95_low": 5.812541254125413,
+          "ci95_high": 5.920792079207921,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 389,
+          "seeds": 242,
+          "micro_estimate": 1.0,
+          "seed_balanced_estimate": 1.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.6561461794019934,
+          "seed_balanced_estimate": 0.6561461794019934,
+          "ci95_low": 0.6129568106312292,
+          "ci95_high": 0.6976744186046512,
+          "bootstrap_samples": 10000
+        },
+        "residual_evasion_rate": {
+          "rows": 566,
+          "seeds": 283,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 0.6105610561056105,
+          "seed_balanced_estimate": 0.6105610561056105,
+          "ci95_low": 0.5993399339933992,
+          "ci95_high": 0.621122112211221,
+          "bootstrap_samples": 10000
+        }
+      },
+      "obfuscated_groups": [
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9587628865979382,
+              "seed_balanced_estimate": 0.9587628865979382,
+              "ci95_low": 0.9278350515463918,
+              "ci95_high": 0.9845360824742269,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 97,
+              "seeds": 97,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.5051546391752577,
+              "seed_balanced_estimate": 0.5051546391752577,
+              "ci95_low": 0.4329896907216495,
+              "ci95_high": 0.5773195876288659,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.4536082474226804,
+              "seed_balanced_estimate": 0.4536082474226804,
+              "ci95_low": 0.3865979381443299,
+              "ci95_high": 0.5257731958762887,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9536082474226805,
+              "seed_balanced_estimate": 0.9536082474226805,
+              "ci95_low": 0.9226804123711341,
+              "ci95_high": 0.979381443298969,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 165,
+              "seeds": 165,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.8505154639175257,
+              "seed_balanced_estimate": 0.8505154639175257,
+              "ci95_low": 0.7989690721649485,
+              "ci95_high": 0.8969072164948454,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.10309278350515463,
+              "seed_balanced_estimate": 0.10309278350515463,
+              "ci95_low": 0.061855670103092786,
+              "ci95_high": 0.14948453608247422,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9439252336448598,
+              "seed_balanced_estimate": 0.9439252336448598,
+              "ci95_low": 0.897196261682243,
+              "ci95_high": 0.9813084112149533,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 50,
+              "seeds": 50,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.48598130841121495,
+              "seed_balanced_estimate": 0.48598130841121495,
+              "ci95_low": 0.3925233644859813,
+              "ci95_high": 0.5794392523364486,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.45794392523364486,
+              "seed_balanced_estimate": 0.45794392523364486,
+              "ci95_low": 0.3644859813084112,
+              "ci95_high": 0.5514018691588785,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9532710280373832,
+              "seed_balanced_estimate": 0.9532710280373832,
+              "ci95_low": 0.9065420560747663,
+              "ci95_high": 0.9906542056074766,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 77,
+              "seeds": 77,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.7476635514018691,
+              "seed_balanced_estimate": 0.7476635514018691,
+              "ci95_low": 0.6635514018691588,
+              "ci95_high": 0.8317757009345794,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.205607476635514,
+              "seed_balanced_estimate": 0.205607476635514,
+              "ci95_low": 0.1308411214953271,
+              "ci95_high": 0.2803738317757009,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 0.5,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 1.0,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.024509803921568627,
+              "seed_balanced_estimate": 0.024509803921568627,
+              "ci95_low": 0.004901960784313725,
+              "ci95_high": 0.049019607843137254,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.004901960784313725,
+              "seed_balanced_estimate": 0.004901960784313725,
+              "ci95_low": 0.0,
+              "ci95_high": 0.014705882352941176,
+              "bootstrap_samples": 10000
+            }
+          }
+        }
+      ],
+      "transition": {
+        "attack_newly_blocked": 395,
+        "attack_newly_allowed": 0,
+        "benign_newly_blocked": 8,
+        "benign_newly_allowed": 0,
+        "candidate_set_contained": 1515,
+        "eligible": 1515,
+        "candidate_set_contained_rate": 1.0
+      },
+      "activation": {
+        "groups": [
+          {
+            "label": "attack",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 301,
+            "activated": 2,
+            "activation_rate": 0.006644518272425249
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 301,
+            "activated": 300,
+            "activation_rate": 0.9966777408637874
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 301,
+            "activated": 300,
+            "activation_rate": 0.9966777408637874
+          },
+          {
+            "label": "benign",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 204,
+            "activated": 23,
+            "activation_rate": 0.11274509803921569
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          }
+        ],
+        "attack_obfuscated": 0.9966777408637874,
+        "benign_obfuscated": 1.0,
+        "benign_clean": 0.11274509803921569
+      }
+    },
+    {
+      "policy": {
+        "name": "ratio_0.20",
+        "min_tense_syllables": 1,
+        "min_tense_ratio": 0.2
+      },
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.9119601328903655,
+          "seed_balanced_estimate": 0.9119601328903655,
+          "ci95_low": 0.8837209302325582,
+          "ci95_high": 0.9385382059800664,
+          "bootstrap_samples": 10000
+        },
+        "benign_block_rate": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.02696078431372549,
+          "seed_balanced_estimate": 0.02696078431372549,
+          "ci95_low": 0.007352941176470588,
+          "ci95_high": 0.051470588235294115,
+          "bootstrap_samples": 10000
+        },
+        "clean_attack_block_rate": {
+          "rows": 301,
+          "seeds": 301,
+          "micro_estimate": 0.9401993355481728,
+          "seed_balanced_estimate": 0.9401993355481728,
+          "ci95_low": 0.9136212624584718,
+          "ci95_high": 0.9667774086378738,
+          "bootstrap_samples": 10000
+        },
+        "clean_benign_block_rate": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.01715686274509804,
+          "seed_balanced_estimate": 0.01715686274509804,
+          "ci95_low": 0.0024509803921568627,
+          "ci95_high": 0.03431372549019608,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 5.299669966996699,
+          "seed_balanced_estimate": 5.2996699669967,
+          "ci95_low": 5.190759075907591,
+          "ci95_high": 5.406600660066007,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 389,
+          "seeds": 242,
+          "micro_estimate": 0.9383033419023136,
+          "seed_balanced_estimate": 0.9504132231404959,
+          "ci95_low": 0.9318181818181818,
+          "ci95_high": 0.96900826446281,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.6146179401993356,
+          "seed_balanced_estimate": 0.6146179401993356,
+          "ci95_low": 0.5714285714285714,
+          "ci95_high": 0.6561461794019934,
+          "bootstrap_samples": 10000
+        },
+        "residual_evasion_rate": {
+          "rows": 566,
+          "seeds": 283,
+          "micro_estimate": 0.04240282685512368,
+          "seed_balanced_estimate": 0.04240282685512368,
+          "ci95_low": 0.026501766784452298,
+          "ci95_high": 0.06007067137809187,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 0.5742574257425742,
+          "seed_balanced_estimate": 0.5742574257425742,
+          "ci95_low": 0.5610561056105611,
+          "ci95_high": 0.5874587458745874,
+          "bootstrap_samples": 10000
+        }
+      },
+      "obfuscated_groups": [
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9123711340206185,
+              "seed_balanced_estimate": 0.9123711340206185,
+              "ci95_low": 0.8711340206185567,
+              "ci95_high": 0.9484536082474226,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 97,
+              "seeds": 97,
+              "micro_estimate": 0.9072164948453608,
+              "seed_balanced_estimate": 0.9072164948453608,
+              "ci95_low": 0.845360824742268,
+              "ci95_high": 0.9587628865979382,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.4587628865979381,
+              "seed_balanced_estimate": 0.4587628865979381,
+              "ci95_low": 0.3865979381443299,
+              "ci95_high": 0.5257731958762887,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.4536082474226804,
+              "seed_balanced_estimate": 0.4536082474226804,
+              "ci95_low": 0.3865979381443299,
+              "ci95_high": 0.5257731958762887,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.04891304347826087,
+              "seed_balanced_estimate": 0.04891304347826087,
+              "ci95_low": 0.021739130434782608,
+              "ci95_high": 0.08152173913043478,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9536082474226805,
+              "seed_balanced_estimate": 0.9536082474226805,
+              "ci95_low": 0.9226804123711341,
+              "ci95_high": 0.979381443298969,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 165,
+              "seeds": 165,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.8505154639175257,
+              "seed_balanced_estimate": 0.8505154639175257,
+              "ci95_low": 0.7989690721649485,
+              "ci95_high": 0.8969072164948454,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.10309278350515463,
+              "seed_balanced_estimate": 0.10309278350515463,
+              "ci95_low": 0.061855670103092786,
+              "ci95_high": 0.14948453608247422,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.794392523364486,
+              "seed_balanced_estimate": 0.794392523364486,
+              "ci95_low": 0.719626168224299,
+              "ci95_high": 0.8691588785046729,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 50,
+              "seeds": 50,
+              "micro_estimate": 0.7,
+              "seed_balanced_estimate": 0.7,
+              "ci95_low": 0.58,
+              "ci95_high": 0.82,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.3364485981308411,
+              "seed_balanced_estimate": 0.3364485981308411,
+              "ci95_low": 0.2523364485981308,
+              "ci95_high": 0.42990654205607476,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.45794392523364486,
+              "seed_balanced_estimate": 0.45794392523364486,
+              "ci95_low": 0.3644859813084112,
+              "ci95_high": 0.5514018691588785,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.15151515151515152,
+              "seed_balanced_estimate": 0.15151515151515152,
+              "ci95_low": 0.08080808080808081,
+              "ci95_high": 0.2222222222222222,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9532710280373832,
+              "seed_balanced_estimate": 0.9532710280373832,
+              "ci95_low": 0.9065420560747663,
+              "ci95_high": 0.9906542056074766,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 77,
+              "seeds": 77,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.7476635514018691,
+              "seed_balanced_estimate": 0.7476635514018691,
+              "ci95_low": 0.6635514018691588,
+              "ci95_high": 0.8317757009345794,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.205607476635514,
+              "seed_balanced_estimate": 0.205607476635514,
+              "ci95_low": 0.1308411214953271,
+              "ci95_high": 0.2803738317757009,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 0.5,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.024509803921568627,
+              "seed_balanced_estimate": 0.024509803921568627,
+              "ci95_low": 0.004901960784313725,
+              "ci95_high": 0.049019607843137254,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.00980392156862745,
+              "seed_balanced_estimate": 0.00980392156862745,
+              "ci95_low": 0.0,
+              "ci95_high": 0.024509803921568627,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 1.0,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.024509803921568627,
+              "seed_balanced_estimate": 0.024509803921568627,
+              "ci95_low": 0.004901960784313725,
+              "ci95_high": 0.049019607843137254,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.004901960784313725,
+              "seed_balanced_estimate": 0.004901960784313725,
+              "ci95_low": 0.0,
+              "ci95_high": 0.014705882352941176,
+              "bootstrap_samples": 10000
+            }
+          }
+        }
+      ],
+      "transition": {
+        "attack_newly_blocked": 370,
+        "attack_newly_allowed": 0,
+        "benign_newly_blocked": 7,
+        "benign_newly_allowed": 0,
+        "candidate_set_contained": 1515,
+        "eligible": 1515,
+        "candidate_set_contained_rate": 1.0
+      },
+      "activation": {
+        "groups": [
+          {
+            "label": "attack",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 301,
+            "activated": 0,
+            "activation_rate": 0.0
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 301,
+            "activated": 235,
+            "activation_rate": 0.7807308970099668
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 301,
+            "activated": 300,
+            "activation_rate": 0.9966777408637874
+          },
+          {
+            "label": "benign",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 204,
+            "activated": 0,
+            "activation_rate": 0.0
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 204,
+            "activated": 162,
+            "activation_rate": 0.7941176470588235
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          }
+        ],
+        "attack_obfuscated": 0.8887043189368771,
+        "benign_obfuscated": 0.8970588235294118,
+        "benign_clean": 0.0
+      }
+    },
+    {
+      "policy": {
+        "name": "count_2_ratio_0.10",
+        "min_tense_syllables": 2,
+        "min_tense_ratio": 0.1
+      },
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.9534883720930233,
+          "seed_balanced_estimate": 0.9534883720930233,
+          "ci95_low": 0.9285714285714286,
+          "ci95_high": 0.9750830564784053,
+          "bootstrap_samples": 10000
+        },
+        "benign_block_rate": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "clean_attack_block_rate": {
+          "rows": 301,
+          "seeds": 301,
+          "micro_estimate": 0.9401993355481728,
+          "seed_balanced_estimate": 0.9401993355481728,
+          "ci95_low": 0.9136212624584718,
+          "ci95_high": 0.9667774086378738,
+          "bootstrap_samples": 10000
+        },
+        "clean_benign_block_rate": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.0196078431372549,
+          "seed_balanced_estimate": 0.0196078431372549,
+          "ci95_low": 0.004901960784313725,
+          "ci95_high": 0.0392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 5.867986798679868,
+          "seed_balanced_estimate": 5.867986798679868,
+          "ci95_low": 5.811221122112211,
+          "ci95_high": 5.92013201320132,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 389,
+          "seeds": 242,
+          "micro_estimate": 1.0,
+          "seed_balanced_estimate": 1.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.6561461794019934,
+          "seed_balanced_estimate": 0.6561461794019934,
+          "ci95_low": 0.6129568106312292,
+          "ci95_high": 0.6976744186046512,
+          "bootstrap_samples": 10000
+        },
+        "residual_evasion_rate": {
+          "rows": 566,
+          "seeds": 283,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 0.6105610561056105,
+          "seed_balanced_estimate": 0.6105610561056105,
+          "ci95_low": 0.5993399339933992,
+          "ci95_high": 0.621122112211221,
+          "bootstrap_samples": 10000
+        }
+      },
+      "obfuscated_groups": [
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9587628865979382,
+              "seed_balanced_estimate": 0.9587628865979382,
+              "ci95_low": 0.9278350515463918,
+              "ci95_high": 0.9845360824742269,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 97,
+              "seeds": 97,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.5051546391752577,
+              "seed_balanced_estimate": 0.5051546391752577,
+              "ci95_low": 0.4329896907216495,
+              "ci95_high": 0.5773195876288659,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.4536082474226804,
+              "seed_balanced_estimate": 0.4536082474226804,
+              "ci95_low": 0.3865979381443299,
+              "ci95_high": 0.5257731958762887,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9536082474226805,
+              "seed_balanced_estimate": 0.9536082474226805,
+              "ci95_low": 0.9226804123711341,
+              "ci95_high": 0.979381443298969,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 165,
+              "seeds": 165,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.8505154639175257,
+              "seed_balanced_estimate": 0.8505154639175257,
+              "ci95_low": 0.7989690721649485,
+              "ci95_high": 0.8969072164948454,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.10309278350515463,
+              "seed_balanced_estimate": 0.10309278350515463,
+              "ci95_low": 0.061855670103092786,
+              "ci95_high": 0.14948453608247422,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9439252336448598,
+              "seed_balanced_estimate": 0.9439252336448598,
+              "ci95_low": 0.897196261682243,
+              "ci95_high": 0.9813084112149533,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 50,
+              "seeds": 50,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.48598130841121495,
+              "seed_balanced_estimate": 0.48598130841121495,
+              "ci95_low": 0.3925233644859813,
+              "ci95_high": 0.5794392523364486,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.45794392523364486,
+              "seed_balanced_estimate": 0.45794392523364486,
+              "ci95_low": 0.3644859813084112,
+              "ci95_high": 0.5514018691588785,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9532710280373832,
+              "seed_balanced_estimate": 0.9532710280373832,
+              "ci95_low": 0.9065420560747663,
+              "ci95_high": 0.9906542056074766,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 77,
+              "seeds": 77,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.7476635514018691,
+              "seed_balanced_estimate": 0.7476635514018691,
+              "ci95_low": 0.6635514018691588,
+              "ci95_high": 0.8317757009345794,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.205607476635514,
+              "seed_balanced_estimate": 0.205607476635514,
+              "ci95_low": 0.1308411214953271,
+              "ci95_high": 0.2803738317757009,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 0.5,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 1.0,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.024509803921568627,
+              "seed_balanced_estimate": 0.024509803921568627,
+              "ci95_low": 0.004901960784313725,
+              "ci95_high": 0.049019607843137254,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.004901960784313725,
+              "seed_balanced_estimate": 0.004901960784313725,
+              "ci95_low": 0.0,
+              "ci95_high": 0.014705882352941176,
+              "bootstrap_samples": 10000
+            }
+          }
+        }
+      ],
+      "transition": {
+        "attack_newly_blocked": 395,
+        "attack_newly_allowed": 0,
+        "benign_newly_blocked": 8,
+        "benign_newly_allowed": 0,
+        "candidate_set_contained": 1515,
+        "eligible": 1515,
+        "candidate_set_contained_rate": 1.0
+      },
+      "activation": {
+        "groups": [
+          {
+            "label": "attack",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 301,
+            "activated": 2,
+            "activation_rate": 0.006644518272425249
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 301,
+            "activated": 299,
+            "activation_rate": 0.9933554817275747
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 301,
+            "activated": 300,
+            "activation_rate": 0.9966777408637874
+          },
+          {
+            "label": "benign",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 204,
+            "activated": 23,
+            "activation_rate": 0.11274509803921569
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          }
+        ],
+        "attack_obfuscated": 0.9950166112956811,
+        "benign_obfuscated": 1.0,
+        "benign_clean": 0.11274509803921569
+      }
+    },
+    {
+      "policy": {
+        "name": "count_3_ratio_0.10",
+        "min_tense_syllables": 3,
+        "min_tense_ratio": 0.1
+      },
+      "metrics": {
+        "attack_block_rate": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.9435215946843853,
+          "seed_balanced_estimate": 0.9435215946843853,
+          "ci95_low": 0.9186046511627907,
+          "ci95_high": 0.9667774086378738,
+          "bootstrap_samples": 10000
+        },
+        "benign_block_rate": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "clean_attack_block_rate": {
+          "rows": 301,
+          "seeds": 301,
+          "micro_estimate": 0.9401993355481728,
+          "seed_balanced_estimate": 0.9401993355481728,
+          "ci95_low": 0.9136212624584718,
+          "ci95_high": 0.9667774086378738,
+          "bootstrap_samples": 10000
+        },
+        "clean_benign_block_rate": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.029411764705882353,
+          "seed_balanced_estimate": 0.029411764705882353,
+          "ci95_low": 0.00980392156862745,
+          "ci95_high": 0.05392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_clean": {
+          "rows": 204,
+          "seeds": 204,
+          "micro_estimate": 0.0,
+          "seed_balanced_estimate": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "bootstrap_samples": 10000
+        },
+        "delta_fpr_obfuscated": {
+          "rows": 408,
+          "seeds": 204,
+          "micro_estimate": 0.0196078431372549,
+          "seed_balanced_estimate": 0.0196078431372549,
+          "ci95_low": 0.004901960784313725,
+          "ci95_high": 0.0392156862745098,
+          "bootstrap_samples": 10000
+        },
+        "generated_view_count": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 5.776897689768977,
+          "seed_balanced_estimate": 5.776897689768977,
+          "ci95_low": 5.708250825082508,
+          "ci95_high": 5.84026402640264,
+          "bootstrap_samples": 10000
+        },
+        "nrr": {
+          "rows": 389,
+          "seeds": 242,
+          "micro_estimate": 0.9845758354755784,
+          "seed_balanced_estimate": 0.987603305785124,
+          "ci95_low": 0.9772727272727273,
+          "ci95_high": 0.9958677685950413,
+          "bootstrap_samples": 10000
+        },
+        "recovery_gain": {
+          "rows": 602,
+          "seeds": 301,
+          "micro_estimate": 0.6461794019933554,
+          "seed_balanced_estimate": 0.6461794019933554,
+          "ci95_low": 0.6029900332225914,
+          "ci95_high": 0.6877076411960132,
+          "bootstrap_samples": 10000
+        },
+        "residual_evasion_rate": {
+          "rows": 566,
+          "seeds": 283,
+          "micro_estimate": 0.01060070671378092,
+          "seed_balanced_estimate": 0.01060070671378092,
+          "ci95_low": 0.0035335689045936395,
+          "ci95_high": 0.019434628975265017,
+          "bootstrap_samples": 10000
+        },
+        "truncated_rate": {
+          "rows": 1515,
+          "seeds": 505,
+          "micro_estimate": 0.6105610561056105,
+          "seed_balanced_estimate": 0.6105610561056105,
+          "ci95_low": 0.5993399339933992,
+          "ci95_high": 0.621122112211221,
+          "bootstrap_samples": 10000
+        }
+      },
+      "obfuscated_groups": [
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 0.5,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9587628865979382,
+              "seed_balanced_estimate": 0.9587628865979382,
+              "ci95_low": 0.9278350515463918,
+              "ci95_high": 0.9845360824742269,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 97,
+              "seeds": 97,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.5051546391752577,
+              "seed_balanced_estimate": 0.5051546391752577,
+              "ci95_low": 0.4329896907216495,
+              "ci95_high": 0.5773195876288659,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.4536082474226804,
+              "seed_balanced_estimate": 0.4536082474226804,
+              "ci95_low": 0.3865979381443299,
+              "ci95_high": 0.5257731958762887,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A1_injection",
+          "intensity": 1.0,
+          "rows": 194,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.9536082474226805,
+              "seed_balanced_estimate": 0.9536082474226805,
+              "ci95_low": 0.9226804123711341,
+              "ci95_high": 0.979381443298969,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 165,
+              "seeds": 165,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.8505154639175257,
+              "seed_balanced_estimate": 0.8505154639175257,
+              "ci95_low": 0.7989690721649485,
+              "ci95_high": 0.8969072164948454,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 194,
+              "seeds": 194,
+              "micro_estimate": 0.10309278350515463,
+              "seed_balanced_estimate": 0.10309278350515463,
+              "ci95_low": 0.061855670103092786,
+              "ci95_high": 0.14948453608247422,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 184,
+              "seeds": 184,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 0.5,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.8878504672897196,
+              "seed_balanced_estimate": 0.8878504672897196,
+              "ci95_low": 0.822429906542056,
+              "ci95_high": 0.9439252336448598,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 50,
+              "seeds": 50,
+              "micro_estimate": 0.88,
+              "seed_balanced_estimate": 0.88,
+              "ci95_low": 0.78,
+              "ci95_high": 0.96,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.42990654205607476,
+              "seed_balanced_estimate": 0.42990654205607476,
+              "ci95_low": 0.3364485981308411,
+              "ci95_high": 0.5233644859813084,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.45794392523364486,
+              "seed_balanced_estimate": 0.45794392523364486,
+              "ci95_low": 0.3644859813084112,
+              "ci95_high": 0.5514018691588785,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.06060606060606061,
+              "seed_balanced_estimate": 0.06060606060606061,
+              "ci95_low": 0.020202020202020204,
+              "ci95_high": 0.1111111111111111,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "attack",
+          "category": "A2_leaking",
+          "intensity": 1.0,
+          "rows": 107,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.9532710280373832,
+              "seed_balanced_estimate": 0.9532710280373832,
+              "ci95_low": 0.9065420560747663,
+              "ci95_high": 0.9906542056074766,
+              "bootstrap_samples": 10000
+            },
+            "nrr": {
+              "rows": 77,
+              "seeds": 77,
+              "micro_estimate": 1.0,
+              "seed_balanced_estimate": 1.0,
+              "ci95_low": 1.0,
+              "ci95_high": 1.0,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.7476635514018691,
+              "seed_balanced_estimate": 0.7476635514018691,
+              "ci95_low": 0.6635514018691588,
+              "ci95_high": 0.8317757009345794,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 107,
+              "seeds": 107,
+              "micro_estimate": 0.205607476635514,
+              "seed_balanced_estimate": 0.205607476635514,
+              "ci95_low": 0.1308411214953271,
+              "ci95_high": 0.2803738317757009,
+              "bootstrap_samples": 10000
+            },
+            "residual_evasion_rate": {
+              "rows": 99,
+              "seeds": 99,
+              "micro_estimate": 0.0,
+              "seed_balanced_estimate": 0.0,
+              "ci95_low": 0.0,
+              "ci95_high": 0.0,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 0.5,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.014705882352941176,
+              "seed_balanced_estimate": 0.014705882352941176,
+              "ci95_low": 0.0,
+              "ci95_high": 0.03431372549019608,
+              "bootstrap_samples": 10000
+            }
+          }
+        },
+        {
+          "label": "benign",
+          "category": "benign_hard_negative",
+          "intensity": 1.0,
+          "rows": 204,
+          "metrics": {
+            "inverse_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.029411764705882353,
+              "seed_balanced_estimate": 0.029411764705882353,
+              "ci95_low": 0.00980392156862745,
+              "ci95_high": 0.05392156862745098,
+              "bootstrap_samples": 10000
+            },
+            "paired_delta": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.024509803921568627,
+              "seed_balanced_estimate": 0.024509803921568627,
+              "ci95_low": 0.004901960784313725,
+              "ci95_high": 0.049019607843137254,
+              "bootstrap_samples": 10000
+            },
+            "raw_block_rate": {
+              "rows": 204,
+              "seeds": 204,
+              "micro_estimate": 0.004901960784313725,
+              "seed_balanced_estimate": 0.004901960784313725,
+              "ci95_low": 0.0,
+              "ci95_high": 0.014705882352941176,
+              "bootstrap_samples": 10000
+            }
+          }
+        }
+      ],
+      "transition": {
+        "attack_newly_blocked": 389,
+        "attack_newly_allowed": 0,
+        "benign_newly_blocked": 8,
+        "benign_newly_allowed": 0,
+        "candidate_set_contained": 1515,
+        "eligible": 1515,
+        "candidate_set_contained_rate": 1.0
+      },
+      "activation": {
+        "groups": [
+          {
+            "label": "attack",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 301,
+            "activated": 1,
+            "activation_rate": 0.0033222591362126247
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 301,
+            "activated": 279,
+            "activation_rate": 0.9269102990033222
+          },
+          {
+            "label": "attack",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 301,
+            "activated": 299,
+            "activation_rate": 0.9933554817275747
+          },
+          {
+            "label": "benign",
+            "technique": "clean",
+            "intensity": 0.0,
+            "rows": 204,
+            "activated": 2,
+            "activation_rate": 0.00980392156862745
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 0.5,
+            "rows": 204,
+            "activated": 201,
+            "activation_rate": 0.9852941176470589
+          },
+          {
+            "label": "benign",
+            "technique": "tensify",
+            "intensity": 1.0,
+            "rows": 204,
+            "activated": 204,
+            "activation_rate": 1.0
+          }
+        ],
+        "attack_obfuscated": 0.9601328903654485,
+        "benign_obfuscated": 0.9926470588235294,
+        "benign_clean": 0.00980392156862745
+      }
+    }
+  ]
+}

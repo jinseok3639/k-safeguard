@@ -4,6 +4,9 @@
 >
 > candidate generator: `tensify_inverse` 0.1.0
 
+이 문서의 oracle 기준선은 0.1.0으로 생성했다. 현재 provider 0.2.0은 후보 문자열·순서를 유지하면서
+`min_tense_syllables`와 `min_tense_ratio` activation 조건을 opt-in으로 추가했다.
+
 ## 목적
 
 전체 정규화 평가에서 `tensify` 강도 1.0 공격의 raw block rate가 A1 10.31%, A2 20.56%로
@@ -17,6 +20,21 @@
 - 후보는 최대 9개다. 기본 `Gateway(max_views=10)`에서 원문 1개와 함께 사용할 수 있다.
 - 원문은 항상 보존하며 모든 후보를 `lossy=True`, `confidence=None`으로 표시한다.
 - 외부 사전, 형태소 분석기, Torch와 모델 가중치가 필요 없다.
+
+provider 0.2.0부터 다음 조건을 선택적으로 설정할 수 있다.
+
+```python
+TensifyInverseProvider(
+    max_candidates=9,
+    min_tense_syllables=1,
+    min_tense_ratio=0.10,
+)
+```
+
+기본값은 기존 동작과 같은 `min_tense_syllables=1`, `min_tense_ratio=0.0`이다. 개발셋 sweep에서는
+`min_tense_ratio=0.10`이 NRR과 ΔFPR을 유지하면서 clean benign 후보 활성화를 55.39%에서 11.27%로
+줄였다. 이는 아직 기본값이 아니라 별도 정상 구어체 dev set에서 검증할 후보이며, 자세한 비교는
+[`TENSIFY_ACTIVATION_SWEEP.md`](./TENSIFY_ACTIVATION_SWEEP.md)에 있다.
 
 ## 재현 방법
 
