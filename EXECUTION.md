@@ -1,8 +1,8 @@
 # 가드레일 실행·집계 API
 
-`Gateway.evaluate()`와 `Gateway.evaluate_async()`는 정규화·후보 생성 결과를 호출자가 제공한
-classifier에 순서대로 전달하고, 하나라도 block이면 최종 block하는 OR 정책을 적용한다. 특정 모델
-SDK, Torch, Transformers나 네트워크 클라이언트에 의존하지 않는다.
+`Gateway.evaluate()`, `Gateway.evaluate_async()`와 batch 변형은 정규화·후보 생성 결과를 호출자가
+제공한 classifier에 순서대로 전달하고, 하나라도 block이면 최종 block하는 OR 정책을 적용한다. 특정
+모델 SDK, Torch, Transformers나 네트워크 클라이언트에 의존하지 않는다.
 
 ## 최소 사용법
 
@@ -51,6 +51,51 @@ result = await Gateway().evaluate_async(
 classifier가 반환한 `bool`과 `ClassifierResult`는 동기 API와 동일하게 정규화된다. task 취소는
 classifier 오류로 변환하지 않고 호출자에게 전파한다.
 
+## Batch classifier
+
+로컬 Transformer나 batch endpoint처럼 여러 view를 한 호출로 판정할 수 있는 모델은
+`Gateway.evaluate_batch()`에 연결한다. classifier는 정렬된 문자열 `tuple`을 받고 같은 개수와 순서의
+`bool` 또는 `ClassifierResult` iterable을 반환해야 한다.
+
+```python
+from k_safeguard import Gateway
+
+def batch_classifier(texts: tuple[str, ...]):
+    outputs = local_guardrail.classify_batch(texts)
+    return [output.blocked for output in outputs]
+
+result = Gateway().evaluate_batch(
+    "사용자 입력",
+    batch_classifier,
+    batch_size=4,
+    error_mode="block",
+)
+```
+
+async batch endpoint는 `Gateway.evaluate_batch_async()`를 사용한다.
+
+```python
+async def batch_classifier(texts: tuple[str, ...]):
+    response = await guardrail_client.classify_batch(texts=texts)
+    return [item.blocked for item in response.items]
+
+result = await Gateway().evaluate_batch_async(
+    "사용자 입력",
+    batch_classifier,
+    batch_size=4,
+)
+```
+
+`batch_size=None`은 생성된 모든 view를 한 번에 호출한다. 양의 정수를 지정하면 view 순서를 유지한 채
+bounded chunk로 나눈다. 한 chunk는 이미 모델에 전달됐으므로 그 안에서 block이 발견돼도 chunk의 모든
+결과를 trace에 남기고, `stop_on_block=True`이면 다음 chunk부터 생략한다. 따라서 모든 view가 한
+batch에 들어간 경우 block이 있어도 `stopped_early=False`일 수 있다.
+
+batch 호출 예외와 입력·출력 개수 불일치는 그 호출에 포함된 모든 view의 classifier 오류다. 개수
+불일치는 `BatchClassifierOutputError`로 구분한다. 출력 개수는 맞지만 특정 항목만 잘못된 타입이면 해당
+view만 오류 정책을 적용하고 나머지 유효한 판정은 보존한다. async batch의 task 취소는 일반 async
+API와 마찬가지로 호출자에게 전파한다.
+
 ## 구조화된 판정
 
 category와 모델 metadata를 보존하려면 `ClassifierResult`를 반환한다.
@@ -75,6 +120,11 @@ for trace in result.evaluations:
 
 `GatewayEvaluation`에는 전처리 결과, 실제 평가한 view trace, 최종 category, 최초 trigger view,
 classifier 오류와 조기 종료 여부가 함께 들어 있다.
+
+`classifier_calls`에는 실제 classifier 호출별 `view_indices`와 전체 `latency_ms`가 기록된다. 단일 view
+API에서는 view 하나가 호출 하나에 대응하고, batch API에서는 여러 view가 같은 호출을 가리킨다. batch
+평가의 각 `ViewEvaluation.latency_ms`는 자신이 포함된 호출의 전체 지연 시간을 공유하므로, 총 모델
+지연 시간은 view latency를 합산하지 말고 `classifier_calls`를 합산해야 한다.
 
 `decision_source`는 실제 block을 만든 원인이 `classifier`인지 `error_policy`인지 나타낸다. block이
 없으면 classifier 오류 포함 여부와 관계없이 `no_block`이므로, 안전 판정과 실행 장애를 구분하려면
@@ -134,7 +184,7 @@ result = Gateway().evaluate("사용자 입력", adapter, error_mode="block")
 
 ## 현재 경계
 
-- 동기·비동기 classifier callable API를 제공하며, candidate provider 생성은 동기 방식이다.
-- 한 요청 안의 batching, retry와 circuit breaker는 호출자 또는 adapter 계층의 책임이다.
+- 동기·비동기 단일 view 및 bounded batch classifier API를 제공하며, candidate provider 생성은 동기 방식이다.
+- batch chunk는 순차 실행한다. chunk 병렬화, retry와 circuit breaker는 호출자 또는 adapter 계층의 책임이다.
 - 기본 Gateway는 여전히 무손실 정규화만 활성화하며 lossy provider는 명시적으로 주입해야 한다.
 - `error_mode="allow"`는 보안 경계를 약화할 수 있으므로 서비스 위협 모델에 따라 선택한다.
