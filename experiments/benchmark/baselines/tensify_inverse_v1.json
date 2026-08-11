@@ -1,0 +1,123 @@
+{
+  "schema_version": "tensify-candidate-diagnostic-v1",
+  "input": "hf_repo/benchmark.jsonl",
+  "candidate_generator": {
+    "name": "tensify_inverse",
+    "version": "0.1.0",
+    "max_candidates": 9,
+    "ordering": "replacement_count_desc_then_source_positions_asc"
+  },
+  "scope": {
+    "techniques": [
+      "clean",
+      "tensify"
+    ],
+    "observations": 1515
+  },
+  "summary": {
+    "overall": {
+      "n": 1515,
+      "changed_n": 1008,
+      "candidate_generation_rate": 0.8165016501650165,
+      "exact_hit_rate": 0.6105610561056105,
+      "changed_exact_hit_rate": 0.9176587301587301,
+      "top1_exact_rate": 0.36303630363036304,
+      "mean_candidate_count": 6.038943894389439,
+      "mean_tense_syllable_count": 5.1650165016501655,
+      "truncation_rate": 0.6105610561056105,
+      "median_exact_rank": 1
+    },
+    "groups": [
+      {
+        "technique": "clean",
+        "label": "attack",
+        "intensity": 0,
+        "n": 301,
+        "changed_n": 0,
+        "candidate_generation_rate": 0.3853820598006645,
+        "exact_hit_rate": 0.0,
+        "changed_exact_hit_rate": null,
+        "top1_exact_rate": 0.0,
+        "mean_candidate_count": 0.5249169435215947,
+        "mean_tense_syllable_count": 0.44518272425249167,
+        "truncation_rate": 0.0,
+        "median_exact_rank": null
+      },
+      {
+        "technique": "clean",
+        "label": "benign",
+        "intensity": 0,
+        "n": 204,
+        "changed_n": 0,
+        "candidate_generation_rate": 0.553921568627451,
+        "exact_hit_rate": 0.0,
+        "changed_exact_hit_rate": null,
+        "top1_exact_rate": 0.0,
+        "mean_candidate_count": 0.9166666666666666,
+        "mean_tense_syllable_count": 0.7205882352941176,
+        "truncation_rate": 0.0,
+        "median_exact_rank": null
+      },
+      {
+        "technique": "tensify",
+        "label": "attack",
+        "intensity": 0.5,
+        "n": 301,
+        "changed_n": 300,
+        "candidate_generation_rate": 0.9966777408637874,
+        "exact_hit_rate": 0.9501661129568106,
+        "changed_exact_hit_rate": 0.9533333333333334,
+        "top1_exact_rate": 0.6112956810631229,
+        "mean_candidate_count": 8.465116279069768,
+        "mean_tense_syllable_count": 5.6112956810631225,
+        "truncation_rate": 0.8870431893687708,
+        "median_exact_rank": 1.0
+      },
+      {
+        "technique": "tensify",
+        "label": "attack",
+        "intensity": 1.0,
+        "n": 301,
+        "changed_n": 300,
+        "candidate_generation_rate": 0.9966777408637874,
+        "exact_hit_rate": 0.9069767441860465,
+        "changed_exact_hit_rate": 0.91,
+        "top1_exact_rate": 0.6112956810631229,
+        "mean_candidate_count": 8.950166112956811,
+        "mean_tense_syllable_count": 10.82392026578073,
+        "truncation_rate": 0.9933554817275747,
+        "median_exact_rank": 1
+      },
+      {
+        "technique": "tensify",
+        "label": "benign",
+        "intensity": 0.5,
+        "n": 204,
+        "changed_n": 204,
+        "candidate_generation_rate": 1.0,
+        "exact_hit_rate": 0.9558823529411765,
+        "changed_exact_hit_rate": 0.9558823529411765,
+        "top1_exact_rate": 0.44607843137254904,
+        "mean_candidate_count": 8.46078431372549,
+        "mean_tense_syllable_count": 4.490196078431373,
+        "truncation_rate": 0.7598039215686274,
+        "median_exact_rank": 3
+      },
+      {
+        "technique": "tensify",
+        "label": "benign",
+        "intensity": 1.0,
+        "n": 204,
+        "changed_n": 204,
+        "candidate_generation_rate": 1.0,
+        "exact_hit_rate": 0.8382352941176471,
+        "changed_exact_hit_rate": 0.8382352941176471,
+        "top1_exact_rate": 0.44607843137254904,
+        "mean_candidate_count": 9.0,
+        "mean_tense_syllable_count": 8.240196078431373,
+        "truncation_rate": 1.0,
+        "median_exact_rank": 1
+      }
+    ]
+  }
+}
