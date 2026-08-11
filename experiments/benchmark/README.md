@@ -3,6 +3,16 @@
 > 정규화 gateway의 E0/E1/E2/E3 평가는
 > [정규화 평가 문서](./NORMALIZER_EVALUATION.md)를 참고한다.
 
+초성 후보를 Kanana 가드레일에 실제로 연결한 raw/direct/segmented/partial 비교는
+[초성 후보 view 영향 평가](./CHOSUNG_GUARDRAIL_IMPACT.md)에 기록한다. 실행기는 후보별 판정을
+캐시하고 OR 집계의 TPR·NRR·ΔFPR과 인접 정책의 새 block/allow 전환을 함께 산출한다.
+
+```powershell
+.\.venv-experiment\Scripts\python `
+  -m experiments.benchmark.run_chosung_guardrail_evaluation `
+  --run-id <unique-run-id>
+```
+
 `SEED_CANDIDATES.csv`의 A1/A2 한국어 후보 시드를 난독화 없이 Kanana Safeguard-Prompt에 입력해
 E0 clean baseline을 측정한다. 공격 실행이나 하위 LLM 응답 생성은 하지 않고 가드레일의 한 토큰
 분류 결과만 저장한다.
