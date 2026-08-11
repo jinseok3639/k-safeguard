@@ -100,6 +100,8 @@ class ValidateTensifyLockedSetTest(unittest.TestCase):
             DEFAULT_INPUT, DEFAULT_SELECTION, self.rows, reviewed_summary
         )
         self.assertEqual(seal["status"], "SEALED_NOT_EVALUATED")
+        self.assertEqual(seal["protocol_version"], "tensify-locked-v2")
+        self.assertIn("runner_sha256", seal["implementation"])
         self.assertTrue(seal["rules"]["run_once_after_sealing"])
 
 

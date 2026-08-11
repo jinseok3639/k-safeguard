@@ -11,7 +11,7 @@ import random
 import statistics
 import sys
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Sequence
@@ -47,6 +47,7 @@ from experiments.benchmark.validate_tensify_locked_set import (
     DEFAULT_INPUT,
     DEFAULT_SELECTION,
     LockedCandidate,
+    PROTOCOL_VERSION,
     load_candidates,
     load_reference_texts,
     validate_candidates,
@@ -58,7 +59,7 @@ from k_safeguard.providers import TENSIFY_CANDIDATE_VERSION, TensifyInverseProvi
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT_ROOT = Path(__file__).resolve().parent / "results"
-CONFIRMATION = "run-sealed-tensify-locked-v1"
+CONFIRMATION = f"run-sealed-{PROTOCOL_VERSION}"
 TECHNIQUES = ("clean", "tensify")
 
 
@@ -95,12 +96,22 @@ def validate_run_id(run_id: str) -> str:
 def verify_seal(
     seal: dict[str, Any], input_path: Path, selection_path: Path
 ) -> None:
+    if seal.get("protocol_version") != PROTOCOL_VERSION:
+        raise ValueError(f"{PROTOCOL_VERSION} seal만 실행할 수 있습니다.")
     if seal.get("status") != "SEALED_NOT_EVALUATED":
         raise ValueError("SEALED_NOT_EVALUATED 상태의 seal만 실행할 수 있습니다.")
     if seal["dataset"]["sha256"] != sha256_file(input_path):
         raise ValueError("seal 이후 locked dataset이 변경되었습니다.")
     if seal["source_selection"]["sha256"] != sha256_file(selection_path):
         raise ValueError("seal 이후 source selection이 변경되었습니다.")
+    implementation = seal["implementation"]
+    if implementation["runner_sha256"] != sha256_file(Path(__file__)):
+        raise ValueError("seal 이후 locked runner 구현이 변경되었습니다.")
+    current_git = git_metadata()
+    if implementation["git"]["commit"] != current_git["commit"]:
+        raise ValueError("seal 이후 Git commit이 변경되었습니다.")
+    if current_git["dirty"]:
+        raise ValueError("dirty worktree에서는 locked test를 실행할 수 없습니다.")
     policy = seal["policy"]
     expected = {
         "candidate": "ratio_0.10",

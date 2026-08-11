@@ -4,8 +4,8 @@
 
 이 프로토콜은 개발 시드에서 선택한 `ratio_0.10` activation이 독립 한국어 시드에서도
 `all`과 같은 회복력을 유지하면서 정상 입력 비용을 줄이는지 한 번만 확인한다. 현재 상태는
-`SOURCE_SELECTION_FROZEN / READY_TO_SEAL`이다. 2026-08-11 사람 검수를 완료했으며 모델 예측은
-아직 실행하지 않았다.
+`SOURCE_SELECTION_FROZEN / REVIEW_COMPLETE / V2_READY_TO_SEAL`이다. 2026-08-11 사람 검수를
+완료했다. 최초 v1 실행은 아래 기록처럼 결과 집계 전에 무효화됐고, 성능 결과는 기록되지 않았다.
 
 사람 검수가 끝나기 전에는 `validate_tensify_locked_set.py`가 seal 생성을 거부하고,
 `run_tensify_locked_evaluation.py`도 seal·데이터·정책 해시가 모두 맞지 않으면 모델을 로드하지 않는다.
@@ -44,7 +44,7 @@
 .\.venv-experiment\Scripts\python `
   -m experiments.benchmark.validate_tensify_locked_set `
   --require-reviewed `
-  --seal-output build/tensify_locked_seal_v1.json
+  --seal-output build/tensify_locked_seal_v2.json
 ```
 
 모든 56행이 `selected`가 아니면 위 명령은 seal을 쓰지 않고 종료 코드 2를 반환한다.
@@ -57,13 +57,21 @@ seal 후에는 번역, 시드, threshold, 후보 수와 view 수를 바꾸지 �
 ```powershell
 .\.venv-experiment\Scripts\python `
   -m experiments.benchmark.run_tensify_locked_evaluation `
-  --seal build/tensify_locked_seal_v1.json `
-  --run-id tensify-locked-v1-<date> `
-  --confirm run-sealed-tensify-locked-v1
+  --seal build/tensify_locked_seal_v2.json `
+  --run-id tensify-locked-v2-<date> `
+  --confirm run-sealed-tensify-locked-v2
 ```
 
 결과를 본 뒤 v1 threshold를 조정하거나 같은 v1을 다시 돌려 좋은 결과만 고르지 않는다. 실행 오류가
 있으면 결과를 `INVALID_OR_INCONCLUSIVE`로 보존하고, 원인을 기록한 새 protocol version을 만든다.
+
+### v1 무효 실행 기록
+
+v1은 57개 inference batch를 처리한 뒤 summary 집계에서 `Counter` import 누락으로 중단됐다.
+prediction·summary·결과 디렉터리는 생성되기 전이었고 성능 수치가 노출되지 않았다. 이 실패는
+`baselines/tensify_locked_execution_failure_v1.json`에 `INVALID_EXECUTION`으로 보존하며 v1을 다시
+실행하지 않는다. v2는 데이터와 정책을 바꾸지 않고 누락 import만 고쳤으며, seal에 Git commit과
+runner SHA-256을 추가해 실행 구현까지 고정한다.
 
 ## endpoint와 판정
 

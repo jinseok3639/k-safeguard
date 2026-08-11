@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "status": "INVALID_EXECUTION",
+  "protocol_version": "tensify-locked-v1",
+  "run_id": "tensify-locked-v1-20260811",
+  "failed_at": "2026-08-11T09:54:01.8668087Z",
+  "git_commit": "d60f50724569e3e8d142664cda7b1400686d3cb1",
+  "seal_sha256": "aafc1667623cf5e756f3a614219bbafd87abc783291bf7a7dd130b597406fdb4",
+  "phase": "summary_aggregation_before_output_write",
+  "observed_progress": {
+    "batch_log": "57/57",
+    "last_pre_batch_inferred_count": 560
+  },
+  "error": {
+    "type": "NameError",
+    "message": "name 'Counter' is not defined",
+    "file": "experiments/benchmark/run_tensify_locked_evaluation.py",
+    "line": 531
+  },
+  "artifacts": {
+    "result_directory_created": false,
+    "predictions_written": false,
+    "summary_written": false
+  },
+  "disposition": "Do not rerun v1. Fix the implementation, bind its commit and runner SHA-256 in a v2 seal, then execute v2 once."
+}

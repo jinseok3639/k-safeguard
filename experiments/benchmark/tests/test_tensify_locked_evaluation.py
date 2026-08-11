@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from experiments.benchmark.run_clean_baseline import sha256_file
 from experiments.benchmark.run_tensify_locked_evaluation import (
@@ -10,6 +11,7 @@ from experiments.benchmark.run_tensify_locked_evaluation import (
     validate_run_id,
     verify_seal,
 )
+from experiments.benchmark.validate_tensify_locked_set import PROTOCOL_VERSION
 
 
 def record(
@@ -57,9 +59,18 @@ class TensifyLockedEvaluationTest(unittest.TestCase):
             dataset.write_text("dataset\n", encoding="utf-8")
             selection.write_text(json.dumps({"selected": []}), encoding="utf-8")
             seal = {
+                "protocol_version": PROTOCOL_VERSION,
                 "status": "SEALED_NOT_EVALUATED",
                 "dataset": {"sha256": sha256_file(dataset)},
                 "source_selection": {"sha256": sha256_file(selection)},
+                "implementation": {
+                    "git": {"commit": "test-commit", "dirty": False},
+                    "runner_sha256": sha256_file(
+                        Path(
+                            "experiments/benchmark/run_tensify_locked_evaluation.py"
+                        )
+                    ),
+                },
                 "policy": {
                     "candidate": "ratio_0.10",
                     "min_tense_syllables": 1,
@@ -69,16 +80,29 @@ class TensifyLockedEvaluationTest(unittest.TestCase):
                 },
             }
 
-            verify_seal(seal, dataset, selection)
+            clean_git = {"commit": "test-commit", "dirty": False}
+            with patch(
+                "experiments.benchmark.run_tensify_locked_evaluation.git_metadata",
+                return_value=clean_git,
+            ):
+                verify_seal(seal, dataset, selection)
 
             dataset.write_text("changed\n", encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "dataset"):
-                verify_seal(seal, dataset, selection)
+            with patch(
+                "experiments.benchmark.run_tensify_locked_evaluation.git_metadata",
+                return_value=clean_git,
+            ):
+                with self.assertRaisesRegex(ValueError, "dataset"):
+                    verify_seal(seal, dataset, selection)
 
             dataset.write_text("dataset\n", encoding="utf-8")
             seal["policy"]["min_tense_ratio"] = 0.20
-            with self.assertRaisesRegex(ValueError, "activation"):
-                verify_seal(seal, dataset, selection)
+            with patch(
+                "experiments.benchmark.run_tensify_locked_evaluation.git_metadata",
+                return_value=clean_git,
+            ):
+                with self.assertRaisesRegex(ValueError, "activation"):
+                    verify_seal(seal, dataset, selection)
 
     def test_policy_summary_uses_paired_raw_baseline(self) -> None:
         records: list[dict[str, object]] = []

@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from experiments.benchmark.prepare_tensify_locked_candidates import QUOTAS
-from experiments.benchmark.run_clean_baseline import sha256_file
+from experiments.benchmark.run_clean_baseline import git_metadata, sha256_file
 from hf_repo.ko_obfuscator import tensify
 
 
@@ -27,7 +27,9 @@ DEFAULT_SELECTION = (
     / "baselines"
     / "tensify_locked_source_selection_v1.json"
 )
-DEFAULT_SEAL = REPO_ROOT / "build" / "tensify_locked_seal_v1.json"
+DEFAULT_SEAL = REPO_ROOT / "build" / "tensify_locked_seal_v2.json"
+PROTOCOL_VERSION = "tensify-locked-v2"
+RUNNER_PATH = Path(__file__).resolve().parent / "run_tensify_locked_evaluation.py"
 REVIEWED_STATUS = "selected"
 ALLOWED_SUBTYPES = {
     "A1_injection": {"direct_injection"},
@@ -254,6 +256,7 @@ def build_seal(
     ids_payload = "\n".join(sorted(row.sample_id for row in rows)).encode("utf-8")
     return {
         "schema_version": 1,
+        "protocol_version": PROTOCOL_VERSION,
         "status": "SEALED_NOT_EVALUATED",
         "sealed_at": datetime.now(timezone.utc).isoformat(),
         "dataset": {
@@ -265,6 +268,10 @@ def build_seal(
         "source_selection": {
             "path": str(selection_path.resolve().relative_to(REPO_ROOT)).replace("\\", "/"),
             "sha256": sha256_file(selection_path),
+        },
+        "implementation": {
+            "git": git_metadata(),
+            "runner_sha256": sha256_file(RUNNER_PATH),
         },
         "validation": summary,
         "policy": {
@@ -300,10 +307,11 @@ def main() -> int:
             print(json.dumps(summary, ensure_ascii=False, indent=2))
             print("검수 전에는 seal을 생성하지 않습니다.")
             return 2
-        write_json(
-            args.seal_output.resolve(),
-            build_seal(input_path, selection_path, rows, summary),
-        )
+        seal = build_seal(input_path, selection_path, rows, summary)
+        if seal["implementation"]["git"]["dirty"]:
+            print("dirty worktree에서는 seal을 생성하지 않습니다.")
+            return 2
+        write_json(args.seal_output.resolve(), seal)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     if args.require_reviewed and summary["status"] != "READY_TO_SEAL":
         return 2
