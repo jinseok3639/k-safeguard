@@ -10,6 +10,8 @@
 [초성 후보 정책 단조성 개선](./CHOSUNG_CANDIDATE_MONOTONICITY.md)을 참고한다.
 정렬된 후보를 몇 개까지 가드레일에 전달할지는
 [초성 후보 view budget 선택](./CHOSUNG_VIEW_BUDGET.md)에서 비교하며, 현재 기본 총 예산은 10이다.
+현재 순위와 source·도메인·replacement 기반 대안 비교는
+[초성 후보 ranking 진단](./CHOSUNG_CANDIDATE_RANKING.md)을 참고한다.
 
 ```powershell
 .\.venv-experiment\Scripts\python `
