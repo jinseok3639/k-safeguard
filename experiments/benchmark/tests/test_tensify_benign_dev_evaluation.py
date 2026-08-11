@@ -1,9 +1,11 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
 
 from experiments.benchmark.adapters import AdapterResult
 from experiments.benchmark.run_tensify_benign_dev_evaluation import (
+    DEFAULT_BASELINE,
     DEFAULT_INPUT,
     BenignDevRow,
     build_baseline,
@@ -17,6 +19,7 @@ from experiments.benchmark.run_tensify_benign_dev_evaluation import (
     summarize_policies,
     summarize_transitions,
 )
+from experiments.benchmark.run_clean_baseline import sha256_file
 
 
 def adapter_result(block: bool) -> AdapterResult:
@@ -158,6 +161,29 @@ class TensifyBenignDevEvaluationTest(unittest.TestCase):
             baseline["provenance"]["input"]["path"],
             "experiments/benchmark/data/tensify_benign_dev_v1.csv",
         )
+
+    def test_repository_baseline_matches_dataset_and_expected_result(self) -> None:
+        baseline = json.loads(DEFAULT_BASELINE.read_text(encoding="utf-8"))
+        metrics = baseline["policy_metrics"]
+
+        self.assertEqual(baseline["status"], "PROVISIONAL_DEV_ONLY")
+        self.assertFalse(baseline["provenance"]["git"]["dirty"])
+        self.assertEqual(
+            baseline["provenance"]["input"]["sha256"], sha256_file(DEFAULT_INPUT)
+        )
+        self.assertEqual(
+            metrics["raw"]["metrics"]["fpr"]["seed_balanced_estimate"], 9 / 64
+        )
+        self.assertEqual(
+            metrics["all"]["metrics"]["delta_fpr"]["seed_balanced_estimate"], 0.0
+        )
+        self.assertEqual(
+            metrics["ratio_0.10"]["metrics"]["activation_rate"][
+                "seed_balanced_estimate"
+            ],
+            26 / 64,
+        )
+        self.assertEqual(baseline["view_errors"], 0)
 
     def test_run_id_rejects_path_characters(self) -> None:
         self.assertEqual(normalized_run_id("valid-run_1"), "valid-run_1")

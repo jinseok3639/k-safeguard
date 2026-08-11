@@ -47,6 +47,9 @@ from k_safeguard.providers import TENSIFY_CANDIDATE_VERSION, TensifyInverseProvi
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_INPUT = Path(__file__).resolve().parent / "data" / "tensify_benign_dev_v1.csv"
 DEFAULT_OUTPUT_ROOT = Path(__file__).resolve().parent / "results"
+DEFAULT_BASELINE = (
+    Path(__file__).resolve().parent / "baselines" / "tensify_benign_dev_v1.json"
+)
 POLICIES = ("raw", "all", "ratio_0.10")
 REQUIRED_COLUMNS = {
     "sample_id",
