@@ -54,3 +54,7 @@ coverage 확인용이며, 문맥 이해도·semantic fidelity·가드레일 방�
 기본 설정의 전체 진단 결과와 활성화 판정은
 [`experiments/benchmark/CHOSUNG_LEXICAL_DIAGNOSTIC.md`](./experiments/benchmark/CHOSUNG_LEXICAL_DIAGNOSTIC.md)에
 기록했다. 일반 빈도순 후보의 복원 coverage가 낮아 현재 버전은 gateway에 기본 연결하지 않는다.
+
+실패 원인을 후보 미생성·과잉 복원 proxy·정답 후보 누락·순위 오류로 분리한 개선 전 기준선은
+[`experiments/benchmark/CHOSUNG_ERROR_ANALYSIS.md`](./experiments/benchmark/CHOSUNG_ERROR_ANALYSIS.md)에
+기록한다. 후속 provider 개선은 같은 `chosung-error-v1` taxonomy로 비교한다.
