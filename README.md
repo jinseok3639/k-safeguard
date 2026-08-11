@@ -162,6 +162,7 @@ python -m pip install ".[wordfreq]"
 - [x] 모델 독립 가드레일 실행 API — OR 집계, 첫 block 조기 종료, 명시적 오류 정책과 view trace
 - [x] 비동기 가드레일 실행 API — 무의존 async callable, 순차 await, 동기 API와 동일한 판정 정책
 - [x] batch 가드레일 실행 API — bounded chunk, 호출 단위 trace, sync·async classifier 지원
+- [x] Kanana batch 추론 진단 — 20개 view 판정 parity 유지, batch 10에서 호출 90%·wall time 74.3% 감소
 - [x] Kanana 종단 간 contract smoke — 고정 A1/A2 회복 fixture 4/4, classifier/provider 오류 0건
 - [x] 초성 provider runtime smoke — 선택 fixture에서 판정 유지, 모델 호출 20→4회
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)

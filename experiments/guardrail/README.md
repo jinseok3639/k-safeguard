@@ -119,6 +119,10 @@ python -m experiments.guardrail.run_gateway "ㅇㅏㄴㄴㅕㅇ" --all-views
 이 adapter는 로컬 실험·재현을 위한 것으로 wheel에 Torch나 Transformers 의존성을 추가하지 않는다.
 일반 사용자는 자신의 모델 또는 API 호출부를 동일한 callable 계약으로 연결할 수 있다.
 
+`KananaPromptAdapter.batch`는 `Gateway.evaluate_batch()`의 callable 계약을 구현한다. 여러 candidate
+view를 왼쪽 padding한 뒤 한 번의 `generate()`로 판정하며, 실제 단일 호출 대비 판정 일치성과
+처리량·VRAM 비교는 [batch 추론 진단](../benchmark/KANANA_BATCH_BENCHMARK.md)에 기록했다.
+
 ## 재현성 체크
 
 - `models.json`의 revision을 임의로 `main`으로 바꾸지 않는다.
