@@ -1,4 +1,5 @@
 .venv-experiment/
+.venv-report/
 __pycache__/
 *.py[cod]
 experiments/guardrail/results/
