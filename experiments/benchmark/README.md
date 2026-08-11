@@ -31,6 +31,11 @@ view, 모델 출력·오류 trace를 기록한다. 기본 variant는 기존 full
 2026-08-11 실제 모델 실행 결과와 해석 경계는
 [Gateway A1/A2 contract smoke](./GATEWAY_CONTRACT_SMOKE.md)에 기록했다.
 
+초성 lossy provider까지 실제 실행 API에 연결한 OR·조기 종료 검증은
+[초성 provider 런타임 contract smoke](./CHOSUNG_RUNTIME_SMOKE.md)를 참고한다. 선택된 A1/A2 첫 후보
+회복 fixture에서 전체 관측 20회와 조기 종료 4회를 비교하며, 호출 절감은 classifier 추론에만
+해당하고 평균 성능 수치로 사용하지 않는다.
+
 ```powershell
 .\.venv-experiment\Scripts\python `
   -m experiments.benchmark.run_chosung_guardrail_evaluation `
