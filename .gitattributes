@@ -1,0 +1,4 @@
+SEED_CANDIDATES.csv text eol=lf
+experiments/benchmark/data/*.csv text eol=lf
+experiments/benchmark/baselines/*.json text eol=lf
+hf_repo/seeds/*.jsonl text eol=lf

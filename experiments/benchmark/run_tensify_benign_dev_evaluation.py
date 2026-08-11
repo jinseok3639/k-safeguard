@@ -438,6 +438,7 @@ def write_report(path: Path, run_id: str, summary: dict[str, Any]) -> None:
         )
     transitions = summary["transitions"]
     profile = summary["dataset_profile"]
+    review_complete = profile["review_statuses"] == {"selected": profile["rows"]}
     runtime = summary["runtime"]
     report = f"""# 정상 한국어 된소리 activation dev 평가
 
@@ -474,7 +475,7 @@ def write_report(path: Path, run_id: str, summary: dict[str, Any]) -> None:
 ## 해석 제한
 
 - 정책 선택 뒤 작성한 tuning-aware dev set이며 독립 locked test가 아니다.
-- 문장은 프로젝트 내부 작성본이고 현재 `team_review_needed` 상태이므로 사람 검수 전 외부 성능 주장에 사용하지 않는다.
+- 문장은 프로젝트 내부 작성본이며 사람 검수 상태는 {'완료' if review_complete else '미완료'}다. 검수와 무관하게 실제 서비스의 무작위 표본은 아니다.
 - 정상 문장만으로 FPR과 후보 비용을 진단하며 공격 탐지율은 기존 paired 평가와 함께 해석한다.
 - Kanana Safeguard-Prompt 한 모델의 Prompt track 결과이며 실제 서비스 분포를 대표하지 않는다.
 - 모든 후보를 한 번에 평가한 측정치로, 서비스 조기 종료 latency와는 다르다.
@@ -596,9 +597,17 @@ def main() -> int:
         build_record(row, plan, tuple(cache[text] for text in plan.texts))
         for row, plan in plans
     ]
+    profile = dataset_profile(rows)
+    validity_reasons = [
+        "activation 정책 선택 뒤 작성한 tuning-aware dev set이며 locked test가 아님",
+        "Kanana Safeguard-Prompt 한 모델의 Prompt track만 측정",
+        "실제 서비스의 정상 입력 분포를 대표하지 않음",
+    ]
+    if profile["review_statuses"] != {"selected": len(rows)}:
+        validity_reasons.insert(1, "사람 검수가 완료되지 않음")
     summary = {
         "status": "PROVISIONAL_DEV_ONLY",
-        "dataset_profile": dataset_profile(rows),
+        "dataset_profile": profile,
         "policy_records": len(records),
         "view_errors": len(view_errors),
         "provider_errors": sum(bool(item["provider_errors"]) for item in records),
@@ -614,12 +623,7 @@ def main() -> int:
             "inference_wall_seconds": inference_wall_seconds,
             "views_per_second": len(unique_texts) / inference_wall_seconds,
         },
-        "validity_reasons": [
-            "activation 정책 선택 뒤 작성한 tuning-aware dev set이며 locked test가 아님",
-            "프로젝트 내부 작성 문장이 team_review_needed 상태임",
-            "Kanana Safeguard-Prompt 한 모델의 Prompt track만 측정",
-            "실제 서비스의 정상 입력 분포를 대표하지 않음",
-        ],
+        "validity_reasons": validity_reasons,
     }
     output_dir.mkdir(parents=True)
     write_jsonl(output_dir / "predictions.jsonl", records)

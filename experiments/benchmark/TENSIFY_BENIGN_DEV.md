@@ -2,13 +2,14 @@
 
 > run ID: `tensify-benign-dev-v1-20260811`
 >
-> 상태: `PROVISIONAL_DEV_ONLY`
+> 실행 상태: `PROVISIONAL_DEV_ONLY` / 후속 사람 검수: `COMPLETE`
 
 ## 결론
 
 `ratio_0.10`은 `all`과 동일한 FPR을 유지하면서 후보 activation과 평균 추가 view를 줄였다.
 이 결과와 앞선 공격 paired 평가를 함께 보면 `ratio_0.10`을 개발 후보로 유지할 근거가 생겼다.
-다만 데이터가 정책 선택 뒤 작성되었고 사람 검수 전이므로 패키지 기본값은 아직 바꾸지 않는다.
+데이터는 실행 뒤 사람 검수를 완료했지만 정책 선택 뒤 작성된 dev set이므로 패키지 기본값은 바꾸지
+않는다.
 
 | 정책 | FPR | ΔFPR vs raw | activation | 평균 추가 view | view p95 | cap rate | 오류 |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -35,7 +36,7 @@ raw에서도 9/64건이 차단되었으며 후보 정책이 이 판정을 바꾸
 
 - `everyday_lexical`, `technical_meta`, `colloquial_chat`, `mixed_format` 각 16건
 - 된소리 비율 0.10 미만 38건, 0.10 이상 26건
-- 모든 행에 출처·선정 이유·`team_review_needed` 상태 기록
+- 모든 행에 출처·선정 이유를 기록했으며 2026-08-11 사람 검수 후 `selected`로 확정
 - 정상 된소리 어휘, 짧은 구어체, 영문·숫자 혼용, 보안 메타 hard negative 포함
 
 이 데이터는 실제 트래픽에서 무작위 표집한 모집단이 아니라 activation 경계와 오탐을 진단하도록
@@ -59,12 +60,14 @@ raw에서도 9/64건이 차단되었으며 후보 정책이 이 판정을 바꾸
 
 원시 prediction·manifest는 `experiments/benchmark/results/` 아래에 생성되며 Git에서 제외한다.
 공유 가능한 재현 요약은 `baselines/tensify_benign_dev_v1.json`에 보관한다.
+실행 당시 파일 hash와 검수 뒤 파일 hash의 연결은
+`baselines/tensify_human_review_v1.json`에 별도로 보존한다. 문장 payload는 유지하고
+`review_status`만 바꿨으므로 과거 run manifest의 hash를 사후에 덮어쓰지 않았다.
 
 ## 해석 제한
 
 - 정책 선택 뒤 작성한 tuning-aware dev set이며 독립 locked test가 아니다.
-- 문장은 프로젝트 내부 작성본이고 현재 `team_review_needed` 상태이므로 사람 검수 전 외부 성능
-  주장에 사용하지 않는다.
+- 문장은 프로젝트 내부 작성본이며 후속 사람 검수를 통과했지만 실제 트래픽의 무작위 표본은 아니다.
 - 정상 문장만으로 FPR과 후보 비용을 진단하며 공격 탐지율은 기존 paired 평가와 함께 해석한다.
 - Kanana Safeguard-Prompt 한 모델의 Prompt track 결과이며 실제 서비스 분포를 대표하지 않는다.
 - 모든 후보를 한 번에 평가한 측정치로, 서비스 조기 종료 latency와는 다르다.

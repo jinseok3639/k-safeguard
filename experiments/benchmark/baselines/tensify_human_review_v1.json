@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "status": "HUMAN_REVIEW_COMPLETE",
+  "confirmed_at": "2026-08-11T09:51:26.6623673Z",
+  "confirmed_by": "project_member_in_working_session",
+  "criteria": [
+    "label and category meaning preserved",
+    "Korean text is semantically appropriate",
+    "no unintended harmful payload added",
+    "benign rows remain benign",
+    "translation quality acceptable"
+  ],
+  "datasets": {
+    "benign_dev": {
+      "path": "experiments/benchmark/data/tensify_benign_dev_v1.csv",
+      "rows": 64,
+      "before_review_sha256": "72604162eaad84fe24a8f74e452e603fbfee4af2a2bd33957f47f9353afe0ce0",
+      "after_review_sha256": "605756ab8d140257ce13b4d771caf3cef7b56812fb1f1a676eadc03170874040",
+      "payload_without_review_status_sha256": "b38348cc2e61ab0781c71acf8ba844bd5cbca24d4cc0025dcfc46d85b3cd2c32",
+      "review_status": "selected"
+    },
+    "locked_test": {
+      "path": "experiments/benchmark/data/tensify_locked_candidates_v1.csv",
+      "rows": 56,
+      "before_review_sha256": "119e9ae5a604fb9843b3913b74830c0bb89f51d9c4b362f4c235cb3657da4506",
+      "after_review_sha256": "0fdbfd2860bc96a7b0b175fcbb9bdfb7441cb13c7f7e018a74e81c1506dab87d",
+      "payload_without_review_status_sha256": "74e27915e87747d21a4dc98a456f9d8bd5f68375799672de547842d35bcb2051",
+      "review_status": "selected"
+    }
+  },
+  "note": "Only review_status changed between the recorded pre-review and post-review datasets. Historical model-run provenance keeps the pre-review file hash."
+}
