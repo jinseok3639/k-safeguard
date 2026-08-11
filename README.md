@@ -142,6 +142,7 @@ python -m pip install ".[wordfreq]"
 - [x] pip 패키징 MVP — 무의존 core, Gateway API, opt-in provider와 wheel 빌드 구성
 - [x] 모델 독립 가드레일 실행 API — OR 집계, 첫 block 조기 종료, 명시적 오류 정책과 view trace
 - [x] Kanana 종단 간 contract smoke — 고정 A1/A2 회복 fixture 4/4, classifier/provider 오류 0건
+- [x] 초성 provider runtime smoke — 선택 fixture에서 판정 유지, 모델 호출 20→4회
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)
 - [ ] [정규화 하드닝 미들웨어](./NORMALIZER.md) — 자모·ZWSP 무손실 MVP 완료, 문맥형 복원·평가 연결 남음
 - [ ] 벤치마크·평가 하네스 코드화 (`kanana_test_suite.py`)
