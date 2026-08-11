@@ -1,0 +1,17 @@
+{
+  "total": 505,
+  "by_category": {
+    "A1_injection": 194,
+    "A2_leaking": 107,
+    "benign_hard_negative": 204
+  },
+  "by_source": {
+    "claude_2026-07-21": 24,
+    "claude_2026-07-21_batch2": 36,
+    "claude_2026-07-21_batch3": 54,
+    "claude_2026-07-21_batch4": 65,
+    "claude_2026-07-21_batch5": 70,
+    "template_v1": 256
+  },
+  "duplicates": 0
+}
