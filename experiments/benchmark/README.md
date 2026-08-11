@@ -31,6 +31,11 @@
 검수와 v2 단일 실행을 완료했으며 최종 `DO_NOT_PROMOTE` 판정과 원인은
 [locked-test v2 결과](./TENSIFY_LOCKED_RESULT.md)에 기록했다.
 
+같은 56행을 Qwen3Guard-Gen에 재사용하는 교차 검증은
+[Qwen3Guard 된소리 교차 모델 검증 규격](./TENSIFY_QWEN_CROSS_MODEL_PROTOCOL.md)을 따른다.
+이 데이터는 Kanana 결과를 확인한 뒤 재사용하므로 새 locked test가 아니며, Qwen 결과의 일반화
+증거만 기술하고 threshold 조정이나 preset 채택 판단에는 사용하지 않는다.
+
 ```powershell
 .\.venv-experiment\Scripts\python `
   -m experiments.benchmark.run_tensify_benign_dev_evaluation `
