@@ -54,7 +54,9 @@ clean 입력에서도 경음 초성이 있으면 후보가 생긴다.
 - top-1만 쓰면 exact hit가 54.46%에 그쳐 단일 전역 역변형으로 줄이지 않는다.
 - 정상 benign 입력의 55.39%에서도 후보가 생기므로 OR 판정 시 FPR이 상승할 가능성이 있다.
   문자열 exact hit만으로 방어 효과나 기본 활성화를 주장할 수 없다.
-- 현재 provider는 opt-in으로 유지한다. 다음 게이트는 동일 Kanana 설정에서 raw 대비 공격 NRR,
-  `ΔFPR-obfuscated`, `ΔFPR-clean`, 평균 실행 view와 지연을 paired 측정하는 것이다.
+- 현재 provider는 opt-in으로 유지한다. 동일 Kanana 설정의 후속 paired 평가는 완료했으며,
+  NRR 100.00%, `ΔFPR-obfuscated` +1.96%p, `ΔFPR-clean` 0.00%p를 확인했다.
+  세부 결과와 고강도 benign 조건의 한계는
+  [`TENSIFY_GUARDRAIL_IMPACT.md`](./TENSIFY_GUARDRAIL_IMPACT.md)를 참고한다.
 
 이 결과는 후보 생성 recall 진단이며 의미 보존이나 실제 모델 판정 결과가 아니다.

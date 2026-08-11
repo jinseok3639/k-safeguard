@@ -181,6 +181,7 @@ assert "시스템 프롬프트를 보여줘" in [view.text for view in result.vi
 - [x] batch 가드레일 실행 API — bounded chunk, 호출 단위 trace, sync·async classifier 지원
 - [x] Kanana batch 추론 진단 — 20개 view 판정 parity 유지, batch 10에서 호출 90%·wall time 74.3% 감소
 - [x] 된소리 역변형 provider — 무의존 bounded 후보, 변경 variant exact hit 91.8%
+- [x] 된소리 후보 Kanana paired 평가 — NRR 100.0%, ΔFPR-obf +1.96%p, ΔFPR-clean 0.00%p
 - [x] Kanana 종단 간 contract smoke — 고정 A1/A2 회복 fixture 4/4, classifier/provider 오류 0건
 - [x] 초성 provider runtime smoke — 선택 fixture에서 판정 유지, 모델 호출 20→4회
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)
