@@ -28,6 +28,14 @@ assert result.normalized == "안녕"
 assert result.has_lossy_views is False
 ```
 
+외부 가드레일 callable까지 연결하면 정규화 view의 OR 판정과 조기 종료를 패키지가 처리한다.
+
+```python
+decision = Gateway().evaluate("사용자 입력", lambda text: guardrail(text).blocked)
+```
+
+오류 정책과 trace는 [가드레일 실행·집계 API](./EXECUTION.md)를 참고한다.
+
 실험적인 `wordfreq` 초성 후보 provider가 필요한 경우에만 extra를 설치한다.
 
 ```bash
@@ -131,6 +139,7 @@ python -m pip install ".[wordfreq]"
 - [x] 후보 view 예산 선택 — 총 10 view에서 16과 같은 지표, 평균 총 view 31.88% 절감
 - [x] 후보 ranking 진단 — label-free 대안 3종이 현 순위를 넘지 못해 정렬 유지
 - [x] pip 패키징 MVP — 무의존 core, Gateway API, opt-in provider와 wheel 빌드 구성
+- [x] 모델 독립 가드레일 실행 API — OR 집계, 첫 block 조기 종료, 명시적 오류 정책과 view trace
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)
 - [ ] [정규화 하드닝 미들웨어](./NORMALIZER.md) — 자모·ZWSP 무손실 MVP 완료, 문맥형 복원·평가 연결 남음
 - [ ] 벤치마크·평가 하네스 코드화 (`kanana_test_suite.py`)

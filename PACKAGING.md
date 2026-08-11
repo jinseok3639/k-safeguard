@@ -40,6 +40,24 @@ result = Gateway(providers=[provider]).process("ㅅㅅㅌ 점검")
 provider 오류는 기본적으로 `provider_errors`에 기록하고 원문·무손실 view를 반환한다. 배포 정책상
 오류를 즉시 전파해야 하면 `strict_providers=True`를 사용한다.
 
+## 가드레일 실행
+
+후보 view 생성뿐 아니라 외부 가드레일 호출과 OR 집계까지 맡길 수 있다. callable은 `bool` 또는
+`ClassifierResult`를 반환하며, 첫 block에서 기본적으로 조기 종료한다.
+
+```python
+from k_safeguard import Gateway
+
+decision = Gateway().evaluate(
+    "사용자 입력",
+    lambda text: external_guardrail(text).blocked,
+)
+```
+
+classifier 오류 기본 정책은 `raise`다. fail-closed가 필요하면 `error_mode="block"`, 별도 장애 격리가
+있는 환경에서만 `error_mode="allow"`를 명시한다. 전체 계약과 trace 스키마는
+[실행·집계 API 문서](./EXECUTION.md)를 참고한다.
+
 ## 외부 provider 계약
 
 provider는 모델 종류, 동기화 방식이나 가드레일 구현을 강제하지 않는 최소 protocol을 구현한다.
