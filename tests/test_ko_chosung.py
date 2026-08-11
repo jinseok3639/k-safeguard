@@ -65,6 +65,30 @@ class ChosungLexiconTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "비어 있지 않은"):
             ChosungLexicon.from_sources([("", ["시스템"])])
 
+    def test_segments_long_initial_pattern_with_bounded_parts(self) -> None:
+        lexicon = ChosungLexicon.from_sources(
+            [("domain", ["시스템", "프롬프트", "시스템프롬프트"])]
+        )
+
+        matches = lexicon.match_segmented("ㅅㅅㅌㅍㄹㅍㅌ", 3)
+        self.assertEqual(matches[0].word, "시스템프롬프트")
+        self.assertEqual(
+            [entry.word for entry in matches[0].entries],
+            ["시스템", "프롬프트"],
+        )
+
+    def test_segment_match_requires_complete_initial_pattern(self) -> None:
+        lexicon = ChosungLexicon(["시스템", "프롬프트"])
+        self.assertEqual(lexicon.match_segmented("시스템ㅍㄹㅍㅌ", 3), ())
+        with self.assertRaisesRegex(ValueError, "2~4"):
+            lexicon.match_segmented("ㅅㅅㅌㅍㄹㅍㅌ", 3, max_segments=5)
+        with self.assertRaisesRegex(ValueError, "1~4"):
+            lexicon.match_segmented(
+                "ㅅㅅㅌㅍㄹㅍㅌ",
+                3,
+                max_options_per_segment=5,
+            )
+
 
 class GenerateChosungCandidatesTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -120,6 +144,23 @@ class GenerateChosungCandidatesTest(unittest.TestCase):
         self.assertEqual(replacement.after, "보안정책")
         self.assertEqual(replacement.lexicon_source, "domain")
         self.assertEqual(replacement.source_rank, 0)
+
+    def test_segmentation_is_opt_in_and_traces_component_words(self) -> None:
+        lexicon = ChosungLexicon.from_sources(
+            [("domain", ["시스템", "프롬프트"])]
+        )
+        disabled = generate_chosung_candidates("ㅅㅅㅌㅍㄹㅍㅌ", lexicon)
+        enabled = generate_chosung_candidates(
+            "ㅅㅅㅌㅍㄹㅍㅌ",
+            lexicon,
+            allow_segmentation=True,
+        )
+
+        self.assertEqual(len(disabled.candidates), 1)
+        self.assertEqual(enabled.candidates[1].text, "시스템프롬프트")
+        replacement = enabled.candidates[1].replacements[0]
+        self.assertEqual(replacement.segment_words, ("시스템", "프롬프트"))
+        self.assertEqual(replacement.segment_sources, ("domain", "domain"))
 
     def test_rejects_non_string_input(self) -> None:
         with self.assertRaisesRegex(TypeError, "str"):

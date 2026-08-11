@@ -51,6 +51,23 @@ lexicon = ChosungLexicon.from_sources(
 자동 적용되지 않는다. `k-safeguard[wordfreq]` 사용자는 `WordfreqChosungProvider`의
 `priority_words`와 `expand_priority_particles=True`로 같은 구성을 만들 수 있다.
 
+사전에 긴 복합어 전체가 없을 때는 완전 초성 span 분할을 별도로 활성화할 수 있다. 기본 분할 한도는
+2개 segment, segment당 후보 1개이며 기존 문장 후보 상한을 그대로 적용한다.
+
+```python
+from k_safeguard.providers import ChosungLexiconProvider
+
+provider = ChosungLexiconProvider(
+    lexicon,
+    allow_segmentation=True,
+    max_segments=2,
+    max_options_per_segment=1,
+)
+```
+
+부분 초성·완성형 음절이 섞인 span은 분할하지 않으며 직접 일치만 사용한다. 분할된 replacement에는
+`segment_words`, `segment_sources`가 기록되고 provider metadata에는 최대 segment 수가 포함된다.
+
 `ChosungLexicon`은 특정 라이브러리에 의존하지 않는다. 실험에서는 빈도순 한국어 단어를 제공하는
 [`wordfreq`](https://github.com/rspeer/wordfreq) 3.1.1을 선택했다. 코드 라이선스는 Apache-2.0이며
 포함 데이터에는 CC BY-SA 4.0 자료가 있으므로, 단어 목록을 별도 CSV로 복제·재배포하지 않고 런타임에
@@ -82,3 +99,8 @@ coverage 확인용이며, 문맥 이해도·semantic fidelity·가드레일 방�
 [`experiments/benchmark/CHOSUNG_LEXICON_COMPARISON.md`](./experiments/benchmark/CHOSUNG_LEXICON_COMPARISON.md)에
 기록한다. 평균 초성 위치 복원은 0.92%p 올랐지만 문장 exact 성공은 여전히 0건이므로 기본 활성화는
 계속 보류한다.
+
+긴 완전 초성 span을 사전 항목 2개로 분할한 비교는
+[`experiments/benchmark/CHOSUNG_SEGMENTATION_COMPARISON.md`](./experiments/benchmark/CHOSUNG_SEGMENTATION_COMPARISON.md)에
+기록한다. 평균 초성 위치 복원은 control 대비 4.32%p 개선됐지만 exact 성공은 0건이므로 이 기능도
+opt-in으로 유지한다.

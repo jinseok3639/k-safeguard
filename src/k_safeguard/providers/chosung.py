@@ -18,11 +18,17 @@ class ChosungLexiconProvider:
         min_initials: int = 3,
         max_options_per_span: int = 3,
         max_candidates: int = 16,
+        allow_segmentation: bool = False,
+        max_segments: int = 2,
+        max_options_per_segment: int = 1,
     ) -> None:
         self._lexicon = lexicon
         self._min_initials = min_initials
         self._max_options_per_span = max_options_per_span
         self._max_candidates = max_candidates
+        self._allow_segmentation = allow_segmentation
+        self._max_segments = max_segments
+        self._max_options_per_segment = max_options_per_segment
 
     def generate(self, text: str) -> Iterator[CandidateProposal]:
         result = generate_chosung_candidates(
@@ -31,6 +37,9 @@ class ChosungLexiconProvider:
             min_initials=self._min_initials,
             max_options_per_span=self._max_options_per_span,
             max_candidates=self._max_candidates,
+            allow_segmentation=self._allow_segmentation,
+            max_segments=self._max_segments,
+            max_options_per_segment=self._max_options_per_segment,
         )
         for candidate in result.candidates[1:]:
             lexicon_sources = tuple(
@@ -46,6 +55,15 @@ class ChosungLexiconProvider:
                     ("covered_initials", str(candidate.covered_initials)),
                     ("rank_score", str(candidate.rank_score)),
                     ("lexicon_sources", ",".join(lexicon_sources)),
+                    (
+                        "max_segment_count",
+                        str(
+                            max(
+                                len(replacement.segment_words)
+                                for replacement in candidate.replacements
+                            )
+                        ),
+                    ),
                     ("generator_version", result.version),
                 ),
             )

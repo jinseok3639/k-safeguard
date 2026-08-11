@@ -10,13 +10,15 @@ from dataclasses import dataclass
 from typing import Iterable
 
 
-CHOSUNG_CANDIDATE_VERSION = "0.2.0"
+CHOSUNG_CANDIDATE_VERSION = "0.3.0"
 HANGUL_BASE = 0xAC00
 COMPAT_CHO = (
     "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ",
     "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ",
 )
 _COMPAT_CHO_SET = frozenset(COMPAT_CHO)
+_MAX_SEGMENTS = 4
+_MAX_OPTIONS_PER_SEGMENT = 4
 
 
 def _is_hangul_syllable(char: str) -> bool:
@@ -79,6 +81,19 @@ class LexiconEntry:
     signature: str
     source: str = "default"
     source_rank: int = 0
+
+
+@dataclass(frozen=True)
+class LexiconSegmentation:
+    entries: tuple[LexiconEntry, ...]
+
+    @property
+    def word(self) -> str:
+        return "".join(entry.word for entry in self.entries)
+
+    @property
+    def rank_score(self) -> int:
+        return sum(entry.rank for entry in self.entries)
 
 
 class ChosungLexicon:
@@ -169,6 +184,8 @@ class ChosungLexicon:
         }
         self.word_count = len(seen)
         self.source_counts = tuple(source_counts.items())
+        self._min_word_length = min_word_length
+        self._max_word_length = max_word_length
 
     def match(self, pattern: str, limit: int) -> tuple[LexiconEntry, ...]:
         """한글 음절은 그대로, 호환 초성은 후보 음절의 초성과 대조한다."""
@@ -190,6 +207,64 @@ class ChosungLexicon:
                     break
         return tuple(matches)
 
+    def match_segmented(
+        self,
+        pattern: str,
+        limit: int,
+        *,
+        max_segments: int = 2,
+        max_options_per_segment: int = 1,
+    ) -> tuple[LexiconSegmentation, ...]:
+        """완전 초성 pattern을 둘 이상의 사전 단위로 분할해 일치시킨다."""
+
+        if limit < 1:
+            raise ValueError("limit은 1 이상이어야 합니다.")
+        if not 2 <= max_segments <= _MAX_SEGMENTS:
+            raise ValueError(f"max_segments는 2~{_MAX_SEGMENTS}여야 합니다.")
+        if not 1 <= max_options_per_segment <= _MAX_OPTIONS_PER_SEGMENT:
+            raise ValueError(
+                f"max_options_per_segment는 1~{_MAX_OPTIONS_PER_SEGMENT}여야 합니다."
+            )
+        if not pattern or not all(char in _COMPAT_CHO_SET for char in pattern):
+            return ()
+
+        completed: list[LexiconSegmentation] = []
+
+        def search(offset: int, entries: tuple[LexiconEntry, ...]) -> None:
+            if offset == len(pattern):
+                if len(entries) >= 2:
+                    completed.append(LexiconSegmentation(entries))
+                return
+            if len(entries) == max_segments:
+                return
+
+            min_end = offset + self._min_word_length
+            max_end = min(len(pattern), offset + self._max_word_length)
+            for end in range(max_end, min_end - 1, -1):
+                remaining = len(pattern) - end
+                if remaining and remaining < self._min_word_length:
+                    continue
+                options = self._by_signature.get(pattern[offset:end], ())
+                for option in options[:max_options_per_segment]:
+                    search(end, entries + (option,))
+
+        search(0, ())
+        deduplicated: dict[str, LexiconSegmentation] = {}
+        for segmentation in completed:
+            previous = deduplicated.get(segmentation.word)
+            key = (segmentation.rank_score, len(segmentation.entries), segmentation.word)
+            if previous is None or key < (
+                previous.rank_score,
+                len(previous.entries),
+                previous.word,
+            ):
+                deduplicated[segmentation.word] = segmentation
+        ranked = sorted(
+            deduplicated.values(),
+            key=lambda item: (item.rank_score, len(item.entries), item.word),
+        )
+        return tuple(ranked[:limit])
+
 
 @dataclass(frozen=True)
 class ChosungReplacement:
@@ -201,6 +276,76 @@ class ChosungReplacement:
     alternatives: int
     lexicon_source: str = "default"
     source_rank: int = 0
+    segment_words: tuple[str, ...] = ()
+    segment_sources: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class _LexiconOption:
+    word: str
+    rank_score: int
+    source_rank: int
+    segment_words: tuple[str, ...]
+    segment_sources: tuple[str, ...]
+
+    @property
+    def source(self) -> str:
+        return "+".join(dict.fromkeys(self.segment_sources))
+
+
+def _lexicon_options(
+    pattern: str,
+    lexicon: ChosungLexicon,
+    *,
+    limit: int,
+    allow_segmentation: bool,
+    max_segments: int,
+    max_options_per_segment: int,
+) -> tuple[tuple[_LexiconOption, ...], bool]:
+    direct = lexicon.match(pattern, limit + 1)
+    options = [
+        _LexiconOption(
+            entry.word,
+            entry.rank,
+            entry.source_rank,
+            (entry.word,),
+            (entry.source,),
+        )
+        for entry in direct
+    ]
+    if allow_segmentation:
+        segmented = lexicon.match_segmented(
+            pattern,
+            limit + 1,
+            max_segments=max_segments,
+            max_options_per_segment=max_options_per_segment,
+        )
+        options.extend(
+            _LexiconOption(
+                item.word,
+                item.rank_score,
+                sum(entry.source_rank for entry in item.entries),
+                tuple(entry.word for entry in item.entries),
+                tuple(entry.source for entry in item.entries),
+            )
+            for item in segmented
+        )
+
+    deduplicated: dict[str, _LexiconOption] = {}
+    for option in options:
+        previous = deduplicated.get(option.word)
+        key = (option.rank_score, len(option.segment_words), option.word)
+        if previous is None or key < (
+            previous.rank_score,
+            len(previous.segment_words),
+            previous.word,
+        ):
+            deduplicated[option.word] = option
+    ranked = sorted(
+        deduplicated.values(),
+        key=lambda item: (item.rank_score, len(item.segment_words), item.word),
+    )
+    return tuple(ranked[:limit]), len(ranked) > limit
 
 
 @dataclass(frozen=True)
@@ -252,6 +397,9 @@ def generate_chosung_candidates(
     min_initials: int = 3,
     max_options_per_span: int = 3,
     max_candidates: int = 16,
+    allow_segmentation: bool = False,
+    max_segments: int = 2,
+    max_options_per_segment: int = 1,
 ) -> ChosungCandidateResult:
     """원문 view와 제한된 초성 복원 후보를 결정론적으로 반환한다.
 
@@ -264,6 +412,12 @@ def generate_chosung_candidates(
         raise ValueError("min_initials는 1 이상이어야 합니다.")
     if max_options_per_span < 1 or max_candidates < 1:
         raise ValueError("후보 제한은 1 이상이어야 합니다.")
+    if not 2 <= max_segments <= _MAX_SEGMENTS:
+        raise ValueError(f"max_segments는 2~{_MAX_SEGMENTS}여야 합니다.")
+    if not 1 <= max_options_per_segment <= _MAX_OPTIONS_PER_SEGMENT:
+        raise ValueError(
+            f"max_options_per_segment는 1~{_MAX_OPTIONS_PER_SEGMENT}여야 합니다."
+        )
 
     original_candidate = ChosungCandidate(text, (), 0, 0, False)
     states = [original_candidate]
@@ -275,11 +429,17 @@ def generate_chosung_candidates(
         initial_count = sum(char in _COMPAT_CHO_SET for char in pattern)
         if initial_count < min_initials or _is_repeated_chat_initials(pattern):
             continue
-        options = lexicon.match(pattern, max_options_per_span + 1)
+        options, options_truncated = _lexicon_options(
+            pattern,
+            lexicon,
+            limit=max_options_per_span,
+            allow_segmentation=allow_segmentation,
+            max_segments=max_segments,
+            max_options_per_segment=max_options_per_segment,
+        )
         if not options:
             continue
-        if len(options) > max_options_per_span:
-            options = options[:max_options_per_span]
+        if options_truncated:
             truncated = True
         matched_spans += 1
         alternatives = len(options)
@@ -291,17 +451,19 @@ def generate_chosung_candidates(
                     end,
                     pattern,
                     option.word,
-                    option.rank,
+                    option.rank_score,
                     alternatives,
                     option.source,
                     option.source_rank,
+                    option.segment_words,
+                    option.segment_sources,
                 )
                 expanded.append(
                     ChosungCandidate(
                         state.text[:start] + option.word + state.text[end:],
                         state.replacements + (replacement,),
                         state.covered_initials + initial_count,
-                        state.rank_score + option.rank,
+                        state.rank_score + option.rank_score,
                         True,
                     )
                 )
@@ -345,6 +507,7 @@ __all__ = [
     "ChosungLexicon",
     "ChosungReplacement",
     "LexiconEntry",
+    "LexiconSegmentation",
     "chosung_signature",
     "expand_korean_noun_particles",
     "generate_chosung_candidates",

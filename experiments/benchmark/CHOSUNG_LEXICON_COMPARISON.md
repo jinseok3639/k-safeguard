@@ -66,6 +66,9 @@
 어절·조사·부분어 후보로 분할해 정답 token coverage를 확보해야 한다. 이때 후보 수와 truncation이
 폭발하지 않도록 beam 제한을 유지하고 같은 오류 taxonomy로 재측정한다.
 
+이 후속 실험은
+[`CHOSUNG_SEGMENTATION_COMPARISON.md`](./CHOSUNG_SEGMENTATION_COMPARISON.md)에 기록했다.
+
 ## 재현
 
 ```powershell
