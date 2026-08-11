@@ -129,6 +129,7 @@ python -m pip install ".[wordfreq]"
 - [x] 초성 후보 가드레일 영향 평가 — segmented NRR 13.04%, ΔFPR-obf +0.49%p로 기본 활성화 보류
 - [x] 초성 후보 정책 단조성 보장 — direct·segmented·partial 후보 포함 관계 1,010/1,010행 확인
 - [x] 후보 view 예산 선택 — 총 10 view에서 16과 같은 지표, 평균 총 view 31.88% 절감
+- [x] 후보 ranking 진단 — label-free 대안 3종이 현 순위를 넘지 못해 정렬 유지
 - [x] pip 패키징 MVP — 무의존 core, Gateway API, opt-in provider와 wheel 빌드 구성
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)
 - [ ] [정규화 하드닝 미들웨어](./NORMALIZER.md) — 자모·ZWSP 무손실 MVP 완료, 문맥형 복원·평가 연결 남음

@@ -65,3 +65,6 @@ Recovery Gain, ΔFPR-clean/obfuscated와 인접 정책의 block/allow 전환이 
   아니다.
 - budget 10의 성능 동등성은 이 개발 데이터에서의 관측 결과이며 locked test 보장을 뜻하지 않는다.
 - 낮은 예산은 후보 truncation을 늘리므로 후보 순위가 바뀌면 sweep을 다시 실행해야 한다.
+
+현재 순위와 label-free 대안 휴리스틱 비교는
+[초성 후보 ranking 진단](./CHOSUNG_CANDIDATE_RANKING.md)에 기록한다.

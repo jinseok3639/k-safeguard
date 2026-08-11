@@ -99,6 +99,12 @@ candidate generator 0.5.0은 같은 설정에서 `direct ⊆ segmented ⊆ parti
 [`experiments/benchmark/CHOSUNG_VIEW_BUDGET.md`](./experiments/benchmark/CHOSUNG_VIEW_BUDGET.md)에
 기록한다.
 
+현재 정렬과 source-first·domain-first·적은 replacement 우선 휴리스틱을 비교했지만, 총 view 예산
+2~10에서 현재 정렬을 넘는 대안은 없었다. 개발 label 기반 가중치는 추가하지 않고 현 순서를 유지한다.
+상세 결과는
+[`experiments/benchmark/CHOSUNG_CANDIDATE_RANKING.md`](./experiments/benchmark/CHOSUNG_CANDIDATE_RANKING.md)에
+기록한다.
+
 Kanana 가드레일에 후보 view를 직접 연결한 평가에서도 segmented 대비 partial의 판정 변화는 0건이었다.
 segmented의 초성 공격 block rate는 raw 18.94%에서 27.91%로 올랐지만 NRR은 13.04%에 그쳤고,
 평균 추가 view 7.94개와 62.97%의 후보 상한 도달률이 관찰됐다. 따라서 모든 lossy provider는 계속
