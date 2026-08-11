@@ -3,9 +3,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Iterable, Protocol, runtime_checkable
 
 from .normalization import NormalizationResult, normalize_korean
+
+
+if TYPE_CHECKING:
+    from .execution import (
+        ClassifierErrorMode,
+        GatewayEvaluation,
+        GuardrailClassifier,
+    )
 
 
 Metadata = tuple[tuple[str, str], ...]
@@ -143,6 +151,24 @@ class Gateway:
             views=tuple(views),
             provider_errors=tuple(errors),
             truncated=truncated,
+        )
+
+    def evaluate(
+        self,
+        text: str,
+        classifier: GuardrailClassifier,
+        *,
+        error_mode: ClassifierErrorMode = "raise",
+        stop_on_block: bool = True,
+    ) -> GatewayEvaluation:
+        """생성한 view를 classifier로 판정하고 OR 결과와 trace를 반환한다."""
+        from .execution import evaluate_gateway
+
+        return evaluate_gateway(
+            self.process(text),
+            classifier,
+            error_mode=error_mode,
+            stop_on_block=stop_on_block,
         )
 
 
