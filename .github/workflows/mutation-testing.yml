@@ -1,0 +1,41 @@
+name: Mutation testing
+
+on:
+  pull_request:
+    paths:
+      - "src/k_safeguard/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - ".github/workflows/mutation-testing.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  mutmut:
+    # mutmut은 Windows 네이티브 실행을 지원하지 않아(WSL 필수) 로컬 검증 대신
+    # 이 워크플로가 유일한 실행 경로다. 실행 시간이 길어질 수 있어 src/tests가
+    # 바뀐 PR에서만 돈다(다른 파일만 바뀐 PR은 건너뜀).
+    runs-on: ubuntu-latest
+    env:
+      # mutmut은 mutants/ 아래에 격리된 소스+테스트 복사본을 만들어 그 안에서
+      # 테스트를 수집·실행한다. tests/test_ko_normalizer.py가 import하는
+      # hf_repo(레포 루트의 src/ 바깥 패키지)는 이 격리 컨텍스트에서 기본적으로
+      # 안 보이므로, 원본 레포 루트를 PYTHONPATH에 명시해 어디서 실행되든
+      # import가 되게 한다.
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package and mutmut
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --editable .
+          python -m pip install "mutmut>=3.7"
+      - name: Run mutation testing
+        continue-on-error: true
+        run: mutmut run
+      - name: Print mutation summary
+        run: mutmut results

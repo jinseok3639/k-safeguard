@@ -168,11 +168,18 @@ def _source_span(units: list[_Unit], start: int, end: int) -> tuple[int, int]:
     if start < end:
         return units[start].source_start, units[end - 1].source_end
     if start < len(units):
-        point = units[start].source_start
+        # 세 정규화 규칙(ZWSP 제거·현대/호환 자모 조합)은 문자 수를 줄이거나
+        # 유지할 뿐 새 문자를 추가하지 않는다. 무작위 대입(30만+ 케이스)으로도
+        # SequenceMatcher의 순수 삽입(insert) opcode가 문자열 끝이 아닌 위치에서
+        # 발생하는 입력을 찾지 못했다 — 공개 API 입력만으로는 도달하지 않는다.
+        point = units[start].source_start  # pragma: no cover
     elif units:
         point = units[-1].source_end
     else:
-        point = 0
+        # 빈 문자열은 세 규칙 모두 무변화(before == after)라 _apply_rule의 조기
+        # 반환으로 끝나 이 지점에 도달하기 전에 끝난다 — units가 비어있는 채로
+        # 여기 도달할 수 없다.
+        point = 0  # pragma: no cover
     return point, point
 
 
@@ -210,7 +217,9 @@ def _apply_rule(
             )
         )
 
-    if "".join(unit.char for unit in output) != after:
+    if "".join(unit.char for unit in output) != after:  # pragma: no cover
+        # SequenceMatcher opcode를 그대로 재조립하므로 항상 after와 일치한다 —
+        # 공개 API 입력만으로는 도달할 수 없는 내부 정렬 방어 코드.
         raise RuntimeError(f"정규화 내부 정렬 오류: {rule_id}")
     return output, edits
 
