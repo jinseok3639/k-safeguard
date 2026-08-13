@@ -17,6 +17,13 @@ jobs:
     # 이 워크플로가 유일한 실행 경로다. 실행 시간이 길어질 수 있어 src/tests가
     # 바뀐 PR에서만 돈다(다른 파일만 바뀐 PR은 건너뜀).
     runs-on: ubuntu-latest
+    env:
+      # mutmut은 mutants/ 아래에 격리된 소스+테스트 복사본을 만들어 그 안에서
+      # 테스트를 수집·실행한다. tests/test_ko_normalizer.py가 import하는
+      # hf_repo(레포 루트의 src/ 바깥 패키지)는 이 격리 컨텍스트에서 기본적으로
+      # 안 보이므로, 원본 레포 루트를 PYTHONPATH에 명시해 어디서 실행되든
+      # import가 되게 한다.
+      PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
