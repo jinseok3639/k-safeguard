@@ -6,11 +6,12 @@ from k_safeguard.providers import ChosungLexiconProvider
 
 class ChosungLexiconProviderMetadataTest(unittest.TestCase):
     def test_direct_match_metadata_reflects_computed_values(self) -> None:
+        # Given
         lexicon = ChosungLexicon.from_sources([("domain", ["시스템"])])
         provider = ChosungLexiconProvider(lexicon)
-
+        # When
         proposals = list(provider.generate("ㅅㅅㅌ 점검"))
-
+        # Then
         self.assertEqual(len(proposals), 1)
         self.assertEqual(proposals[0].text, "시스템 점검")
         self.assertEqual(
@@ -27,13 +28,14 @@ class ChosungLexiconProviderMetadataTest(unittest.TestCase):
         )
 
     def test_segmented_match_metadata_reflects_computed_values(self) -> None:
+        # Given
         lexicon = ChosungLexicon.from_sources(
             [("domain", ["시스템", "프롬프트"])]
         )
         provider = ChosungLexiconProvider(lexicon, allow_segmentation=True)
-
+        # When
         proposals = list(provider.generate("ㅅㅅㅌㅍㄹㅍㅌ"))
-
+        # Then
         self.assertEqual(len(proposals), 1)
         self.assertEqual(proposals[0].text, "시스템프롬프트")
         self.assertEqual(
@@ -50,6 +52,7 @@ class ChosungLexiconProviderMetadataTest(unittest.TestCase):
         )
 
     def test_partial_match_metadata_reflects_computed_values(self) -> None:
+        # Given
         lexicon = ChosungLexicon.from_sources(
             [("domain", ["시스템"]), ("general", ["산사태"])]
         )
@@ -58,9 +61,9 @@ class ChosungLexiconProviderMetadataTest(unittest.TestCase):
             allow_partial_restoration=True,
             partial_sources=("domain",),
         )
-
+        # When
         proposals = list(provider.generate("ㄱㄱㅅㅅㅌㄴ"))
-
+        # Then
         self.assertEqual(len(proposals), 1)
         self.assertEqual(proposals[0].text, "ㄱㄱ시스템ㄴ")
         self.assertEqual(
@@ -77,7 +80,9 @@ class ChosungLexiconProviderMetadataTest(unittest.TestCase):
         )
 
     def test_rejects_one_string_as_partial_sources(self) -> None:
+        # Given
         lexicon = ChosungLexicon.from_sources([("domain", ["시스템"])])
+        # When / Then
         with self.assertRaisesRegex(TypeError, "iterable"):
             ChosungLexiconProvider(
                 lexicon,
@@ -86,10 +91,13 @@ class ChosungLexiconProviderMetadataTest(unittest.TestCase):
             )
 
     def test_yields_nothing_when_no_span_matches(self) -> None:
+        # Given
         lexicon = ChosungLexicon.from_sources([("domain", ["시스템"])])
         provider = ChosungLexiconProvider(lexicon)
-
-        self.assertEqual(list(provider.generate("안녕하세요")), [])
+        # When
+        proposals = list(provider.generate("안녕하세요"))
+        # Then
+        self.assertEqual(proposals, [])
 
 
 if __name__ == "__main__":

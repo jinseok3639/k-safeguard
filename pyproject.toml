@@ -40,6 +40,7 @@ dependencies = []
 [project.optional-dependencies]
 wordfreq = ["wordfreq==3.1.1"]
 dev = ["coverage>=7.4"]
+mutation = ["mutmut>=3.7"]
 
 [project.urls]
 Homepage = "https://github.com/jinseok3639/k-safeguard"
@@ -67,3 +68,15 @@ show_missing = true
 
 [tool.coverage.xml]
 output = "coverage.xml"
+
+[tool.mutmut]
+paths_to_mutate = [
+  "src/k_safeguard/chosung.py",
+  "src/k_safeguard/execution.py",
+  "src/k_safeguard/gateway.py",
+  "src/k_safeguard/normalization.py",
+  "src/k_safeguard/providers/chosung.py",
+  "src/k_safeguard/providers/tensify.py",
+]
+tests_dir = ["tests/"]
+runner = "python -m unittest discover -s tests"
