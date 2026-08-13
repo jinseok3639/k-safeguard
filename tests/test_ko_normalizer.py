@@ -38,7 +38,7 @@ class NormalizeKoreanTest(unittest.TestCase):
 
     def test_removes_zwsp_adjacent_to_hangul(self) -> None:
         # Given
-        text = "안​녕​하세요"
+        text = "안\u200b녕\u200b하세요"
         # When
         result = normalize_korean(text)
         # Then
@@ -48,20 +48,20 @@ class NormalizeKoreanTest(unittest.TestCase):
 
     def test_preserves_non_hangul_zwsp(self) -> None:
         # Given
-        text = "abc​def"
+        text = "abc\u200bdef"
         # When
         result = normalize_korean(text)
         # Then
-        self.assertEqual(result.text, "abc​def")
+        self.assertEqual(result.text, "abc\u200bdef")
         self.assertFalse(result.changed)
 
     def test_preserves_emoji_zwj_sequence(self) -> None:
         # Given
-        text = "개발자 👩‍💻"
+        text = "개발자 👩\u200d💻"
         # When
         result = normalize_korean(text)
         # Then
-        self.assertEqual(result.text, "개발자 👩‍💻")
+        self.assertEqual(result.text, "개발자 👩\u200d💻")
 
     def test_composes_modern_jamo(self) -> None:
         # Given
@@ -111,7 +111,7 @@ class NormalizeKoreanTest(unittest.TestCase):
 
     def test_composes_after_removing_zwsp(self) -> None:
         # Given
-        text = "ㅇ​ㅏ​ㄴ"
+        text = "ㅇ\u200bㅏ\u200bㄴ"
         # When
         result = normalize_korean(text)
         # Then
@@ -168,7 +168,7 @@ class NormalizeKoreanTest(unittest.TestCase):
 
     def test_is_deterministic(self) -> None:
         # Given
-        text = "ㅇ​ㅏㄴㄴㅕㅇ, Guardrail"
+        text = "ㅇ\u200bㅏㄴㄴㅕㅇ, Guardrail"
         # When
         first_result = normalize_korean(text)
         second_result = normalize_korean(text)

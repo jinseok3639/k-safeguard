@@ -8,6 +8,9 @@ on:
       - "pyproject.toml"
       - ".github/workflows/mutation-testing.yml"
 
+permissions:
+  contents: read
+
 jobs:
   mutmut:
     # mutmut은 Windows 네이티브 실행을 지원하지 않아(WSL 필수) 로컬 검증 대신
@@ -25,7 +28,8 @@ jobs:
           python -m pip install --editable .
           python -m pip install "mutmut>=3.7"
       - name: Run mutation testing
-        run: mutmut run || true
+        continue-on-error: true
+        run: mutmut run
       - name: Print mutation summary
         run: mutmut results
       - name: Generate HTML report
