@@ -184,6 +184,33 @@ class GatewayExecutionTest(unittest.TestCase):
         with self.assertRaisesRegex(TypeError, "error"):
             ClassifierResult(block=None, error=3)
 
+    def test_classifier_result_rejects_non_bool_block_and_non_str_category(self) -> None:
+        with self.assertRaisesRegex(TypeError, "bool"):
+            ClassifierResult(block="yes")  # type: ignore[arg-type]
+        with self.assertRaisesRegex(TypeError, "category"):
+            ClassifierResult(block=True, category=1)  # type: ignore[arg-type]
+
+    def test_fail_raise_mode_surfaces_explicit_classifier_error_without_a_cause(
+        self,
+    ) -> None:
+        with self.assertRaises(ClassifierExecutionError) as caught:
+            self.gateway.evaluate(
+                "입력",
+                lambda text: ClassifierResult(block=None, error="timeout"),
+            )
+
+        self.assertEqual(caught.exception.view_index, 0)
+        self.assertIsNone(caught.exception.__cause__)
+
+    def test_all_views_blocked_keeps_first_trigger_when_not_stopping_early(self) -> None:
+        result = self.gateway.evaluate("입력", lambda text: True, stop_on_block=False)
+
+        self.assertTrue(result.block)
+        self.assertEqual(result.decision_source, "classifier")
+        self.assertEqual(result.trigger_view_index, 0)
+        self.assertEqual(result.evaluated_view_count, 3)
+        self.assertFalse(result.stopped_early)
+
 
 class AsyncGatewayExecutionTest(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
@@ -451,6 +478,22 @@ class BatchGatewayExecutionTest(unittest.TestCase):
             all(error.endswith(":TimeoutError") for error in result.classifier_errors)
         )
 
+    def test_batch_output_as_raw_string_is_rejected_like_invalid_output(self) -> None:
+        with self.assertRaises(ClassifierExecutionError) as caught:
+            self.gateway.evaluate_batch("입력", lambda texts: "SAFE")
+
+        self.assertEqual(caught.exception.view_index, 0)
+        self.assertEqual(caught.exception.error_type, "TypeError")
+        self.assertIsInstance(caught.exception.__cause__, TypeError)
+
+    def test_non_iterable_batch_output_is_rejected(self) -> None:
+        with self.assertRaises(ClassifierExecutionError) as caught:
+            self.gateway.evaluate_batch("입력", lambda texts: None)
+
+        self.assertEqual(caught.exception.view_index, 0)
+        self.assertEqual(caught.exception.error_type, "TypeError")
+        self.assertIsInstance(caught.exception.__cause__, TypeError)
+
     def test_rejects_invalid_batch_size(self) -> None:
         classifier = lambda texts: [False for _ in texts]
         with self.assertRaisesRegex(ValueError, "1 이상"):
@@ -508,6 +551,30 @@ class AsyncBatchGatewayExecutionTest(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result.block)
         self.assertEqual(result.evaluated_view_count, 3)
         self.assertEqual(result.classifier_call_count, 2)
+
+    async def test_async_batch_exception_fail_open_covers_every_submitted_view(
+        self,
+    ) -> None:
+        calls = []
+
+        async def classifier(texts: tuple[str, ...]):
+            calls.append(texts)
+            raise TimeoutError("secret detail")
+
+        result = await self.gateway.evaluate_batch_async(
+            "입력",
+            classifier,
+            batch_size=2,
+            error_mode="allow",
+        )
+
+        self.assertFalse(result.block)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(result.evaluated_view_count, 3)
+        self.assertEqual(len(result.classifier_errors), 3)
+        self.assertTrue(
+            all(error.endswith(":TimeoutError") for error in result.classifier_errors)
+        )
 
     async def test_async_batch_cancellation_is_propagated(self) -> None:
         async def classifier(texts: tuple[str, ...]):

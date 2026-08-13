@@ -39,6 +39,7 @@ dependencies = []
 
 [project.optional-dependencies]
 wordfreq = ["wordfreq==3.1.1"]
+dev = ["coverage>=7.4"]
 
 [project.urls]
 Homepage = "https://github.com/jinseok3639/k-safeguard"
@@ -54,3 +55,15 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 k_safeguard = ["py.typed"]
+
+[tool.coverage.run]
+branch = true
+source = ["src/k_safeguard"]
+omit = ["*/providers/wordfreq.py"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
+show_missing = true
+
+[tool.coverage.xml]
+output = "coverage.xml"

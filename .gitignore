@@ -15,3 +15,8 @@ experiments/benchmark/results/
 /dist/
 /src/*.egg-info/
 /src/**/*.egg-info/
+
+# Coverage measurement artifacts
+.coverage
+coverage.xml
+htmlcov/

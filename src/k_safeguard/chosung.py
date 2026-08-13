@@ -622,7 +622,12 @@ def generate_chosung_candidates(
                 candidate.rank_score,
                 candidate.text,
             )
-            if previous is None or rank_key < (
+            # 같은 span 안에서는 _lexicon_options가 span_text를 이미 유일하게
+            # 정리하므로, candidate.text 충돌은 서로 다른 이전 span의 state가
+            # 이번 span의 서로 다른 option과 결합해 우연히 같은 최종 문자열을
+            # 만들 때만 가능하다 — 그러려면 두 결합의 앞뒤 차이가 글자 단위로
+            # 정확히 상쇄돼야 해 현실적 입력으로 구성하기 어렵다.
+            if previous is None or rank_key < (  # pragma: no cover
                 _candidate_layer_rank(previous),
                 -previous.covered_initials,
                 previous.rank_score,

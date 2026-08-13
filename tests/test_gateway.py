@@ -30,6 +30,27 @@ class _ManyProvider:
             yield CandidateProposal(f"{text}-{index}")
 
 
+class _WrongTypeProvider:
+    name = "wrong_type"
+
+    def generate(self, text: str):
+        yield "not-a-candidate-proposal"
+
+
+class _NonStringTextProvider:
+    name = "non_string_text"
+
+    def generate(self, text: str):
+        yield CandidateProposal(text=123)  # type: ignore[arg-type]
+
+
+class _OutOfRangeConfidenceProvider:
+    name = "out_of_range_confidence"
+
+    def generate(self, text: str):
+        yield CandidateProposal(text=f"{text}-candidate", confidence=1.5)
+
+
 class GatewayTest(unittest.TestCase):
     def test_distribution_and_public_api_versions_match(self) -> None:
         self.assertEqual(version("k-safeguard"), __version__)
@@ -123,6 +144,41 @@ class GatewayTest(unittest.TestCase):
         result = Gateway(max_views=1).process("ㅇㅏㄴ")
         self.assertEqual([view.kind for view in result.views], ["original"])
         self.assertTrue(result.truncated)
+
+    def test_provider_yielding_non_candidate_proposal_is_recorded_by_default(self) -> None:
+        result = Gateway(providers=[_WrongTypeProvider()]).process("안녕")
+        self.assertEqual(result.provider_errors, ("wrong_type:TypeError",))
+        self.assertEqual([view.text for view in result.views], ["안녕"])
+
+    def test_provider_yielding_non_candidate_proposal_raises_when_strict(self) -> None:
+        with self.assertRaisesRegex(TypeError, "CandidateProposal"):
+            Gateway(providers=[_WrongTypeProvider()], strict_providers=True).process("안녕")
+
+    def test_provider_proposal_with_non_string_text_is_recorded_by_default(self) -> None:
+        result = Gateway(providers=[_NonStringTextProvider()]).process("안녕")
+        self.assertEqual(result.provider_errors, ("non_string_text:TypeError",))
+
+    def test_provider_proposal_with_non_string_text_raises_when_strict(self) -> None:
+        with self.assertRaisesRegex(TypeError, "str"):
+            Gateway(
+                providers=[_NonStringTextProvider()], strict_providers=True
+            ).process("안녕")
+
+    def test_provider_proposal_with_out_of_range_confidence_is_recorded_by_default(
+        self,
+    ) -> None:
+        result = Gateway(providers=[_OutOfRangeConfidenceProvider()]).process("안녕")
+        self.assertEqual(
+            result.provider_errors, ("out_of_range_confidence:ValueError",)
+        )
+
+    def test_provider_proposal_with_out_of_range_confidence_raises_when_strict(
+        self,
+    ) -> None:
+        with self.assertRaisesRegex(ValueError, "confidence"):
+            Gateway(
+                providers=[_OutOfRangeConfidenceProvider()], strict_providers=True
+            ).process("안녕")
 
 
 if __name__ == "__main__":

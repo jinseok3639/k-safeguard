@@ -1,3 +1,4 @@
+import unicodedata
 import unittest
 
 from hf_repo.ko_obfuscator import BASE, CHO, JONG, JUNG
@@ -53,6 +54,17 @@ class NormalizeKoreanTest(unittest.TestCase):
 
     def test_uses_following_vowel_as_next_syllable_boundary(self) -> None:
         self.assertEqual(normalize_korean("ㄱㅏㄴㅏ").text, "가나")
+
+    def test_composes_modern_jamo_syllable_without_trailing_final_consonant(self) -> None:
+        no_batchim = unicodedata.normalize("NFD", "가")
+        result = normalize_korean(no_batchim)
+        self.assertEqual(result.text, "가")
+        self.assertEqual(result.applied_rules, ("compose_modern_jamo",))
+
+    def test_handles_composition_that_inserts_at_end_of_text(self) -> None:
+        result = normalize_korean("ㄱㅏ가")
+        self.assertEqual(result.text, "가가")
+        self.assertEqual(result.applied_rules, ("compose_compat_jamo",))
 
     def test_composes_after_removing_zwsp(self) -> None:
         result = normalize_korean("ㅇ\u200bㅏ\u200bㄴ")

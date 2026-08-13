@@ -56,6 +56,10 @@ class TensifyInverseProviderTest(unittest.TestCase):
         self.assertEqual(list(provider.generate("진짜 좋아")), [])
         self.assertTrue(list(provider.generate("진짜 짱이야")))
 
+    def test_zero_hangul_syllables_avoids_division_by_zero(self) -> None:
+        self.assertEqual(list(TensifyInverseProvider().generate("hello!!")), [])
+        self.assertEqual(list(TensifyInverseProvider().generate("")), [])
+
     def test_minimum_tense_ratio_uses_completed_hangul_syllables(self) -> None:
         provider = TensifyInverseProvider(min_tense_ratio=0.25)
 
