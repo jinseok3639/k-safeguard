@@ -1,13 +1,18 @@
 name: Mutation testing
 
 on:
-  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - "src/k_safeguard/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - ".github/workflows/mutation-testing.yml"
 
 jobs:
   mutmut:
     # mutmut은 Windows 네이티브 실행을 지원하지 않아(WSL 필수) 로컬 검증 대신
-    # 이 워크플로가 유일한 실행 경로다. 실행 시간이 길어질 수 있어 PR/push에는
-    # 걸지 않고 수동 트리거로만 둔다.
+    # 이 워크플로가 유일한 실행 경로다. 실행 시간이 길어질 수 있어 src/tests가
+    # 바뀐 PR에서만 돈다(다른 파일만 바뀐 PR은 건너뜀).
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
