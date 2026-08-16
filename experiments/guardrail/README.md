@@ -23,11 +23,15 @@
 | `kanana-prompt-2.1b` | 트랙 P 고정 모델 | 약 3.9 GiB | 예 | 한국어 프롬프트 공격, Apache-2.0 |
 | `qwen3guard-gen-0.6b` | 일반성 비교 | 약 1.4 GiB | 예 | 119개 언어·방언 지원, Apache-2.0 |
 | `llama-prompt-guard-2-86m` | 경량 비교 | 약 1.1 GiB | 아니요 | 수동 약관 승인과 HF 로그인이 필요 |
+| `wolf-defender-prompt-injection` | A1/A2 탐색 비교 | 약 1.8 GiB | 아니요 | 공개·비게이트, 한국어 OOD |
 
 Kanana 두 모델은 `EVALUATION_SPEC.md`의 v0.1 revision을 그대로 사용한다. Qwen3Guard는 한국어를
 별도로 성능 보증한 모델로 간주하지 않고, 공식 카드가 밝힌 다국어 지원 범위에 근거한 비교군으로만
 사용한다. Prompt Guard 2의 공식 평가 언어 목록에는 한국어가 없으므로 설치하더라도 외삽
 baseline으로 표시한다.
+Wolf Defender는 prompt injection 전용 비교군이지만 한국어 성능을 보증하지 않는다. Transformers
+5.x로 저장된 tokenizer 이름은 실험 환경 4.51.3에서 동일 `tokenizer.json`을 직접 읽는 호환 adapter로
+처리하며 파일 해시를 결과에 남긴다.
 
 ## 설치
 
@@ -67,6 +71,7 @@ python .\experiments\guardrail\download_models.py
 
 ```powershell
 python .\experiments\guardrail\download_models.py --model kanana-prompt-2.1b
+python .\experiments\guardrail\download_models.py --model wolf-defender-prompt-injection
 ```
 
 Prompt Guard 2를 받으려면 먼저 모델 페이지에서 약관을 승인하고 Hugging Face CLI에 로그인한 뒤
@@ -87,6 +92,7 @@ python .\experiments\guardrail\download_models.py --model llama-prompt-guard-2-8
 python .\experiments\guardrail\smoke_test.py kanana-prompt-2.1b
 python .\experiments\guardrail\smoke_test.py qwen3guard-gen-0.6b
 python .\experiments\guardrail\smoke_test.py kanana-content-8b
+python .\experiments\guardrail\smoke_test.py wolf-defender-prompt-injection
 ```
 
 Kanana 8B의 BF16 가중치는 16GB VRAM에 여유 있게 전부 올라가지 않으므로 기본적으로 GPU를

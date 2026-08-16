@@ -7,6 +7,7 @@ from .kanana_prompt import (
     to_classifier_result,
 )
 from .qwen3guard_gen import Qwen3GuardGenAdapter, parse_qwen3guard_output
+from .wolf_defender import WolfDefenderAdapter, parse_wolf_defender_label
 
 __all__ = [
     "AdapterResult",
@@ -15,4 +16,6 @@ __all__ = [
     "to_classifier_result",
     "Qwen3GuardGenAdapter",
     "parse_qwen3guard_output",
+    "WolfDefenderAdapter",
+    "parse_wolf_defender_label",
 ]

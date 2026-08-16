@@ -56,6 +56,20 @@
       "download_size_gb": 1.05,
       "inference_dtype": "float32",
       "source": "https://huggingface.co/meta-llama/Llama-Prompt-Guard-2-86M"
+    },
+    {
+      "key": "wolf-defender-prompt-injection",
+      "model_id": "patronus-studio/wolf-defender-prompt-injection",
+      "revision": "ecc382bd4d98ffa19e1c9c2ce4a0722904c04a3c",
+      "track": "comparison",
+      "adapter": "wolf_defender_classifier",
+      "tier": "optional",
+      "download_default": false,
+      "gated": false,
+      "license": "Apache-2.0",
+      "download_size_gb": 1.77,
+      "inference_dtype": "float32",
+      "source": "https://huggingface.co/patronus-studio/wolf-defender-prompt-injection"
     }
   ]
 }
