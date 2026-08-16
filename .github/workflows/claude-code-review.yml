@@ -43,14 +43,18 @@ jobs:
           # 저장소에 커밋한 .claude/settings.json은 SDK/헤드리스 모드에서
           # 워크스페이스 trust dialog를 못 띄워 allow 규칙이 무시될 수 있어
           # (anthropics/claude-code#32459), 여기서 직접 허용해야 함.
+          #
+          # 별도 샌드박스 리포에서 실측 검증한 결과:
+          # - code-review 플러그인은 Skill 툴로 실행되므로 Skill 자체를 허용해야
+          #   플러그인 진입이 가능함 (없으면 permission_denied로 스킬 실행이 막힘)
+          # - 플러그인 내부에서 git ls-files, 일반 grep, cd && git 등 다양한
+          #   서브커맨드를 호출해서 Bash(gh:*) 같은 좁은 패턴으로는 부족함 -> Bash 전체 허용
           settings: |
             {
               "permissions": {
                 "allow": [
-                  "Bash(gh:*)",
-                  "Bash(git diff:*)",
-                  "Bash(git log:*)",
-                  "Bash(git show:*)",
+                  "Skill",
+                  "Bash",
                   "Read",
                   "Glob",
                   "Grep"
