@@ -39,6 +39,24 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment'
+          # settings는 러너의 ~/.claude/settings.json(유저 레벨)에 주입됨.
+          # 저장소에 커밋한 .claude/settings.json은 SDK/헤드리스 모드에서
+          # 워크스페이스 trust dialog를 못 띄워 allow 규칙이 무시될 수 있어
+          # (anthropics/claude-code#32459), 여기서 직접 허용해야 함.
+          settings: |
+            {
+              "permissions": {
+                "allow": [
+                  "Bash(gh:*)",
+                  "Bash(git diff:*)",
+                  "Bash(git log:*)",
+                  "Bash(git show:*)",
+                  "Read",
+                  "Glob",
+                  "Grep"
+                ]
+              }
+            }
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
