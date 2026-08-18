@@ -179,7 +179,7 @@ adapter = KananaPromptAdapter(
 result = Gateway().evaluate("사용자 입력", adapter, error_mode="block")
 ```
 
-로컬 설치를 바로 확인하려면 [`experiments/guardrail/run_gateway.py`](./experiments/guardrail/run_gateway.py)를
+로컬 설치를 바로 확인하려면 [`experiments/guardrail/run_gateway.py`](../experiments/guardrail/run_gateway.py)를
 사용한다. 이 adapter는 패키지 공개 API가 아니라 특정 모델을 재현하기 위한 reference implementation이다.
 
 ## 현재 경계

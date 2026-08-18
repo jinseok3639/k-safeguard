@@ -86,30 +86,30 @@ provider = ChosungLexiconProvider(
 
 이 기능은 현재 benchmark에서 복원률을 개선하지 못했으므로 기본 활성화하거나 방어 개선으로 해석하지
 않는다. 비교 결과는
-[`experiments/benchmark/CHOSUNG_PARTIAL_RESTORATION_COMPARISON.md`](./experiments/benchmark/CHOSUNG_PARTIAL_RESTORATION_COMPARISON.md)에
+[`experiments/benchmark/CHOSUNG_PARTIAL_RESTORATION_COMPARISON.md`](../experiments/benchmark/CHOSUNG_PARTIAL_RESTORATION_COMPARISON.md)에
 기록한다.
 
 candidate generator 0.5.0은 같은 설정에서 `direct ⊆ segmented ⊆ partial` 후보 집합을 보장한다.
 이전 버전에서 segmentation 활성화가 direct 후보를 밀어내던 문제와 전체 재평가 결과는
-[`experiments/benchmark/CHOSUNG_CANDIDATE_MONOTONICITY.md`](./experiments/benchmark/CHOSUNG_CANDIDATE_MONOTONICITY.md)에
+[`experiments/benchmark/CHOSUNG_CANDIDATE_MONOTONICITY.md`](../experiments/benchmark/CHOSUNG_CANDIDATE_MONOTONICITY.md)에
 기록한다.
 
 16개 전체 후보 결과를 예산별로 재집계한 결과, 총 10 view부터 공격 block rate·NRR·ΔFPR이
 16과 같았다. 이에 따라 Gateway 기본 `max_views`는 10으로 낮췄다. 선택 근거와 비용 곡선은
-[`experiments/benchmark/CHOSUNG_VIEW_BUDGET.md`](./experiments/benchmark/CHOSUNG_VIEW_BUDGET.md)에
+[`experiments/benchmark/CHOSUNG_VIEW_BUDGET.md`](../experiments/benchmark/CHOSUNG_VIEW_BUDGET.md)에
 기록한다.
 
 현재 정렬과 source-first·domain-first·적은 replacement 우선 휴리스틱을 비교했지만, 총 view 예산
 2~10에서 현재 정렬을 넘는 대안은 없었다. 개발 label 기반 가중치는 추가하지 않고 현 순서를 유지한다.
 상세 결과는
-[`experiments/benchmark/CHOSUNG_CANDIDATE_RANKING.md`](./experiments/benchmark/CHOSUNG_CANDIDATE_RANKING.md)에
+[`experiments/benchmark/CHOSUNG_CANDIDATE_RANKING.md`](../experiments/benchmark/CHOSUNG_CANDIDATE_RANKING.md)에
 기록한다.
 
 Kanana 가드레일에 후보 view를 직접 연결한 평가에서도 segmented 대비 partial의 판정 변화는 0건이었다.
 segmented의 초성 공격 block rate는 raw 18.94%에서 27.91%로 올랐지만 NRR은 13.04%에 그쳤고,
 평균 추가 view 7.94개와 62.97%의 후보 상한 도달률이 관찰됐다. 따라서 모든 lossy provider는 계속
 기본 비활성화한다. 상세 결과는
-[`experiments/benchmark/CHOSUNG_GUARDRAIL_IMPACT.md`](./experiments/benchmark/CHOSUNG_GUARDRAIL_IMPACT.md)에
+[`experiments/benchmark/CHOSUNG_GUARDRAIL_IMPACT.md`](../experiments/benchmark/CHOSUNG_GUARDRAIL_IMPACT.md)에
 기록한다.
 
 `ChosungLexicon`은 특정 라이브러리에 의존하지 않는다. 실험에서는 빈도순 한국어 단어를 제공하는
@@ -132,19 +132,19 @@ benchmark와 원문은 이미 공개되어 있으므로 결과 상태는 항상 
 coverage 확인용이며, 문맥 이해도·semantic fidelity·가드레일 방어율을 대신하지 않는다.
 
 기본 설정의 전체 진단 결과와 활성화 판정은
-[`experiments/benchmark/CHOSUNG_LEXICAL_DIAGNOSTIC.md`](./experiments/benchmark/CHOSUNG_LEXICAL_DIAGNOSTIC.md)에
+[`experiments/benchmark/CHOSUNG_LEXICAL_DIAGNOSTIC.md`](../experiments/benchmark/CHOSUNG_LEXICAL_DIAGNOSTIC.md)에
 기록했다. 일반 빈도순 후보의 복원 coverage가 낮아 현재 버전은 gateway에 기본 연결하지 않는다.
 
 실패 원인을 후보 미생성·과잉 복원 proxy·정답 후보 누락·순위 오류로 분리한 개선 전 기준선은
-[`experiments/benchmark/CHOSUNG_ERROR_ANALYSIS.md`](./experiments/benchmark/CHOSUNG_ERROR_ANALYSIS.md)에
+[`experiments/benchmark/CHOSUNG_ERROR_ANALYSIS.md`](../experiments/benchmark/CHOSUNG_ERROR_ANALYSIS.md)에
 기록한다. 후속 provider 개선은 같은 `chosung-error-v1` taxonomy로 비교한다.
 
 사용자·도메인 사전 50개와 조사 확장을 일반 빈도 사전과 비교한 결과는
-[`experiments/benchmark/CHOSUNG_LEXICON_COMPARISON.md`](./experiments/benchmark/CHOSUNG_LEXICON_COMPARISON.md)에
+[`experiments/benchmark/CHOSUNG_LEXICON_COMPARISON.md`](../experiments/benchmark/CHOSUNG_LEXICON_COMPARISON.md)에
 기록한다. 평균 초성 위치 복원은 0.92%p 올랐지만 문장 exact 성공은 여전히 0건이므로 기본 활성화는
 계속 보류한다.
 
 긴 완전 초성 span을 사전 항목 2개로 분할한 비교는
-[`experiments/benchmark/CHOSUNG_SEGMENTATION_COMPARISON.md`](./experiments/benchmark/CHOSUNG_SEGMENTATION_COMPARISON.md)에
+[`experiments/benchmark/CHOSUNG_SEGMENTATION_COMPARISON.md`](../experiments/benchmark/CHOSUNG_SEGMENTATION_COMPARISON.md)에
 기록한다. 평균 초성 위치 복원은 control 대비 4.32%p 개선됐지만 exact 성공은 0건이므로 이 기능도
 opt-in으로 유지한다.
