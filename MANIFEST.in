@@ -1,3 +1,4 @@
 include LICENSE
 include README.md
+include README.en.md
 include tools/release/verify_artifacts.py
