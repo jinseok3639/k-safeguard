@@ -38,6 +38,12 @@
 coverage 부족과 난독화 정상문 고오탐 때문에 `LIMITED_BASELINE_COVERAGE`이며,
 [Qwen3Guard 교차 모델 결과](./TENSIFY_QWEN_CROSS_MODEL_RESULT.md)에 기록했다.
 
+A1/A2 전용 이진 분류기에서의 탐색 재현은
+[Wolf Defender 교차 모델 규격](./TENSIFY_WOLF_CROSS_MODEL_PROTOCOL.md)을 따른다. 한국어 학습·평가가
+명시되지 않은 OOD 비교이며 exact-text 학습 중복을 감사할 수 없어 독립 확증으로 쓰지 않는다.
+`ratio_0.10`은 난독화 공격 TPR을 71.43%에서 96.43%로 높였지만 난독화 정상문 FPR도 14.29%에서
+35.71%로 높였다. 자세한 해석은 [Wolf Defender 결과](./TENSIFY_WOLF_CROSS_MODEL_RESULT.md)에 있다.
+
 ```powershell
 .\.venv-experiment\Scripts\python `
   -m experiments.benchmark.run_tensify_benign_dev_evaluation `

@@ -9,12 +9,33 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from transformers import AutoModelForCausalLM, AutoModelForSequenceClassification, AutoTokenizer
+from transformers import (
+    AutoModelForCausalLM,
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    PreTrainedTokenizerFast,
+)
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 MANIFEST_PATH = SCRIPT_DIR / "models.json"
 DEFAULT_MODEL_HOME = Path(r"D:\local llm\guardrails")
+
+
+def load_wolf_tokenizer(model_path: Path) -> PreTrainedTokenizerFast:
+    config = json.loads((model_path / "tokenizer_config.json").read_text(encoding="utf-8"))
+    return PreTrainedTokenizerFast(
+        tokenizer_file=str(model_path / "tokenizer.json"),
+        bos_token=config["bos_token"],
+        eos_token=config["eos_token"],
+        cls_token=config["cls_token"],
+        sep_token=config["sep_token"],
+        mask_token=config["mask_token"],
+        pad_token=config["pad_token"],
+        unk_token=config["unk_token"],
+        model_max_length=int(config["model_max_length"]),
+        padding_side=config.get("padding_side", "right"),
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -106,12 +127,17 @@ def classify_qwen(model: AutoModelForCausalLM, tokenizer: AutoTokenizer) -> str:
     return tokenizer.decode(output_ids, skip_special_tokens=True).strip()
 
 
-def classify_prompt_guard(model: AutoModelForSequenceClassification, tokenizer: AutoTokenizer) -> str:
+def classify_prompt_guard(
+    model: AutoModelForSequenceClassification,
+    tokenizer: AutoTokenizer,
+    *,
+    max_length: int = 512,
+) -> str:
     inputs = tokenizer(
         "주말에 읽을 만한 한국 소설을 추천해 줘.",
         return_tensors="pt",
         truncation=True,
-        max_length=512,
+        max_length=max_length,
     ).to(first_device(model))
     with torch.inference_mode():
         probabilities = torch.softmax(model(**inputs).logits[0], dim=-1)
@@ -136,15 +162,22 @@ def main() -> int:
 
     offload_dir = args.model_home.resolve() / "offload" / spec["key"]
     offload_dir.mkdir(parents=True, exist_ok=True)
-    tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+    if spec["adapter"] == "wolf_defender_classifier":
+        tokenizer = load_wolf_tokenizer(model_path)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
     started = time.perf_counter()
 
-    if spec["adapter"] == "prompt_guard_classifier":
+    if spec["adapter"] in {"prompt_guard_classifier", "wolf_defender_classifier"}:
         model = AutoModelForSequenceClassification.from_pretrained(
             model_path,
             **model_kwargs(spec, offload_dir, args.gpu_memory_gib),
         ).eval()
-        raw_output = classify_prompt_guard(model, tokenizer)
+        raw_output = classify_prompt_guard(
+            model,
+            tokenizer,
+            max_length=2048 if spec["adapter"] == "wolf_defender_classifier" else 512,
+        )
         valid = bool(raw_output)
     else:
         model = AutoModelForCausalLM.from_pretrained(
