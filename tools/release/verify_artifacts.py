@@ -30,6 +30,7 @@ REQUIRED_PACKAGE_FILES = {
     "k_safeguard/py.typed",
 }
 FORBIDDEN_TOP_LEVEL = {
+    "dev_note",
     "experiments",
     "hf_repo",
     "reports",
@@ -182,9 +183,7 @@ def verify_sdist(path: Path, project_name: str, version: str) -> None:
     root = f"{distribution}-{version}"
     required = {
         f"{root}/LICENSE",
-        f"{root}/PACKAGING.md",
         f"{root}/README.md",
-        f"{root}/RELEASING.md",
         f"{root}/pyproject.toml",
         f"{root}/tools/release/verify_artifacts.py",
         *(f"{root}/src/{member}" for member in REQUIRED_PACKAGE_FILES),

@@ -7,8 +7,6 @@ on:
       - "tests/**"
       - "pyproject.toml"
       - "README.md"
-      - "PACKAGING.md"
-      - "RELEASING.md"
       - "MANIFEST.in"
       - "tools/release/**"
       - ".github/workflows/package.yml"
