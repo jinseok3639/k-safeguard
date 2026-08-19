@@ -1,8 +1,8 @@
 # k-safeguard 릴리스 절차
 
-이 문서는 패키지 산출물을 검증하고 TestPyPI에서 설치 가능성을 확인하는 절차를 정의한다. 현재 자동화는
-의도하지 않은 공개 배포를 막기 위해 **TestPyPI 수동 실행만** 제공한다. PyPI 정식 배포는 별도 검토 후
-추가한다.
+이 문서는 패키지 산출물을 검증하고 TestPyPI와 정식 PyPI에 배포하는 절차를 정의한다. 두 배포 모두 의도하지
+않은 공개를 막기 위해 **수동 실행형 workflow_dispatch**로만 제공하며, 기본 브랜치 강제와 확인 문구 입력,
+environment 승인 세 단계를 거친다. TestPyPI 검증(1~4절)을 통과한 버전만 정식 PyPI(6절)로 승격한다.
 
 ## 1. 버전 준비
 
@@ -85,7 +85,47 @@ python -c "from k_safeguard import Gateway; assert Gateway().process('ㅇㅏㄴ'
 - 공개 API, 선택 dependency와 제한 사항이 README·PACKAGING 문서와 일치하는가
 - 태그와 릴리스 노트에 패키지 버전 및 평가 근거를 기록했는가
 
-정식 PyPI용 Trusted Publisher와 워크플로는 이 체크가 반복 가능해진 뒤 별도 PR로 추가한다.
+## 6. 정식 PyPI 배포
+
+정식 PyPI 업로드는 **되돌릴 수 없다.** 파일을 삭제해도 같은 버전 번호는 영구히 재사용할 수 없으므로, 5절
+체크를 모두 통과한 뒤에만 실행한다.
+
+### 6.1 Trusted Publisher 최초 설정
+
+TestPyPI와 PyPI는 별개 서비스다. 계정, 프로젝트 등록과 Trusted Publisher를 각각 따로 만들어야 한다.
+`https://pypi.org/manage/account/publishing/`에서 pending publisher를 만들고 다음 값을 입력한다.
+
+| 항목 | 값 |
+|---|---|
+| PyPI project name | `k-safeguard` (pending publisher인 경우) |
+| GitHub owner | `jinseok3639` |
+| Repository | `k-safeguard` |
+| Workflow | `pypi.yml` |
+| Environment | `pypi` |
+
+GitHub 저장소에도 `pypi` environment를 만들고 팀 유지관리자를 required reviewer로 지정한다. Trusted
+Publisher에 입력한 workflow·environment 값과 실제 설정이 대소문자까지 일치해야 OIDC 인증이 통과한다.
+
+### 6.2 배포 실행
+
+1. 배포 대상 버전을 기본 브랜치에 병합한다.
+2. GitHub Actions의 **Publish package to PyPI**를 연다.
+3. 기본 브랜치를 선택하고 확인란에 `publish-pypi`를 입력한다.
+4. build job의 산출물·메타데이터 검증 결과를 확인한다.
+5. `pypi` environment 배포 요청을 승인한다.
+6. smoke-test가 Python 3.10에서 공개 인덱스로부터 패키지를 설치하는지 확인한다.
+
+TestPyPI workflow와 달리 smoke-test는 `--no-deps`와 `--index-url` 없이 설치한다. 실제 사용자와 동일한
+경로로 의존성 해석까지 통과하는지 확인하기 위해서다.
+
+### 6.3 배포 후
+
+```bash
+python -m pip install "k-safeguard==0.1.0"
+python -c "from k_safeguard import Gateway; assert Gateway().process('ㅇㅏㄴ').normalized == '안'"
+```
+
+배포한 버전에 마일스톤 태그를 남기고 릴리스 노트에 평가 근거를 기록한다.
 
 ## 공식 참고 문서
 

@@ -11,6 +11,7 @@ on:
       - "tools/release/**"
       - ".github/workflows/package.yml"
       - ".github/workflows/testpypi.yml"
+      - ".github/workflows/pypi.yml"
   push:
     branches: [main]
     paths:

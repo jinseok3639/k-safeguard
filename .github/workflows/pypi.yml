@@ -1,10 +1,10 @@
-name: Publish package to TestPyPI
+name: Publish package to PyPI
 
 on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: "배포 승인 문구: publish-testpypi"
+        description: "배포 승인 문구: publish-pypi"
         required: true
         type: string
 
@@ -20,12 +20,12 @@ jobs:
       - name: Require the default branch
         if: github.ref_name != github.event.repository.default_branch
         run: |
-          echo "TestPyPI 배포는 기본 브랜치에서만 실행할 수 있습니다." >&2
+          echo "PyPI 배포는 기본 브랜치에서만 실행할 수 있습니다." >&2
           exit 1
       - name: Require explicit confirmation
-        if: github.event.inputs.confirm != 'publish-testpypi'
+        if: github.event.inputs.confirm != 'publish-pypi'
         run: |
-          echo "확인 입력값이 publish-testpypi와 일치하지 않습니다." >&2
+          echo "확인 입력값이 publish-pypi와 일치하지 않습니다." >&2
           exit 1
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -54,8 +54,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: testpypi
-      url: https://test.pypi.org/p/k-safeguard
+      name: pypi
+      url: https://pypi.org/p/k-safeguard
     permissions:
       id-token: write
     steps:
@@ -65,8 +65,6 @@ jobs:
           path: dist/
       - name: Publish distributions with Trusted Publishing
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
 
   smoke-test:
     needs: [build, publish]
@@ -75,20 +73,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      - name: Install the published release from TestPyPI without dependencies
+      - name: Install the published release from PyPI
         env:
           PACKAGE_VERSION: ${{ needs.build.outputs.version }}
         shell: bash
         run: |
           for attempt in 1 2 3 4 5; do
-            if python -m pip install \
-              --no-cache-dir \
-              --no-deps \
-              --index-url https://test.pypi.org/simple/ \
-              "k-safeguard==$PACKAGE_VERSION"; then
+            if python -m pip install --no-cache-dir "k-safeguard==$PACKAGE_VERSION"; then
               exit 0
             fi
-            echo "TestPyPI 반영 대기: ${attempt}/5"
+            echo "PyPI 반영 대기: ${attempt}/5"
             sleep 10
           done
           exit 1
