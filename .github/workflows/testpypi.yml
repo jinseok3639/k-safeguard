@@ -75,7 +75,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      - name: Install the uploaded wheel without dependencies
+      - name: Install the published release from TestPyPI without dependencies
         env:
           PACKAGE_VERSION: ${{ needs.build.outputs.version }}
         shell: bash
