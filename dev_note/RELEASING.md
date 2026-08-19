@@ -1,8 +1,8 @@
 # k-safeguard 릴리스 절차
 
 이 문서는 패키지 산출물을 검증하고 TestPyPI와 정식 PyPI에 배포하는 절차를 정의한다. 두 배포 모두 의도하지
-않은 공개를 막기 위해 **수동 실행형 workflow_dispatch**로만 제공하며, 확인 문구 입력과 environment 승인
-두 단계를 거친다. TestPyPI 검증(1~4절)을 통과한 버전만 정식 PyPI(6절)로 승격한다.
+않은 공개를 막기 위해 **수동 실행형 workflow_dispatch**로만 제공하며, 기본 브랜치 강제와 확인 문구 입력,
+environment 승인 세 단계를 거친다. TestPyPI 검증(1~4절)을 통과한 버전만 정식 PyPI(6절)로 승격한다.
 
 ## 1. 버전 준비
 
