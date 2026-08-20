@@ -5,6 +5,7 @@
 **A preprocessing layer that normalizes Hangul orthographic obfuscation, restoring the detection power of already-deployed Korean guardrails — no retraining required**
 
 [![Python package](https://github.com/jinseok3639/k-safeguard/actions/workflows/package.yml/badge.svg)](https://github.com/jinseok3639/k-safeguard/actions/workflows/package.yml)
+[![Branch coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jinseok3639/k-safeguard/badges/branch-coverage.json&cacheSeconds=300)](https://github.com/jinseok3639/k-safeguard/actions/workflows/coverage.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/jinseok3639/k-safeguard/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen.svg)](https://github.com/jinseok3639/k-safeguard/blob/main/pyproject.toml)
@@ -194,7 +195,8 @@ All documents are written in Korean.
 
 ```bash
 python -m pip install -e ".[dev]"
-python -m unittest discover -s tests    # 134 tests
+python -m unittest discover -s tests    # 151 tests
+python -m coverage run -m unittest discover -s tests && python -m coverage report    # branch coverage
 ```
 
 Branch and commit conventions follow the [Git workflow in AGENTS.md](https://github.com/jinseok3639/k-safeguard/blob/main/AGENTS.md#git-워크플로): `type(scope): Korean description`, with one PR per feature or experiment.
