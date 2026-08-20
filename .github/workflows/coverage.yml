@@ -39,7 +39,6 @@ jobs:
       contents: write # badges 브랜치 갱신 (main push에서만)
       pull-requests: write # PR 커버리지 코멘트
     env:
-      BADGE_DIR: ${{ runner.temp }}/badge
       BADGE_FILE: branch-coverage.json
       BADGE_BRANCH: badges
 
@@ -62,11 +61,11 @@ jobs:
         run: |
           python tools/coverage/coverage_badge.py \
             --xml coverage.xml \
-            --badge-out "$BADGE_DIR/$BADGE_FILE" \
-            --markdown-out "$BADGE_DIR/summary.md" \
+            --badge-out "${RUNNER_TEMP}/badge/$BADGE_FILE" \
+            --markdown-out "${RUNNER_TEMP}/badge/summary.md" \
             --github-output
       - name: Write job summary
-        run: cat "$BADGE_DIR/summary.md" >> "$GITHUB_STEP_SUMMARY"
+        run: cat "${RUNNER_TEMP}/badge/summary.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment coverage on the pull request
         # 포크 PR의 GITHUB_TOKEN은 읽기 전용이라 코멘트를 달 수 없다.
@@ -127,7 +126,7 @@ jobs:
             git -C "$work" rm -rf --quiet .
           fi
 
-          cp "$BADGE_DIR/$BADGE_FILE" "$work/$BADGE_FILE"
+          cp "${RUNNER_TEMP}/badge/$BADGE_FILE" "$work/$BADGE_FILE"
           git -C "$work" add "$BADGE_FILE"
           if git -C "$work" diff --cached --quiet; then
             echo "배지 값이 그대로라 커밋하지 않습니다: ${{ steps.badge.outputs.branch_percent }}"
