@@ -7,7 +7,7 @@
 
 | rule ID | 처리 대상 | 정책 |
 |---|---|---|
-| `remove_hangul_zwsp` | 한글·자모와 인접한 U+200B | 해당 문자만 제거 |
+| `remove_hangul_zwsp` | 한글·자모와 인접한 U+200B ZERO WIDTH SPACE | U+200B만 제거 |
 | `compose_modern_jamo` | `안` 같은 현대 조합형 자모열 | 명확한 초성+중성(+종성)을 음절로 조합 |
 | `compose_compat_jamo` | `ㅇㅏㄴ` 같은 호환 자모열 | 다음 모음 경계를 확인해 음절로 조합 |
 
@@ -21,6 +21,8 @@
 - 연음·구개음화
 - 띄어쓰기 파괴
 - 일반 영문·숫자 사이의 zero-width 문자
+- U+200C ZWNJ, U+200D ZWJ, U+2060 WORD JOINER, U+FEFF BOM, U+00AD SOFT HYPHEN
+  (한글·자모 사이에 있어도 원문 그대로 보존)
 
 초성체의 opt-in 다중 후보 생성기는 [`CHOSUNG_CANDIDATES.md`](./CHOSUNG_CANDIDATES.md)를 참고한다.
 된소리화의 opt-in bounded 역변형 후보는
@@ -75,5 +77,5 @@ print(result.edits)
 python -m unittest discover -s tests -v
 ```
 
-현재 테스트는 clean 무변경, 현대·호환 자모, 음절 경계, ZWSP, emoji ZWJ, 독립 초성, 문장부호,
-코드스위칭, 원문 offset, 빈 입력과 결정성을 포함한다.
+현재 테스트는 clean 무변경, 현대·호환 자모, 음절 경계, 한글 인접 ZWSP 제거, ZWSP 외 format 문자
+보존, emoji ZWJ, 독립 초성, 문장부호, 코드스위칭, 원문 offset, 빈 입력과 결정성을 포함한다.

@@ -55,6 +55,25 @@ class NormalizeKoreanTest(unittest.TestCase):
         self.assertEqual(result.text, "abc\u200bdef")
         self.assertFalse(result.changed)
 
+    def test_preserves_non_zwsp_format_characters_between_jamo(self) -> None:
+        # Given
+        format_characters = {
+            "ZWNJ": "\u200c",
+            "ZWJ": "\u200d",
+            "WORD JOINER": "\u2060",
+            "BOM": "\ufeff",
+            "SOFT HYPHEN": "\u00ad",
+        }
+        for name, char in format_characters.items():
+            with self.subTest(name=name):
+                text = f"ㅇ{char}ㅏㄴ"
+                # When
+                result = normalize_korean(text)
+                # Then
+                self.assertEqual(result.text, text)
+                self.assertFalse(result.changed)
+                self.assertEqual(result.edits, ())
+
     def test_preserves_emoji_zwj_sequence(self) -> None:
         # Given
         text = "개발자 👩\u200d💻"
