@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 정규화기 지원 범위 확인
+    url: https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/NORMALIZER.md
+    about: 보고 전에 지원 범위와 "MVP에서 변경하지 않는다" 목록을 먼저 확인해 주세요.
+  - name: 난독화 유형 분류표
+    url: https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/KOREAN_OBFUSCATION_RESEARCH.md
+    about: 18종 난독화 분류와 프로젝트 우선순위(P0~P3)가 정리돼 있습니다.
+  - name: 평가 규격
+    url: https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/EVALUATION_SPEC.md
+    about: E0~E3 조건과 NRR·ΔFPR 지표 정의입니다. 측정 결과를 보고하기 전에 확인해 주세요.

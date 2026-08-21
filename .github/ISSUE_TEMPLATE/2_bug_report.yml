@@ -1,0 +1,80 @@
+name: 버그 리포트
+description: 예외 발생, API 오동작, 평가 스크립트 실패 등을 보고합니다.
+title: "[버그] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        난독화 표기가 복원되지 않는 문제는 이 양식이 아니라 `정규화 커버리지 갭`을 사용해 주세요.
+
+  - type: textarea
+    attributes:
+      label: 요약
+      description: 무엇이 어떻게 잘못됐는지 한두 문장으로 적어 주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 재현 코드
+      description: |
+        복사해서 바로 실행할 수 있는 형태로 작성해 주세요.
+        모델 추론이 필요한 경우 사용한 모델 revision과 어댑터도 함께 적어 주세요.
+      render: python
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 기대 동작과 실제 동작
+      placeholder: |
+        기대: ...
+        실제: ...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 오류 메시지 (있는 경우)
+      description: traceback 전문을 붙여 주세요.
+      render: shell
+
+  - type: dropdown
+    attributes:
+      label: 영향 범위
+      options:
+        - "무손실 정규화 코어 (normalization.py)"
+        - "Gateway / view 조립 (gateway.py)"
+        - "판정 실행 (execution.py)"
+        - "초성 후보 생성 (chosung.py)"
+        - "opt-in provider (providers/)"
+        - "난독화 생성기 (hf_repo/ko_obfuscator.py)"
+        - "평가·벤치마크 (experiments/)"
+        - "패키징 / CI"
+        - "모르겠음"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 실행 환경
+      description: |
+        아래 명령의 출력을 붙여 주세요.
+
+        ```
+        python -c "import sys, k_safeguard; print(k_safeguard.__version__); print(sys.version)"
+        ```
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: 우선순위 제안
+      options:
+        - "P0 — 코어 결함 또는 측정 신뢰도 문제"
+        - "P1 — 동작에 영향 있음"
+        - "P2 — 개선 여지"
+    validations:
+      required: true
