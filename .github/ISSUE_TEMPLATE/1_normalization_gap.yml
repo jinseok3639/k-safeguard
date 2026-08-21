@@ -58,6 +58,7 @@ body:
         - "S1~S2 띄어쓰기·음절 재배열"
         - "V1~V2 닮은꼴·타 문자 치환"
         - "T1~T2 로마자·번역 음차"
+        - "R1 기호·이모지 삽입"
         - "분류표에 없음 / 모르겠음"
     validations:
       required: true
@@ -86,15 +87,18 @@ body:
     validations:
       required: true
 
-  - type: checkboxes
+  - type: dropdown
     attributes:
       label: 벤치마크 확인
       description: |
-        **중요**: 난독화 생성기가 이 형태를 만들지 못하면 수정해도 벤치마크가 검증해 주지 못합니다.
+        **중요**: 난독화 생성기가 이 형태를 만들지 못하면 정규화기를 고쳐도 벤치마크가 검증해 주지 못합니다.
         `hf_repo/ko_obfuscator.py`의 `TRANSFORMS`를 확인해 주세요.
       options:
-        - label: "`ko_obfuscator.py`가 이 형태의 입력을 생성한다"
-        - label: "생성하지 못한다 — 생성기 수정도 함께 필요하다"
+        - "생성한다 — 정규화기 수정만으로 검증 가능"
+        - "생성하지 못한다 — 생성기 수정도 함께 필요하다"
+        - "확인하지 못했다"
+    validations:
+      required: true
 
   - type: dropdown
     attributes:
