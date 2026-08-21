@@ -8,11 +8,13 @@
 | rule ID | 처리 대상 | 정책 |
 |---|---|---|
 | `remove_hangul_zwsp` | 한글·자모와 인접한 U+200B | 해당 문자만 제거 |
+| `normalize_halfwidth_hangul` | U+FFA1–U+FFDC의 현대 반각 한글 자모 | 표준 호환 자모로 변환 후 음절 조합 |
 | `compose_modern_jamo` | `안` 같은 현대 조합형 자모열 | 명확한 초성+중성(+종성)을 음절로 조합 |
 | `compose_compat_jamo` | `ㅇㅏㄴ` 같은 호환 자모열 | 다음 모음 경계를 확인해 음절로 조합 |
 
-전역 Unicode NFC를 적용하지 않고 현대 한글 자모열만 직접 조합한다. 이렇게 하면 한글과 무관한
-결합문자, emoji ZWJ sequence와 코드스위칭 입력을 임의로 바꾸지 않는다.
+전역 Unicode NFC/NFKC를 적용하지 않고 지원 범위의 한글 자모열만 직접 조합한다. 반각 한글
+filler(U+FFA0), 반각 가타카나와 전각 라틴 등은 보존하므로 한글과 무관한 결합문자, emoji ZWJ
+sequence와 코드스위칭 입력을 임의로 바꾸지 않는다.
 
 다음 항목은 문맥 없이는 원문을 확정할 수 없어 MVP에서 변경하지 않는다.
 
@@ -75,5 +77,5 @@ print(result.edits)
 python -m unittest discover -s tests -v
 ```
 
-현재 테스트는 clean 무변경, 현대·호환 자모, 음절 경계, ZWSP, emoji ZWJ, 독립 초성, 문장부호,
-코드스위칭, 원문 offset, 빈 입력과 결정성을 포함한다.
+현재 테스트는 clean 무변경, 현대·호환 자모, 반각 현대 한글 11,172음절 전수 복원, 음절 경계,
+ZWSP, emoji ZWJ, 독립 초성, 문장부호, 코드스위칭, 원문 offset, 빈 입력과 결정성을 포함한다.
