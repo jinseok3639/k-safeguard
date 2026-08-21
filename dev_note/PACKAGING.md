@@ -7,9 +7,12 @@ distribution 이름은 `k-safeguard`, Python import 이름은 `k_safeguard`다.
 
 | 설치 | 포함 | 기본 활성화 |
 |---|---|---|
-| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 primitive | 무손실 core만 |
+| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 primitive, `TensifyInverseProvider`(된소리 역변형, 무의존) | 무손실 core만 |
 | `k-safeguard[wordfreq]` | `wordfreq` 기반 실험적 초성 provider | 아니요, 명시적 주입 필요 |
 | 외부 provider | 형태소 분석기, 로컬·원격 복원기, 사용자 사전 | 사용자 정책에 따름 |
+
+`TensifyInverseProvider`는 core wheel에 포함되지만 opt-in provider라 기본 Gateway에 자동 연결되지
+않는다. 추가 dependency 없이 `Gateway(providers=[TensifyInverseProvider(...)])`로 주입한다.
 
 기본 wheel은 외부 런타임 dependency가 0개다. `torch`, `transformers`, 가드레일 모델과 복원 모델은
 프로젝트 평가 환경 또는 사용자가 선택한 별도 provider에 속하며 패키지 dependency로 선언하지 않는다.
@@ -114,7 +117,9 @@ src/k_safeguard/
 ├── gateway.py
 ├── py.typed
 └── providers/
+    ├── __init__.py
     ├── chosung.py
+    ├── tensify.py
     └── wordfreq.py
 ```
 

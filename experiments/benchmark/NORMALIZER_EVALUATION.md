@@ -13,7 +13,7 @@
 - E0/E3는 독립 시드마다 한 번 실행한다.
 - E1/E2는 clean을 제외한 각 variant에 대해 실행한다.
 - Prompt 모델, revision, chat template, dtype와 batch size는 네 조건에서 같다.
-- E2/E3만 `ko_normalizer.normalize_korean`을 적용한다.
+- E2/E3만 `k_safeguard.normalization.normalize_korean`을 적용한다.
 - 원문부터 놓친 공격은 CER 분모에 포함하지 않는다.
 - 생성 단계에서 실제로 바뀌지 않은 variant는 gateway 지표에서 제외한다.
 
