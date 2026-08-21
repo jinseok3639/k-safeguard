@@ -128,7 +128,7 @@ Variants whose original form cannot be determined without context are isolated b
 | Provider | Target | Extra dependency | Current status |
 |---|---|---|---|
 | `TensifyInverseProvider` | Tensification / fortis substitution | none | NRR 100%, but ΔFPR-obf +14.29%p on the independent locked test → kept disabled by default |
-| `ChosungLexiconProvider` | Chosung abbreviation | `wordfreq` extra | NRR 13.04%, too small a recovery gain → kept disabled by default |
+| `ChosungLexiconProvider` | Chosung abbreviation | `wordfreq` extra | NRR 12.86%, too small a recovery gain → kept disabled by default |
 
 ```python
 from k_safeguard import Gateway
@@ -152,7 +152,7 @@ Every number below is reproducible against the 5,555-row benchmark derived from 
 | Exact string restoration, jamo decomposition and ZWSP | 505/505 (at intensity 0.5 and 1.0 each) |
 | Clean mutation rate | 0% — all 505 clean rows left unchanged |
 | End-to-end recovery smoke (live Kanana calls) | 4/4 obfuscated fixtures went from raw allow → blocked on the normalized view |
-| Chosung candidate policy | Attack block rate 18.94% → 27.91%, ΔFPR-clean 0.00%p |
+| Chosung candidate policy | Attack block rate 18.94% → 27.74%, ΔFPR-clean 0.00%p |
 | Batch inference | Verdict parity held across 20 views; 90% fewer calls and 74.3% less wall time |
 
 > **Interpretation limits**: the end-to-end smoke test uses fixtures deliberately selected for known recovery, so it is a regression check and must not be read as a population-level performance estimate.
@@ -161,7 +161,7 @@ Every number below is reproducible against the 5,555-row benchmark derived from 
 
 ## Scope and limits
 
-**In scope** — Korean guardrail evasion via orthographic obfuscation (jamo decomposition, chosung abbreviation, tensification, resyllabification, coda cramming, spacing destruction, zero-width characters), and the normalization that reverses it.
+**In scope** — Korean guardrail evasion via orthographic obfuscation (jamo decomposition, chosung abbreviation, tensification, resyllabification, coda cramming, spacing destruction, zero-width characters), and the normalization that reverses it. Of these, `hf_repo/ko_obfuscator.py` currently implements five: jamo decomposition, chosung abbreviation, tensification, spacing destruction, and zero-width character injection. Resyllabification and coda cramming are in scope but have no generator implementation yet.
 
 **Out of scope**
 
@@ -198,8 +198,9 @@ All documents are written in Korean.
 
 ```bash
 python -m pip install -e ".[dev]"
-python -m unittest discover -s tests    # 151 tests
+python -m unittest discover -s tests
 python -m coverage run -m unittest discover -s tests && python -m coverage report    # branch coverage
+mutmut run && mutmut results    # mutation testing
 ```
 
 Branch and commit conventions follow the [Git workflow in AGENTS.md](https://github.com/jinseok3639/k-safeguard/blob/main/AGENTS.md#git-워크플로): `type(scope): Korean description`, with one PR per feature or experiment.
