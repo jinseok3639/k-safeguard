@@ -15,6 +15,7 @@
 
 된소리화 역변형 후보의 oracle exact-hit와 정상 입력 view 비용은
 [된소리 역변형 후보 진단](./TENSIFY_CANDIDATES.md)을 참고한다. 이 단계는 문자열 후보 recall 진단이며,
+0.3.0의 긴 입력 후보 tier 다양화와 기존 정책의 Kanana parity 비교도 같은 문서에 기록한다.
 실제 Kanana NRR·ΔFPR 결과는
 [된소리 역변형 후보 Kanana paired 평가](./TENSIFY_GUARDRAIL_IMPACT.md)에 기록한다.
 입력의 경음 음절 수·비율만 사용하는 activation 정책 비교는
