@@ -39,7 +39,7 @@ _OUT_OF_SCOPE_PAYLOAD = re.compile(
     r"\b(bomb|explosive|malware|ransomware|meth|weapon|kill|murder)\b",
     re.IGNORECASE,
 )
-DEFAULT_EXCLUSION = REPO_ROOT / "SEED_CANDIDATES.csv"
+DEFAULT_EXCLUSION = REPO_ROOT / "dev_note" / "SEED_CANDIDATES.csv"
 DEFAULT_OUTPUT = REPO_ROOT / "build" / "tensify_locked_translation_template_v1.csv"
 DEFAULT_MANIFEST = REPO_ROOT / "build" / "tensify_locked_source_selection_v1.json"
 

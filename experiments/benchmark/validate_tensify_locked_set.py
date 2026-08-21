@@ -148,7 +148,7 @@ def load_candidates(path: Path) -> list[LockedCandidate]:
 def load_reference_texts(repo_root: Path = REPO_ROOT) -> dict[str, set[str]]:
     references: dict[str, set[str]] = {}
 
-    with (repo_root / "SEED_CANDIDATES.csv").open(
+    with (repo_root / "dev_note" / "SEED_CANDIDATES.csv").open(
         encoding="utf-8-sig", newline=""
     ) as stream:
         references["SEED_CANDIDATES.csv"] = {
