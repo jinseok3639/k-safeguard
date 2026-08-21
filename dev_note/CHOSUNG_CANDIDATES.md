@@ -12,7 +12,9 @@ view를 함께 제공한다.
 - 후보는 호출자가 제공한 일반 어휘 빈도순 사전에서만 가져온다.
 - 완전 초성 토큰과 `ㅅ정ㅇ` 같은 부분 초성 토큰을 모두 지원한다.
 - 기본값은 초성이 3개 이상인 span만 확장한다.
-- `ㅋㅋ`, `ㅎㅎㅎ`처럼 같은 초성이 반복된 통신체는 확장하지 않는다.
+- `ㅋㅋ`, `ㅎㅎㅎ`처럼 같은 초성이 반복된 입력은 trusted lexicon에 전체 span direct match가 있을
+  때만 확장한다. `제조(ㅈㅈ)`, `방법(ㅂㅂ)`처럼 명시적으로 등록한 정상 단어는 복원하되,
+  segmented·partial match만으로 반복 통신체를 확장하지 않는다.
 - primitive는 한 span당 3개, 문장당 원문 포함 최대 16개로 후보 폭발을 제한한다.
 - 실제 Gateway 기본 총 view 예산은 평가로 선택한 10개이며 호출자가 재정의할 수 있다.
 - 후보 상한은 direct, segmented, partial 순으로 배정해 확장 정책이 이전 후보를 밀어내지 않는다.
@@ -104,6 +106,11 @@ candidate generator 0.5.0은 같은 설정에서 `direct ⊆ segmented ⊆ parti
 상세 결과는
 [`experiments/benchmark/CHOSUNG_CANDIDATE_RANKING.md`](../experiments/benchmark/CHOSUNG_CANDIDATE_RANKING.md)에
 기록한다.
+
+반복 초성 direct-match 수정 후 `min_initials=2`도 평가했다. direct NRR은 10.38%에서 18.32%로
+늘었지만 평균 추가 view는 4.67개에서 7.35개, truncation은 60.50%에서 89.90%로 증가했다. 따라서
+기본값 3은 유지하고 2는 명시적 opt-in으로 둔다. 구조 수정·ΔFPR·랭킹 결정의 근거는
+[`CHOSUNG_PROVIDER_DECISION.md`](../experiments/benchmark/CHOSUNG_PROVIDER_DECISION.md)에 기록한다.
 
 Kanana 가드레일에 후보 view를 직접 연결한 평가에서도 segmented 대비 partial의 판정 변화는 0건이었다.
 candidate generator 0.5.0 재평가 기준으로 segmented의 초성 공격 block rate는 raw 18.94%에서

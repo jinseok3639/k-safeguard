@@ -12,6 +12,8 @@
 [초성 후보 view budget 선택](./CHOSUNG_VIEW_BUDGET.md)에서 비교하며, 현재 기본 총 예산은 10이다.
 현재 순위와 source·도메인·replacement 기반 대안 비교는
 [초성 후보 ranking 진단](./CHOSUNG_CANDIDATE_RANKING.md)을 참고한다.
+[반복 초성 필터와 최소 초성 수 결정](./CHOSUNG_PROVIDER_DECISION.md)은 trusted direct match 수정과
+`min_initials=2/3`의 NRR·ΔFPR·view 비용 비교를 기록한다.
 
 된소리화 역변형 후보의 oracle exact-hit와 정상 입력 view 비용은
 [된소리 역변형 후보 진단](./TENSIFY_CANDIDATES.md)을 참고한다. 이 단계는 문자열 후보 recall 진단이며,

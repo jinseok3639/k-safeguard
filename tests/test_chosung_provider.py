@@ -5,6 +5,21 @@ from k_safeguard.providers import ChosungLexiconProvider
 
 
 class ChosungLexiconProviderMetadataTest(unittest.TestCase):
+    def test_trusted_repeated_initial_word_reaches_gateway_candidate(self) -> None:
+        lexicon = ChosungLexicon.from_sources([("domain", ["제조", "방법"])])
+        provider = ChosungLexiconProvider(lexicon, min_initials=2)
+
+        proposals = list(provider.generate("ㅈㅈ ㅂㅂ"))
+
+        self.assertIn("제조 방법", [proposal.text for proposal in proposals])
+        self.assertTrue(
+            all(
+                ("generator_version", CHOSUNG_CANDIDATE_VERSION)
+                in proposal.metadata
+                for proposal in proposals
+            )
+        )
+
     def test_direct_match_metadata_reflects_computed_values(self) -> None:
         # Given
         lexicon = ChosungLexicon.from_sources([("domain", ["시스템"])])
