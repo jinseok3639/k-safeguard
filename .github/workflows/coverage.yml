@@ -1,0 +1,136 @@
+name: Coverage
+
+# README 배지는 "공개된 URL의 JSON"을 shields.io가 읽어 그리는 이미지다. 외부
+# 서비스(Codecov 등) 계정을 두지 않기 위해, main에 반영될 때마다 이 워크플로가
+# 배지 JSON을 orphan 브랜치 `badges`에 커밋하고 README가 그 파일을 가리킨다.
+# PR에서는 측정 결과를 코멘트로만 남기고 커버리지가 떨어져도 실패시키지 않는다.
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "tools/**"
+      - "pyproject.toml"
+      - ".github/workflows/coverage.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "tools/**"
+      - "pyproject.toml"
+      - ".github/workflows/coverage.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # PR은 새 푸시가 오면 이전 실행을 취소해도 되지만, main은 배지 브랜치에
+  # push하므로 취소 대신 순서대로 실행해 non-fast-forward 충돌을 피한다.
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # badges 브랜치 갱신 (main push에서만)
+      pull-requests: write # PR 커버리지 코멘트
+    env:
+      BADGE_FILE: branch-coverage.json
+      BADGE_BRANCH: badges
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package with coverage
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --editable ".[dev]"
+      - name: Measure branch coverage
+        run: |
+          python -m coverage run -m unittest discover -s tests
+          python -m coverage report
+          python -m coverage xml
+      - name: Build badge data and summary
+        id: badge
+        run: |
+          python tools/coverage/coverage_badge.py \
+            --xml coverage.xml \
+            --badge-out "${RUNNER_TEMP}/badge/$BADGE_FILE" \
+            --markdown-out "${RUNNER_TEMP}/badge/summary.md" \
+            --github-output
+      - name: Write job summary
+        run: cat "${RUNNER_TEMP}/badge/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment coverage on the pull request
+        # 포크 PR의 GITHUB_TOKEN은 읽기 전용이라 코멘트를 달 수 없다.
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        env:
+          SUMMARY_PATH: ${{ runner.temp }}/badge/summary.md
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- k-safeguard-coverage -->';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              marker,
+              fs.readFileSync(process.env.SUMMARY_PATH, 'utf8').trim(),
+              '',
+              `<sub>[Coverage 워크플로](${runUrl}) · 커버리지가 떨어져도 이 검사는 실패하지 않습니다.</sub>`,
+            ].join('\n');
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find(
+              (comment) => comment.user.type === 'Bot' && comment.body.includes(marker)
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Publish badge to the badges branch
+        # 배지는 main의 상태만 나타내므로 수동 실행도 main에서만 반영한다.
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          work="${RUNNER_TEMP}/badge-branch"
+          rm -rf "$work"
+          # 남아 있는 worktree 등록이 있으면 아래 fetch가 거부되므로 먼저 정리한다.
+          git worktree prune
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin "$BADGE_BRANCH" >/dev/null 2>&1; then
+            git fetch --depth 1 origin "+refs/heads/$BADGE_BRANCH:refs/heads/$BADGE_BRANCH"
+            git worktree add "$work" "$BADGE_BRANCH"
+          else
+            # 첫 실행: 소스 히스토리와 분리된 orphan 브랜치를 만든다.
+            git worktree add --detach "$work" HEAD
+            git -C "$work" checkout --orphan "$BADGE_BRANCH"
+            git -C "$work" rm -rf --quiet .
+          fi
+
+          cp "${RUNNER_TEMP}/badge/$BADGE_FILE" "$work/$BADGE_FILE"
+          git -C "$work" add "$BADGE_FILE"
+          if git -C "$work" diff --cached --quiet; then
+            echo "배지 값이 그대로라 커밋하지 않습니다: ${{ steps.badge.outputs.branch_percent }}"
+          else
+            git -C "$work" commit -m "chore(badge): 분기 커버리지 ${{ steps.badge.outputs.branch_percent }} 갱신"
+            git -C "$work" push origin "$BADGE_BRANCH"
+          fi
