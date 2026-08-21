@@ -1,0 +1,63 @@
+name: 개선 제안
+description: 기능 추가, 리팩터링, 문서 수정, 실험 항목 제안 등에 사용합니다.
+title: "[개선] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    attributes:
+      label: 요약
+      description: 무엇을 바꾸자는 제안인지 한두 문장으로 적어 주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 배경 — 왜 필요한가
+      description: |
+        지금 무엇이 문제인지, 어떤 근거로 그렇게 판단했는지 적어 주세요.
+        측정값·로그·문서 인용이 있으면 함께 넣어 주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 제안 내용
+      description: 구체적인 변경안. 확정이 아니어도 되고 선택지를 나열해도 됩니다.
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: 영향 범위
+      options:
+        - "무손실 정규화 코어 (normalization.py)"
+        - "Gateway / 판정 실행"
+        - "opt-in provider (providers/, chosung.py)"
+        - "난독화 생성기 (hf_repo/ko_obfuscator.py)"
+        - "평가·벤치마크 (experiments/)"
+        - "문서"
+        - "패키징 / CI"
+    validations:
+      required: true
+
+  - type: checkboxes
+    attributes:
+      label: 확정된 결정과의 정합성
+      description: |
+        `.claude/CLAUDE.md`의 "절대 다시 논쟁하지 말 것" 항목과 충돌하지 않는지 확인해 주세요.
+        충돌한다면 이슈가 아니라 팀 논의로 올리는 편이 낫습니다.
+      options:
+        - label: "탐지 모델을 새로 학습하지 않는다 — 충돌 없음"
+        - label: "판정은 하위 가드레일이 한다 (미들웨어는 복원만) — 충돌 없음"
+        - label: "스코프는 한국어 표기 난독화로 한정 — 충돌 없음"
+        - label: "경량 프로세스 유지 (무거운 서비스용 프로세스 금지) — 충돌 없음"
+
+  - type: dropdown
+    attributes:
+      label: 우선순위 제안
+      options:
+        - "P0 — 코어 결함 또는 측정 신뢰도 문제"
+        - "P1 — 제출 전 필요"
+        - "P2 — 있으면 좋음"
+    validations:
+      required: true

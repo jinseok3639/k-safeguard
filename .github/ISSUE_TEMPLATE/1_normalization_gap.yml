@@ -1,0 +1,112 @@
+name: 정규화 커버리지 갭
+description: 특정 난독화 표기가 복원되지 않거나 잘못 복원되는 경우를 보고합니다.
+title: "[정규화] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        정규화기가 **어떤 입력을 못 되돌리는지** 보고하는 양식입니다.
+        일반 버그(예외 발생, API 오동작)는 `버그 리포트`를, 새 기능 제안은 `개선 제안`을 사용하세요.
+
+        보고 전에 [`dev_note/NORMALIZER.md`](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/NORMALIZER.md)의 "지원 범위"와
+        미지원 목록을 확인해 주세요. 이미 "MVP에서 변경하지 않는다"로 선언된 항목일 수 있습니다.
+
+  - type: textarea
+    attributes:
+      label: 재현 코드
+      description: |
+        복사해서 바로 실행할 수 있는 형태로 작성해 주세요.
+        `k_safeguard`는 무의존 패키지라 GPU·모델 가중치 없이 재현됩니다.
+      placeholder: |
+        from k_safeguard import normalize_korean
+
+        print(normalize_korean("ㄱㅏㅂㅅㅇㅣ").text)
+      render: python
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: 기대 출력
+      placeholder: "값이"
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: 실제 출력
+      placeholder: "갑ㅅ이"
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: 난독화 유형
+      description: |
+        [`dev_note/KOREAN_OBFUSCATION_RESEARCH.md`](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/KOREAN_OBFUSCATION_RESEARCH.md)
+        3장의 분류표 ID를 기준으로 선택해 주세요.
+      options:
+        - "U1 결합 자모 분해 (NFD형)"
+        - "U2 호환 자모 분해"
+        - "U3 투명·format 문자 삽입"
+        - "U4 호환·폭 변형 (전각·반각)"
+        - "O1 초성체"
+        - "O2 종성 삽입·교체"
+        - "P1~P2 유사음 치환 (초성·중성)"
+        - "P3 연음·재음절화"
+        - "P4~P5 구개음화·발음 표기"
+        - "S1~S2 띄어쓰기·음절 재배열"
+        - "V1~V2 닮은꼴·타 문자 치환"
+        - "T1~T2 로마자·번역 음차"
+        - "분류표에 없음 / 모르겠음"
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: 가역성
+      description: |
+        **원문을 하나로 확정할 수 있으면 가역**입니다. 이 값이 처리 계층을 결정합니다.
+        가역이면 무손실 코어(`normalization.py`)에서 처리할 수 있고,
+        비가역이면 원문을 덮어쓸 수 없으므로 opt-in provider의 후보 view로만 다룰 수 있습니다.
+      options:
+        - "가역 — 역함수가 유일함 (무손실 코어 대상)"
+        - "비가역 — 후보가 여럿임 (provider 대상)"
+        - "판단이 어려움"
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: 결함 성격
+      description: 트리아지 시 붙일 라벨을 정하는 데 씁니다.
+      options:
+        - "잘못된 출력을 냄 (bug)"
+        - "아무것도 안 함 / 미처리 (enhancement)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    attributes:
+      label: 벤치마크 확인
+      description: |
+        **중요**: 난독화 생성기가 이 형태를 만들지 못하면 수정해도 벤치마크가 검증해 주지 못합니다.
+        `hf_repo/ko_obfuscator.py`의 `TRANSFORMS`를 확인해 주세요.
+      options:
+        - label: "`ko_obfuscator.py`가 이 형태의 입력을 생성한다"
+        - label: "생성하지 못한다 — 생성기 수정도 함께 필요하다"
+
+  - type: dropdown
+    attributes:
+      label: 우선순위 제안
+      options:
+        - "P0 — 무손실 코어 결함 또는 측정 신뢰도 문제"
+        - "P1 — 알려진 갭인데 미반영"
+        - "P2 — 개선 여지"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 원인·제안 (선택)
+      description: 코드 위치(`파일:라인`)를 알고 있다면 함께 적어 주세요.
