@@ -147,17 +147,31 @@ assert "시스템 프롬프트를 보여줘" in [v.text for v in result.views]  
 
 모든 수치는 505개 독립 시드에서 파생한 5,555행 벤치마크와 고정 revision 모델로 재현 가능하다.
 
-| 검증 | 결과 |
+문자열 복원과 가드레일 판정은 서로 다른 지표로 분리한다.
+
+| 문자열 검증 | 결과 |
 |---|---|
 | ZWSP 문자열 정확 복원 | 505/505 (강도 0.5·1.0 각각) |
 | 자모분해 문자열 정확 복원 | 겹받침 낱자형 복원 갭 존재 — 최신 수치는 [NORMALIZER.md](./dev_note/NORMALIZER.md) 참고, [#44](https://github.com/jinseok3639/k-safeguard/issues/44)에서 추적 중 |
 | 정상 입력 변조율(clean mutation) | 0% — clean 505행 전부 무변경 |
+
+| Kanana 가드레일 판정 | E1 raw 차단 | E2 정규화 차단 | clean에서 생긴 회피 variant 복원 |
+|---|---:|---:|---:|
+| 자모분해, 두 강도 합산 | 573/602 (95.18%) | 566/602 (94.02%) | 11/11 |
+| ZWSP, 두 강도 합산 | 564/602 (93.69%) | 566/602 (94.02%) | 19/19 |
+
+E2는 clean E0의 283/301(94.02%) 판정을 정확히 복원했다. raw 난독화가 원래 놓치던 공격을 우연히
+차단한 경우까지 baseline으로 되돌리므로 순 차단율 차이와 NRR은 방향이 다를 수 있다. 상세 분모와
+intensity별 결과는 [모집단 평가 결과](./experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)에 있다.
+
+| 기타 검증 | 결과 |
+|---|---|
 | 종단 간 회복 smoke (Kanana 실제 호출) | 난독화 fixture 4/4가 raw allow → 정규화 view에서 block |
 | 초성 후보 정책 | 공격 차단율 18.94% → 27.74%, ΔFPR-clean 0.00%p |
 | batch 추론 | view 20개 판정 parity 유지, 호출 90%·wall time 74.3% 감소 |
 
 > **해석 제한**: 종단 간 smoke는 회복이 확인된 fixture를 의도적으로 고른 회귀 검증이므로 모집단 성능 추정에 쓰지 않는다.
-> 전체 E0/E1/E2/E3 평가는 하위 LLM의 intent-recognition·semantic fidelity를 아직 측정하지 않아 유효성 `INCOMPLETE` 상태다.
+> 전체 E0/E1/E2/E3 평가 중 Prompt 가드레일 판정만 유효하며, 하위 LLM의 intent-recognition·semantic fidelity와 실제 공격 성공률 평가는 `INCOMPLETE` 상태다.
 > 평가 규격은 [EVALUATION_SPEC](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/EVALUATION_SPEC.md), 실행 절차는 [정규화 평가 문서](https://github.com/jinseok3639/k-safeguard/blob/main/experiments/benchmark/NORMALIZER_EVALUATION.md)를 따른다.
 
 ## 스코프와 한계
