@@ -93,6 +93,8 @@ decision = Gateway().evaluate_batch(
 
 For the error policy (`ClassifierErrorMode`), early exit, and per-view traces, see the [execution and aggregation API](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/EXECUTION.md) (Korean).
 
+Six runnable examples live in [`examples/`](https://github.com/jinseok3639/k-safeguard/blob/main/examples/README.md) (Korean comments). They need no extra dependencies: `python examples/01_normalize_basics.py`.
+
 ## How it works
 
 ```text
@@ -172,6 +174,7 @@ The goal is to take a pattern already well established internationally — that 
 
 | Artifact | Location | Description |
 |---|---|---|
+| Runnable examples | [`examples/`](https://github.com/jinseok3639/k-safeguard/blob/main/examples/README.md) | Six-step sample code: normalization, guardrail wiring, async/batch, error policy, provider extension |
 | Obfuscation generator library | [`hf_repo/ko_obfuscator.py`](https://github.com/jinseok3639/k-safeguard/blob/main/hf_repo/ko_obfuscator.py) | Intensity-graded variant generator; usable as a standalone red-team tool, independent of the middleware |
 | Benchmark dataset | [HF: KoreanGuardrail](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) | 505 seeds → 5,555 derived rows. Data under CC-BY-4.0 |
 | Evaluation scripts | [`experiments/benchmark/`](https://github.com/jinseok3639/k-safeguard/blob/main/experiments/benchmark/README.md) | Runners and recorded results for evasion rate, NRR, and ΔFPR |
@@ -194,7 +197,7 @@ All documents are written in Korean.
 
 ```bash
 python -m pip install -e ".[dev]"
-python -m unittest discover -s tests    # 134 tests
+python -m unittest discover -s tests    # 135 tests
 ```
 
 Branch and commit conventions follow the [Git workflow in AGENTS.md](https://github.com/jinseok3639/k-safeguard/blob/main/AGENTS.md#git-워크플로): `type(scope): Korean description`, with one PR per feature or experiment.
