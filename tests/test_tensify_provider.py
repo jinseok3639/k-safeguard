@@ -28,7 +28,7 @@ class TensifyInverseProviderTest(unittest.TestCase):
         # Then
         self.assertEqual(proposal.text, "곡 섰다")
 
-    def test_orders_more_replacements_before_partial_candidates(self) -> None:
+    def test_keeps_full_restore_first_then_single_position_candidates(self) -> None:
         # Given
         provider = TensifyInverseProvider(max_candidates=3)
         text = "까싸"
@@ -45,6 +45,7 @@ class TensifyInverseProviderTest(unittest.TestCase):
                 ("tense_ratio", "1.000000"),
                 ("min_tense_syllables", "1"),
                 ("min_tense_ratio", "0.000000"),
+                ("diversify_from", "17"),
                 ("source_positions", "0,1"),
                 ("generator_version", TENSIFY_CANDIDATE_VERSION),
             ),
@@ -60,6 +61,17 @@ class TensifyInverseProviderTest(unittest.TestCase):
         # Then
         self.assertEqual(first, second)
         self.assertEqual(first, ["가다사", "가다싸"])
+
+    def test_spreads_long_sentence_budget_across_replacement_counts(self) -> None:
+        provider = TensifyInverseProvider(max_candidates=5, diversify_from=5)
+
+        proposals = list(provider.generate("까따빠싸짜"))
+        replacement_counts = [
+            int(dict(proposal.metadata)["replacement_count"])
+            for proposal in proposals
+        ]
+
+        self.assertEqual(replacement_counts, [5, 1, 4, 2, 3])
 
     def test_returns_no_candidate_without_tense_syllable(self) -> None:
         # Given
@@ -111,6 +123,9 @@ class TensifyInverseProviderTest(unittest.TestCase):
         # Given / When / Then: min_tense_ratio가 [0,1] 범위 밖
         with self.assertRaisesRegex(ValueError, "min_tense_ratio"):
             TensifyInverseProvider(min_tense_ratio=1.1)
+        # Given / When / Then: diversify threshold가 2 미만
+        with self.assertRaisesRegex(ValueError, "diversify_from"):
+            TensifyInverseProvider(diversify_from=1)
 
     def test_rejects_non_string_direct_call(self) -> None:
         # Given
