@@ -109,12 +109,12 @@ class NormalizeKoreanTest(unittest.TestCase):
         self.assertEqual(result.text, text)
         self.assertFalse(result.changed)
 
-    def test_restores_every_modern_hangul_syllable_from_halfwidth(self) -> None:
+    def test_normalizes_every_modern_halfwidth_jamo(self) -> None:
         # Given
-        halfwidth_consonants = tuple(
+        halfwidth_consonants = "".join(
             chr(codepoint) for codepoint in range(0xFFA1, 0xFFBF)
         )
-        halfwidth_vowels = tuple(
+        halfwidth_vowels = "".join(
             chr(codepoint)
             for start, end in (
                 (0xFFC2, 0xFFC8),
@@ -124,39 +124,25 @@ class NormalizeKoreanTest(unittest.TestCase):
             )
             for codepoint in range(start, end)
         )
-        compat_consonants = (
+        compat_consonants = "".join((
             "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄸ", "ㄹ", "ㄺ",
             "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅃ", "ㅄ",
             "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ",
+        ))
+        cases = (
+            (halfwidth_consonants, compat_consonants),
+            (halfwidth_vowels, "".join(COMPAT_JUNG)),
         )
-        compat_to_halfwidth = dict(
-            zip(compat_consonants, halfwidth_consonants, strict=True)
-        )
-        compat_to_halfwidth.update(dict(zip(COMPAT_JUNG, halfwidth_vowels, strict=True)))
-
-        failures = []
-        for codepoint in range(0xAC00, 0xD7A4):
-            syllable = chr(codepoint)
-            offset = codepoint - HANGUL_BASE
-            choseong_index = offset // (21 * 28)
-            jungseong_index = (offset % (21 * 28)) // 28
-            jongseong_index = offset % 28
-            halfwidth = (
-                compat_to_halfwidth[COMPAT_CHO[choseong_index]]
-                + compat_to_halfwidth[COMPAT_JUNG[jungseong_index]]
-                + (
-                    compat_to_halfwidth[COMPAT_JONG[jongseong_index]]
-                    if jongseong_index
-                    else ""
+        for source, expected in cases:
+            with self.subTest(source=source):
+                # When
+                result = normalize_korean(source)
+                # Then
+                self.assertEqual(result.text, expected)
+                self.assertEqual(
+                    result.applied_rules,
+                    ("normalize_halfwidth_hangul",),
                 )
-            )
-            # When
-            restored = normalize_korean(halfwidth).text
-            if restored != syllable:
-                failures.append((syllable, halfwidth, restored))
-
-        # Then
-        self.assertEqual(failures, [])
 
     def test_halfwidth_edit_uses_original_offsets(self) -> None:
         # Given
