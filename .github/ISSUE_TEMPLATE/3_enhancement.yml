@@ -44,7 +44,7 @@ body:
     attributes:
       label: 확정된 결정과의 정합성
       description: |
-        `.claude/CLAUDE.md`의 "절대 다시 논쟁하지 말 것" 항목과 충돌하지 않는지 확인해 주세요.
+        `AGENTS.md`의 "절대 다시 논쟁하지 말 것" 항목과 충돌하지 않는지 확인해 주세요.
         충돌한다면 이슈가 아니라 팀 논의로 올리는 편이 낫습니다.
       options:
         - label: "탐지 모델을 새로 학습하지 않는다 — 충돌 없음"

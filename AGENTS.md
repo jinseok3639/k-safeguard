@@ -37,8 +37,8 @@
 
 되돌리려면 팀 합의가 필요하다. 항목은 추가만 하고 지우지 않는다.
 
-- 2026-07 구현 언어·패키징: Python + setuptools, `src/` 레이아웃, 모노레포. 런타임 의존성 0개 유지
-- 2026-07 시드 데이터셋: 505 시드(공격 301/정상 204) → 파생 5,555행, HF `kimchunsik03/KoreanGuardrail`, 데이터 CC-BY-4.0
+- 2026-08 구현 언어·패키징: Python + setuptools, `src/` 레이아웃, 모노레포. 런타임 의존성 0개 유지
+- 2026-08 시드 데이터셋: 505 시드(공격 301/정상 204) → 파생 5,555행, HF `kimchunsik03/KoreanGuardrail`, 데이터 CC-BY-4.0
 - 2026-08 SLM 파인튜닝 노선 폐기. 규칙 기반 무손실 정규화 + opt-in 후보 provider로 확정. "모델 재학습 없이"가 프로젝트의 핵심 주장이므로 재론하지 않는다
 - 2026-08 lossy provider(초성·된소리)는 기본 비활성 유지. 근거는 `experiments/benchmark/TENSIFY_LOCKED_RESULT.md`, `CHOSUNG_GUARDRAIL_IMPACT.md`
 - (미결) 평가 규격(`EVALUATION_SPEC.md`)의 주력 트랙 재정의 — GitHub Issue "EVALUATION_SPEC.md 0.2.0 개정 필요" 참고. 결정되면 여기에 한 줄 추가
@@ -158,7 +158,7 @@
 ## 명령어
 
 ```bash
-python -m pip install -e ".[dev]"                        # 개발 설치
+python -m pip install -e ".[dev,mutation]" build          # 개발 설치 (build·mutmut 포함)
 python -m unittest discover -s tests                      # 코어 테스트
 python -m coverage run -m unittest discover -s tests && python -m coverage report
 python -m build && python tools/release/verify_artifacts.py   # 배포 산출물 검증
