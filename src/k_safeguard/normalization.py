@@ -1,6 +1,6 @@
 """k-safeguard의 보수적인 한국어 표기 정규화 core.
 
-정보 손실 없이 처리할 수 있는 Hangul 인접 ZWSP와 현대·호환 자모 조합만 적용한다.
+정보 손실 없이 처리할 수 있는 Hangul 인접 ZWSP와 현대·호환·반각 자모 조합만 적용한다.
 초성체, 된소리, 연음과 띄어쓰기는 문맥상 모호하므로 이 단계에서는 변경하지 않는다.
 """
 
@@ -32,6 +32,37 @@ COMPAT_JONG = (
 _COMPAT_CHO_INDEX = {char: index for index, char in enumerate(COMPAT_CHO)}
 _COMPAT_JUNG_INDEX = {char: index for index, char in enumerate(COMPAT_JUNG)}
 _COMPAT_JONG_INDEX = {char: index for index, char in enumerate(COMPAT_JONG) if char}
+
+_HALFWIDTH_COMPAT_CONSONANTS = (
+    "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄸ", "ㄹ", "ㄺ",
+    "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅃ", "ㅄ",
+    "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ",
+)
+_HALFWIDTH_CONSONANT_CODEPOINTS = tuple(range(0xFFA1, 0xFFBF))
+_HALFWIDTH_VOWEL_CODEPOINTS = (
+    *range(0xFFC2, 0xFFC8),
+    *range(0xFFCA, 0xFFD0),
+    *range(0xFFD2, 0xFFD8),
+    *range(0xFFDA, 0xFFDD),
+)
+_HALFWIDTH_TO_COMPAT = {
+    **{
+        chr(codepoint): compat
+        for codepoint, compat in zip(
+            _HALFWIDTH_CONSONANT_CODEPOINTS,
+            _HALFWIDTH_COMPAT_CONSONANTS,
+            strict=True,
+        )
+    },
+    **{
+        chr(codepoint): compat
+        for codepoint, compat in zip(
+            _HALFWIDTH_VOWEL_CODEPOINTS,
+            COMPAT_JUNG,
+            strict=True,
+        )
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -75,6 +106,7 @@ def _is_hangul_related(char: str) -> bool:
         0xAC00 <= code <= 0xD7A3
         or 0x1100 <= code <= 0x11FF
         or 0x3130 <= code <= 0x318F
+        or 0xFFA0 <= code <= 0xFFDC
     )
 
 
@@ -90,6 +122,11 @@ def _remove_hangul_zwsp(text: str) -> str:
             continue
         output.append(char)
     return "".join(output)
+
+
+def _normalize_halfwidth_hangul(text: str) -> str:
+    """현대 반각 한글 자모만 표준 호환 자모로 변환한다."""
+    return "".join(_HALFWIDTH_TO_COMPAT.get(char, char) for char in text)
 
 
 def _compose_modern_jamo(text: str) -> str:
@@ -168,7 +205,7 @@ def _source_span(units: list[_Unit], start: int, end: int) -> tuple[int, int]:
     if start < end:
         return units[start].source_start, units[end - 1].source_end
     if start < len(units):
-        # 세 정규화 규칙(ZWSP 제거·현대/호환 자모 조합)은 문자 수를 줄이거나
+        # 네 정규화 규칙(ZWSP 제거·반각 변환·현대/호환 자모 조합)은 문자 수를 줄이거나
         # 유지할 뿐 새 문자를 추가하지 않는다. 무작위 대입(30만+ 케이스)으로도
         # SequenceMatcher의 순수 삽입(insert) opcode가 문자열 끝이 아닌 위치에서
         # 발생하는 입력을 찾지 못했다 — 공개 API 입력만으로는 도달하지 않는다.
@@ -233,6 +270,7 @@ def normalize_korean(text: str) -> NormalizationResult:
     edits: list[NormalizationEdit] = []
     rules = (
         ("remove_hangul_zwsp", _remove_hangul_zwsp, 1.0),
+        ("normalize_halfwidth_hangul", _normalize_halfwidth_hangul, 1.0),
         ("compose_modern_jamo", _compose_modern_jamo, 1.0),
         ("compose_compat_jamo", _compose_compat_jamo, 1.0),
     )
