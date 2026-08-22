@@ -106,10 +106,10 @@ candidate generator 0.5.0은 같은 설정에서 `direct ⊆ segmented ⊆ parti
 기록한다.
 
 Kanana 가드레일에 후보 view를 직접 연결한 평가에서도 segmented 대비 partial의 판정 변화는 0건이었다.
-segmented의 초성 공격 block rate는 raw 18.94%에서 27.91%로 올랐지만 NRR은 13.04%에 그쳤고,
-평균 추가 view 7.94개와 62.97%의 후보 상한 도달률이 관찰됐다. 따라서 모든 lossy provider는 계속
-기본 비활성화한다. 상세 결과는
-[`experiments/benchmark/CHOSUNG_GUARDRAIL_IMPACT.md`](../experiments/benchmark/CHOSUNG_GUARDRAIL_IMPACT.md)에
+candidate generator 0.5.0 재평가 기준으로 segmented의 초성 공격 block rate는 raw 18.94%에서
+27.74%로 올랐지만 NRR은 12.86%에 그쳤고, 평균 추가 view 7.94개와 62.97%의 후보 상한 도달률이
+관찰됐다. 따라서 모든 lossy provider는 계속 기본 비활성화한다. 상세 결과는
+[`experiments/benchmark/CHOSUNG_CANDIDATE_MONOTONICITY.md`](../experiments/benchmark/CHOSUNG_CANDIDATE_MONOTONICITY.md)에
 기록한다.
 
 `ChosungLexicon`은 특정 라이브러리에 의존하지 않는다. 실험에서는 빈도순 한국어 단어를 제공하는
