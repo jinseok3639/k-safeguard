@@ -205,6 +205,8 @@ mutmut run && mutmut results    # mutation testing
 
 Branch and commit conventions follow the [Git workflow in AGENTS.md](https://github.com/jinseok3639/k-safeguard/blob/main/AGENTS.md#git-워크플로): `type(scope): Korean description`, with one PR per feature or experiment.
 
+For bug reports and enhancement proposals, use the [issue templates](https://github.com/jinseok3639/k-safeguard/issues/new/choose). See [CONTRIBUTING.md](https://github.com/jinseok3639/k-safeguard/blob/main/CONTRIBUTING.md) (Korean) for the full contribution process.
+
 ## Team
 
 **Ondol (온돌)** · 2026 Open Source SW Development Competition, open track (security and safety)

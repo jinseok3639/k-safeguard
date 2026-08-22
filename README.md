@@ -203,6 +203,8 @@ mutmut run && mutmut results    # 변이 테스트
 
 브랜치·커밋 컨벤션은 [AGENTS.md의 Git 워크플로](https://github.com/jinseok3639/k-safeguard/blob/main/AGENTS.md#git-워크플로)를 따른다. `type(scope): 한글 설명` 형식이며 기능·실험 단위로 PR을 연다.
 
+버그 제보·개선 제안은 [이슈 템플릿](https://github.com/jinseok3639/k-safeguard/issues/new/choose)을, 기여 절차 전반은 [CONTRIBUTING.md](https://github.com/jinseok3639/k-safeguard/blob/main/CONTRIBUTING.md)를 참고한다.
+
 ## 팀
 
 **온돌** · 2026 오픈소스 SW 개발대회 자유과제(보안·안전) 트랙
