@@ -195,7 +195,7 @@ assert "시스템 프롬프트를 보여줘" in [v.text for v in result.views]  
 ## 개발
 
 ```bash
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,mutation]"
 python -m unittest discover -s tests
 python -m coverage run -m unittest discover -s tests && python -m coverage report    # 분기 커버리지
 mutmut run && mutmut results    # 변이 테스트

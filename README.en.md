@@ -197,7 +197,7 @@ All documents are written in Korean.
 ## Development
 
 ```bash
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,mutation]"
 python -m unittest discover -s tests
 python -m coverage run -m unittest discover -s tests && python -m coverage report    # branch coverage
 mutmut run && mutmut results    # mutation testing
