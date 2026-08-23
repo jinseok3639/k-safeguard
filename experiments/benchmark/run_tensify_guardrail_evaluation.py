@@ -1,4 +1,4 @@
-"""Kanana Prompt에서 된소리 역변형 후보의 paired NRR/FPR을 평가한다."""
+"""Kanana Prompt에서 opt-in 역변형 후보의 paired NRR/FPR을 평가한다."""
 
 from __future__ import annotations
 
@@ -42,7 +42,9 @@ from experiments.benchmark.run_normalizer_evaluation import (
 from k_safeguard import Gateway, GatewayResult
 from k_safeguard.normalization import NORMALIZER_VERSION
 from k_safeguard.providers import (
+    LIAISON_CANDIDATE_VERSION,
     TENSIFY_CANDIDATE_VERSION,
+    LiaisonInverseProvider,
     TensifyInverseProvider,
 )
 
@@ -65,12 +67,15 @@ class PolicyPlan:
     @property
     def provider_truncated(self) -> bool:
         candidates = [
-            view for view in self.gateway.views if view.provider == TensifyInverseProvider.name
+            view for view in self.gateway.views if view.kind == "candidate"
         ]
         if not candidates:
             return False
-        total_tense_syllables = int(dict(candidates[0].metadata)["total_tense_syllables"])
-        theoretical_candidates = (1 << total_tense_syllables) - 1
+        metadata = dict(candidates[0].metadata)
+        position_count = int(
+            metadata.get("total_tense_syllables", metadata.get("candidate_pairs", "0"))
+        )
+        theoretical_candidates = (1 << position_count) - 1
         return theoretical_candidates > len(candidates)
 
 
@@ -84,6 +89,12 @@ def parse_args() -> argparse.Namespace:
         default=Path(os.environ.get("K_SAFEGUARD_MODEL_HOME", DEFAULT_MODEL_HOME)),
     )
     parser.add_argument("--run-id")
+    parser.add_argument(
+        "--technique",
+        choices=("tensify", "liaison"),
+        default="tensify",
+        help="평가할 난독화와 대응 inverse provider.",
+    )
     parser.add_argument("--limit-seeds", type=int)
     parser.add_argument("--max-views", type=int, default=10)
     parser.add_argument("--max-candidates", type=int, default=9)
@@ -394,7 +405,12 @@ def _number_estimate(metric: dict[str, Any] | None) -> str:
     return f"{value:.2f}" if low is None else f"{value:.2f} ({low:.2f}–{high:.2f})"
 
 
-def write_report(path: Path, run_id: str, summary: dict[str, Any]) -> None:
+def write_report(
+    path: Path,
+    run_id: str,
+    summary: dict[str, Any],
+    technique: str = "tensify",
+) -> None:
     rows = []
     for policy in POLICY_NAMES:
         metrics = summary["policy_metrics"][policy]
@@ -434,7 +450,8 @@ def write_report(path: Path, run_id: str, summary: dict[str, Any]) -> None:
         )
     transition = summary["transition"]
     runtime = summary["runtime"]
-    report = f"""# 된소리 역변형 후보 Kanana paired 평가
+    technique_title = "된소리" if technique == "tensify" else "단순 연음"
+    report = f"""# {technique_title} 역변형 후보 Kanana paired 평가
 
 > run ID: `{run_id}`
 >
@@ -538,12 +555,20 @@ def main() -> int:
         raise SystemExit(f"동일 run ID 결과가 이미 있습니다: {output_dir}")
 
     input_path = args.input.resolve()
-    rows = load_benchmark(input_path, args.limit_seeds, {"tensify"})
-    selected_rows = [item for item in rows if item.technique in {"clean", "tensify"}]
+    rows = load_benchmark(input_path, args.limit_seeds, {args.technique})
+    selected_rows = [
+        item for item in rows if item.technique in {"clean", args.technique}
+    ]
+    if args.technique == "tensify":
+        provider = TensifyInverseProvider(max_candidates=args.max_candidates)
+        candidate_version = TENSIFY_CANDIDATE_VERSION
+    else:
+        provider = LiaisonInverseProvider(max_candidates=args.max_candidates)
+        candidate_version = LIAISON_CANDIDATE_VERSION
     gateways = {
         "raw": Gateway(max_views=args.max_views),
         "inverse": Gateway(
-            providers=[TensifyInverseProvider(max_candidates=args.max_candidates)],
+            providers=[provider],
             max_views=args.max_views,
         ),
     }
@@ -623,7 +648,7 @@ def main() -> int:
     write_jsonl(output_dir / "errors.jsonl", view_errors)
     write_json(output_dir / "summary.json", summary)
     write_csv(output_dir / "policy_summary.csv", summary["condition_metrics"])
-    write_report(output_dir / "report.md", run_id, summary)
+    write_report(output_dir / "report.md", run_id, summary, args.technique)
     manifest = {
         "schema_version": 1,
         "run_id": run_id,
@@ -636,12 +661,12 @@ def main() -> int:
             "sha256": sha256_file(input_path),
             "rows": len(selected_rows),
             "independent_seeds": len({item.seed_id for item in selected_rows}),
-            "techniques": ["clean", "tensify"],
+            "techniques": ["clean", args.technique],
             "text_visibility": "local_unmasked",
         },
         "candidate_generator": {
-            "name": TensifyInverseProvider.name,
-            "version": TENSIFY_CANDIDATE_VERSION,
+            "name": provider.name,
+            "version": candidate_version,
             "normalizer_version": NORMALIZER_VERSION,
             "max_candidates": args.max_candidates,
             "max_views": args.max_views,

@@ -14,7 +14,7 @@ from experiments.benchmark.run_tensify_guardrail_evaluation import (
     summarize_transition,
 )
 from k_safeguard import Gateway
-from k_safeguard.providers import TensifyInverseProvider
+from k_safeguard.providers import LiaisonInverseProvider, TensifyInverseProvider
 
 
 def result(block: bool) -> AdapterResult:
@@ -88,6 +88,21 @@ class TensifyGuardrailEvaluationTest(unittest.TestCase):
             ),
         )
 
+        self.assertTrue(plan.provider_truncated)
+        self.assertFalse(plan.gateway.truncated)
+
+    def test_liaison_plan_uses_same_generic_truncation_contract(self) -> None:
+        plan = build_policy_plan(
+            "가나다라",
+            "inverse",
+            Gateway(
+                providers=[LiaisonInverseProvider(max_candidates=2)],
+                max_views=10,
+            ),
+        )
+
+        self.assertEqual(plan.texts[0], "가나다라")
+        self.assertEqual(len(plan.texts), 3)
         self.assertTrue(plan.provider_truncated)
         self.assertFalse(plan.gateway.truncated)
 
