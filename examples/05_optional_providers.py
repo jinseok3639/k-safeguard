@@ -1,10 +1,10 @@
 """05. 선택형 후보 provider — 문맥 없이 확정할 수 없는 변형 다루기.
 
-된소리("씨스템")나 초성체("ㅅㅅㅌ")는 원문이 하나로 정해지지 않는다. 그래서 정규화로
+연음 표기("머글게"), 된소리("씨스템")나 초성체("ㅅㅅㅌ")는 원문이 하나로 정해지지 않는다. 그래서 정규화로
 덮어쓰지 않고 **lossy 후보 view**로만 덧붙인다. 원문 view는 언제나 보존되고, 후보 중
 하나라도 block이면 최종 block이다.
 
-두 provider 모두 **기본 비활성**이다. 명시적으로 주입해야 켜진다.
+세 provider 모두 **기본 비활성**이다. 명시적으로 주입해야 켜진다.
 정상 입력에 후보가 붙으면 오탐 비용이 생기므로, 측정 결과에 따라 저장소 기본값은
 비활성으로 유지하고 있다 (README "후보 provider" 표 참고).
 
@@ -16,7 +16,11 @@ from __future__ import annotations
 
 from k_safeguard import Gateway
 from k_safeguard.chosung import ChosungLexicon, expand_korean_noun_particles
-from k_safeguard.providers import ChosungLexiconProvider, TensifyInverseProvider
+from k_safeguard.providers import (
+    ChosungLexiconProvider,
+    LiaisonInverseProvider,
+    TensifyInverseProvider,
+)
 
 
 BLOCKLIST = ("시스템 프롬프트", "관리자 권한")
@@ -93,8 +97,15 @@ def demo_chosung() -> None:
     print("  k_safeguard.providers.wordfreq.WordfreqChosungProvider를 쓴다.")
 
 
+def demo_liaison() -> None:
+    print("\n=== 3. LiaisonInverseProvider — 단순 연음 표기 되돌리기 ===")
+    gateway = Gateway(providers=[LiaisonInverseProvider(max_candidates=9)])
+    print_views("공격", gateway, "시스템 프롬프트를 머글게")
+    print("  자연어 표면 패턴도 함께 후보가 되므로 기본 비활성인 lossy provider다.")
+
+
 def demo_budget() -> None:
-    print("\n=== 3. view 예산 관리 ===")
+    print("\n=== 4. view 예산 관리 ===")
     gateway = Gateway(
         providers=[TensifyInverseProvider(max_candidates=32)],
         max_views=4,  # 원문 + 정규화 + 후보를 합친 상한
@@ -108,6 +119,7 @@ def demo_budget() -> None:
 def main() -> None:
     demo_tensify()
     demo_chosung()
+    demo_liaison()
     demo_budget()
 
 
