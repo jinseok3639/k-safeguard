@@ -53,3 +53,14 @@ Kanana 8B는 GPU 가중치 예산을 13 GiB로 제한하고 나머지를 CPU RAM
 - PowerShell 설치·활성화 스크립트 parser 검사: 통과
 - 모델 다운로드 dry-run의 디스크 여유 검사: 통과
 - 세 smoke test 모두 `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`에서 통과
+
+## 추가 설치 검증 (2026-08-14)
+
+08-05 검증 이후 `wolf-defender-prompt-injection`을 추가 설치했다. 별도 offline smoke test 기록은
+없지만, [Wolf Defender 된소리 교차 검증](../benchmark/TENSIFY_WOLF_CROSS_MODEL_RESULT.md)에서
+실행 오류 0건·provider 오류 0건으로 336개 레코드를 실제 추론했으므로 설치·로드가 정상 동작함을
+간접 확인했다.
+
+| key | resolved revision | 디스크 | 상태 |
+|---|---|---:|---|
+| `wolf-defender-prompt-injection` | `ecc382bd4d98ffa19e1c9c2ce4a0722904c04a3c` | 약 1.8 GiB | 설치 완료 |

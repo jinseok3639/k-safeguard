@@ -9,6 +9,19 @@ import random
 CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
 JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ']
 JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
+COMPOUND_JONG_DECOMPOSITION = {
+    'ㄳ': 'ㄱㅅ',
+    'ㄵ': 'ㄴㅈ',
+    'ㄶ': 'ㄴㅎ',
+    'ㄺ': 'ㄹㄱ',
+    'ㄻ': 'ㄹㅁ',
+    'ㄼ': 'ㄹㅂ',
+    'ㄽ': 'ㄹㅅ',
+    'ㄾ': 'ㄹㅌ',
+    'ㄿ': 'ㄹㅍ',
+    'ㅀ': 'ㄹㅎ',
+    'ㅄ': 'ㅂㅅ',
+}
 BASE = 0xAC00
 # 된소리/쌍자음화: 평음 초성 -> 경음 초성
 TENSE = {'ㄱ':'ㄲ','ㄷ':'ㄸ','ㅂ':'ㅃ','ㅅ':'ㅆ','ㅈ':'ㅉ'}
@@ -37,15 +50,23 @@ def _pick(text, intensity, rng):
     return chosen
 
 
-def jamo_decompose(text, intensity=1.0, seed=0):
-    """자모분해: 안녕 -> ㅇㅏㄴㄴㅕㅇ"""
+def jamo_decompose(text, intensity=1.0, seed=0, *, decompose_compound_finals=True):
+    """자모분해: 안녕 -> ㅇㅏㄴㄴㅕㅇ.
+
+    기본값에서는 겹받침도 키보드 낱자 입력처럼 두 글자로 분해한다. 과거
+    벤치마크와 동일한 단일 호환 자모가 필요하면
+    ``decompose_compound_finals=False``를 사용한다.
+    """
     rng = random.Random(seed)
     pick = _pick(text, intensity, rng)
     out = []
     for i, ch in enumerate(text):
         if _is_syllable(ch) and i in pick:
             c, j, t = _split(ch)
-            out.append(CHO[c] + JUNG[j] + (JONG[t] if t else ''))
+            final = JONG[t] if t else ''
+            if decompose_compound_finals:
+                final = COMPOUND_JONG_DECOMPOSITION.get(final, final)
+            out.append(CHO[c] + JUNG[j] + final)
         else:
             out.append(ch)
     return ''.join(out)
@@ -98,7 +119,7 @@ def break_spacing(text, intensity=1.0, seed=0):
 
 
 def zwsp_inject(text, intensity=1.0, seed=0):
-    """호모글리프/투명문자: 음절 사이 zero-width space 삽입 (토크나이저 교란)"""
+    """투명문자: 음절 사이 zero-width space 삽입 (토크나이저 교란)"""
     rng = random.Random(seed)
     pick = _pick(text, intensity, rng)
     out = []

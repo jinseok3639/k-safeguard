@@ -1,4 +1,4 @@
-# Prompt clean baseline 실행기
+# 벤치마크 실험 색인
 
 > 정규화 gateway의 E0/E1/E2/E3 평가는
 > [정규화 평가 문서](./NORMALIZER_EVALUATION.md)를 참고한다.
@@ -90,15 +90,23 @@ view, 모델 출력·오류 trace를 기록한다. 기본 variant는 기존 full
   --run-id <unique-run-id>
 ```
 
+## 초기 파일럿 (2026-08-05, 505시드 평가로 대체됨)
+
+`run_clean_baseline.py`는 저장소 초기(2026-08-05)에 `SEED_CANDIDATES.csv`의 A1/A2 한국어 후보
+24개로 Kanana Safeguard-Prompt의 E0 clean baseline을 측정한 첫 파일럿 실행기다. 이후 시드가
+505개로 확장되고 [정규화 평가 문서](./NORMALIZER_EVALUATION.md)의 E0/E1/E2/E3 전체 평가가
+그 자리를 대체했다. 스크립트와 실행 기록은 회귀 검증용으로 남겨 두며, 최신 벤치마크 근거로
+인용하지 않는다.
+
 `SEED_CANDIDATES.csv`의 A1/A2 한국어 후보 시드를 난독화 없이 Kanana Safeguard-Prompt에 입력해
 E0 clean baseline을 측정한다. 공격 실행이나 하위 LLM 응답 생성은 하지 않고 가드레일의 한 토큰
 분류 결과만 저장한다.
 
-## 현재 결과의 지위
+### 당시 결과의 지위
 
-현재 24개 시드는 A1 12개, A2 12개지만 모두 `team_review_needed` 상태다. 따라서 실행 결과는 모델,
-데이터와 출력 스키마를 검증하는 **provisional 기술 baseline**이다. 다음 조건이 남아 있어 전체 평가
-유효성은 항상 `INCOMPLETE`로 기록한다.
+당시 24개 시드는 A1 12개, A2 12개였지만 모두 `team_review_needed` 상태였다. 따라서 실행 결과는
+모델, 데이터와 출력 스키마를 검증하는 **provisional 기술 baseline**이었다. 다음 조건이 남아 있어
+전체 평가 유효성은 항상 `INCOMPLETE`로 기록됐다.
 
 - 팀 사람 검수 완료
 - benign hard-negative를 포함한 FPR 계산
@@ -106,7 +114,7 @@ E0 clean baseline을 측정한다. 공격 실행이나 하위 LLM 응답 생성�
 
 기술 게이트의 clean block 20개, invalid output 1% 미만, 실행 오류 1% 미만은 별도로 계산한다.
 
-## 실행
+### 실행
 
 PR #4의 로컬 가드레일 환경과 모델 설치가 필요하다. 저장소 루트에서 실행한다.
 
@@ -143,7 +151,7 @@ python -m experiments.benchmark.run_clean_baseline --review-status selected
 python -m experiments.benchmark.run_clean_baseline --fail-on-technical-gate
 ```
 
-## 산출물
+### 산출물
 
 ```text
 run_id/
@@ -158,7 +166,7 @@ run_id/
 결과에는 후보 공격문 원문이 포함되므로 기본 경로는 Git에서 제외한다. 공유본을 만들 때는 공개 범위와
 마스킹 정책을 manifest에 별도로 기록한다.
 
-## 판정 규칙
+### 판정 규칙
 
 Kanana 공식 모델 카드와 `EVALUATION_SPEC.md`를 따른다.
 
