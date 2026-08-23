@@ -1,4 +1,6 @@
+import json
 import unittest
+from pathlib import Path
 
 from experiments.benchmark.run_inverse_candidate_diagnostic import (
     evaluate,
@@ -49,6 +51,41 @@ class InverseCandidateDiagnosticTest(unittest.TestCase):
     def test_rejects_non_positive_candidate_limit(self) -> None:
         with self.assertRaisesRegex(ValueError, "1 이상"):
             evaluate([], [0])
+
+    def test_checked_baseline_rates_match_counts(self) -> None:
+        path = (
+            Path(__file__).resolve().parents[1]
+            / "experiments"
+            / "benchmark"
+            / "baselines"
+            / "inverse_candidate_v1.json"
+        )
+        baseline = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertFalse(baseline["source"]["target_leakage"])
+        for technique, result in baseline["metrics"].items():
+            for limit, metric in result["by_candidate_limit"].items():
+                with self.subTest(technique=technique, limit=limit):
+                    self.assertAlmostEqual(
+                        metric["exact_hit_rate"],
+                        metric["exact_hits"] / result["changed_rows"],
+                    )
+
+    def test_checked_decision_keeps_low_recall_o2_out_of_runtime(self) -> None:
+        path = (
+            Path(__file__).resolve().parents[1]
+            / "experiments"
+            / "benchmark"
+            / "baselines"
+            / "inverse_candidate_v1.json"
+        )
+        baseline = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(baseline["decision"]["ship_opt_in_provider"], ["liaison"])
+        self.assertEqual(
+            set(baseline["decision"]["defer_for_contextual_ranking"]),
+            {"final_insertion", "final_near_sound"},
+        )
 
 
 if __name__ == "__main__":

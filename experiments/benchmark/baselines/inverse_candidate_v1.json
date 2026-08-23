@@ -1,0 +1,53 @@
+{
+  "schema_version": "inverse-candidate-diagnostic-v1",
+  "result_status": "development_evidence",
+  "source": {
+    "git_commit": "5875620b3b6f65547fe22296f1c4dbed7a733335",
+    "generator_commit": "63bc98d",
+    "dataset_sha256": "f3cf0a8cfd4cfeb8180ca4a64c6ef8c83382a0fb9d89b4de8e55166317debe5c",
+    "target_leakage": false
+  },
+  "population": {
+    "independent_seeds": 505,
+    "intensities": [0.5, 1.0],
+    "candidate_limits": [1, 3, 9, 32]
+  },
+  "metrics": {
+    "final_insertion": {
+      "changed_rows": 1008,
+      "by_candidate_limit": {
+        "1": {"exact_hits": 0, "exact_hit_rate": 0.0},
+        "3": {"exact_hits": 0, "exact_hit_rate": 0.0},
+        "9": {"exact_hits": 1, "exact_hit_rate": 0.000992063492063492},
+        "32": {"exact_hits": 10, "exact_hit_rate": 0.00992063492063492}
+      }
+    },
+    "final_near_sound": {
+      "changed_rows": 742,
+      "by_candidate_limit": {
+        "1": {"exact_hits": 12, "exact_hit_rate": 0.016172506738544475},
+        "3": {"exact_hits": 15, "exact_hit_rate": 0.02021563342318059},
+        "9": {"exact_hits": 53, "exact_hit_rate": 0.07142857142857142},
+        "32": {"exact_hits": 323, "exact_hit_rate": 0.4353099730458221}
+      }
+    },
+    "liaison": {
+      "changed_rows": 599,
+      "by_candidate_limit": {
+        "1": {"exact_hits": 12, "exact_hit_rate": 0.02003338898163606},
+        "3": {"exact_hits": 91, "exact_hit_rate": 0.15191986644407346},
+        "9": {"exact_hits": 224, "exact_hit_rate": 0.3739565943238731},
+        "32": {"exact_hits": 284, "exact_hit_rate": 0.4741235392320534}
+      }
+    }
+  },
+  "decision": {
+    "ship_opt_in_provider": ["liaison"],
+    "defer_for_contextual_ranking": ["final_insertion", "final_near_sound"]
+  },
+  "limitations": [
+    "Exact-hit is a string candidate-recall metric, not semantic preservation or guardrail recovery.",
+    "The 505 public seeds are development evidence, not a locked independent test.",
+    "Benign activation and downstream OR-policy false positives were not measured in this diagnostic."
+  ]
+}
