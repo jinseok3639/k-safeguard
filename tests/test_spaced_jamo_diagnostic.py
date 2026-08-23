@@ -1,4 +1,6 @@
+import json
 import unittest
+from pathlib import Path
 
 from experiments.benchmark.run_spaced_jamo_diagnostic import evaluate, space_one_word
 
@@ -30,6 +32,30 @@ class SpacedJamoDiagnosticTest(unittest.TestCase):
         self.assertEqual(metrics["default_gateway_changed"], 0)
         self.assertEqual(metrics["clean_provider_activated"], 0)
         self.assertFalse(metrics["target_leakage"])
+
+    def test_checked_baseline_is_internally_consistent(self) -> None:
+        path = (
+            Path(__file__).resolve().parents[1]
+            / "experiments"
+            / "benchmark"
+            / "baselines"
+            / "spaced_jamo_v1.json"
+        )
+        baseline = json.loads(path.read_text(encoding="utf-8"))
+        population = baseline["population"]
+        metrics = baseline["metrics"]
+
+        self.assertFalse(baseline["source"]["target_leakage"])
+        self.assertEqual(
+            metrics["provider_activated"], population["eligible_variants"]
+        )
+        self.assertEqual(metrics["exact_restored"], population["eligible_variants"])
+        self.assertAlmostEqual(
+            metrics["exact_restoration_rate"],
+            metrics["exact_restored"] / population["eligible_variants"],
+        )
+        self.assertEqual(metrics["default_gateway_changed"], 0)
+        self.assertEqual(metrics["clean_provider_activated"], 0)
 
 
 if __name__ == "__main__":

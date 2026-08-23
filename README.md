@@ -127,7 +127,7 @@ view 목록 ──▶ 기존 가드레일(그대로) ──▶ OR 집계 ──�
 
 | provider | 대상 | 추가 의존성 | 현재 상태 |
 |---|---|---|---|
-| `SpacedJamoProvider` | `ㅇ ㅓ ㅂ ㅅ ㅇ ㅣ`처럼 공백으로 분리된 자모 | 없음 | 조합 가능한 bounded 자모열만 lossy 후보로 복원, 평가 전이므로 기본 비활성 |
+| `SpacedJamoProvider` | `ㅇ ㅓ ㅂ ㅅ ㅇ ㅣ`처럼 공백으로 분리된 자모 | 없음 | 한 어절 개발 exact 504/504, 공백 삭제는 lossy라 기본 비활성 |
 | `TensifyInverseProvider` | 된소리·쌍자음화 | 없음 | NRR 100%, 그러나 독립 locked-test에서 ΔFPR-obf +14.29%p → 기본 비활성 유지 |
 | `ChosungLexiconProvider` | 초성체 | `wordfreq` extra | NRR 12.86%로 복원 이득이 작아 기본 비활성 유지 |
 
