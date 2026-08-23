@@ -17,7 +17,7 @@ from k_safeguard.providers import (
 
 
 DEFAULT_INPUT = Path("hf_repo/benchmark.jsonl")
-DEFAULT_OUTPUT = Path("experiments/benchmark/baselines/tensify_inverse_v1.json")
+DEFAULT_OUTPUT = Path("build/tensify_inverse_v3.json")
 
 
 def parse_args() -> argparse.Namespace:
