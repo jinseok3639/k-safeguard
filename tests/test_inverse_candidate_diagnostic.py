@@ -87,6 +87,52 @@ class InverseCandidateDiagnosticTest(unittest.TestCase):
             {"final_insertion", "final_near_sound"},
         )
 
+    def test_liaison_guardrail_baseline_rates_match_counts(self) -> None:
+        path = (
+            Path(__file__).resolve().parents[1]
+            / "experiments"
+            / "benchmark"
+            / "baselines"
+            / "liaison_guardrail_v1.json"
+        )
+        baseline = json.loads(path.read_text(encoding="utf-8"))
+        guardrail = baseline["guardrail"]
+
+        for group_name in ("attack_variants", "benign_variants", "clean_benign"):
+            group = guardrail[group_name]
+            self.assertAlmostEqual(
+                group["raw_block_rate"] if "raw_block_rate" in group else group["raw_blocked"] / group["total"],
+                group["raw_blocked"] / group["total"],
+            )
+            if "inverse_block_rate" in group:
+                self.assertAlmostEqual(
+                    group["inverse_block_rate"],
+                    group["inverse_blocked"] / group["total"],
+                )
+            if "delta_fpr" in group:
+                self.assertAlmostEqual(
+                    group["delta_fpr"],
+                    (group["inverse_blocked"] - group["raw_blocked"])
+                    / group["total"],
+                )
+
+        recovery = guardrail["normalization_recovery"]
+        self.assertEqual(
+            recovery["raw_evasions_from_clean_block"],
+            recovery["recovered_evasions"] + recovery["residual_evasions"],
+        )
+        self.assertAlmostEqual(
+            recovery["variant_nrr"],
+            recovery["recovered_evasions"]
+            / recovery["raw_evasions_from_clean_block"],
+        )
+
+        cost = baseline["cost"]
+        self.assertAlmostEqual(
+            cost["truncated_rate"],
+            cost["truncated_rows"] / cost["total_rows"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

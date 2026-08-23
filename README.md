@@ -127,7 +127,7 @@ view 목록 ──▶ 기존 가드레일(그대로) ──▶ OR 집계 ──�
 
 | provider | 대상 | 추가 의존성 | 현재 상태 |
 |---|---|---|---|
-| `LiaisonInverseProvider` | `머글게` 같은 단순 연음 표기 | 없음 | 9후보 exact-hit 37.40%, 자연어 표면 패턴이 흔해 기본 비활성 |
+| `LiaisonInverseProvider` | `머글게` 같은 단순 연음 표기 | 없음 | 개발 NRR 56.52%, 평균 +8.08 view·ΔFPR 관찰로 기본 비활성 |
 | `TensifyInverseProvider` | 된소리·쌍자음화 | 없음 | NRR 100%, 그러나 독립 locked-test에서 ΔFPR-obf +14.29%p → 기본 비활성 유지 |
 | `ChosungLexiconProvider` | 초성체 | `wordfreq` extra | NRR 12.86%로 복원 이득이 작아 기본 비활성 유지 |
 

@@ -1,0 +1,78 @@
+{
+  "schema_version": "liaison-guardrail-paired-v1",
+  "result_status": "provisional_dev_only",
+  "source": {
+    "run_id": "liaison-provider-primary-compact-20260823",
+    "count_replica_run_id": "liaison-provider-counts-20260823",
+    "git_commit": "80dc0bb19a05be7b41588de3d0c980d8a447dfcd",
+    "dataset_sha256": "f3cf0a8cfd4cfeb8180ca4a64c6ef8c83382a0fb9d89b4de8e55166317debe5c",
+    "model_id": "kakaocorp/kanana-safeguard-prompt-2.1b",
+    "model_revision": "167d74d4706b236580b0e48318337c7ac6ba7848",
+    "bootstrap_samples": 10000,
+    "random_seed": 2026
+  },
+  "population": {
+    "independent_seeds": 505,
+    "selected_rows": 1515,
+    "policy_records": 3030,
+    "attack_variants": 602,
+    "benign_variants": 408,
+    "clean_benign": 204
+  },
+  "guardrail": {
+    "attack_variants": {
+      "raw_blocked": 545,
+      "inverse_blocked": 569,
+      "total": 602,
+      "raw_block_rate": 0.9053156146179402,
+      "inverse_block_rate": 0.9451827242524917,
+      "recovery_gain": 0.03986710963455149,
+      "recovery_gain_ci95_low": 0.023255813953488372,
+      "recovery_gain_ci95_high": 0.05813953488372093
+    },
+    "normalization_recovery": {
+      "raw_evasions_from_clean_block": 23,
+      "recovered_evasions": 13,
+      "residual_evasions": 10,
+      "variant_nrr": 0.5652173913043478,
+      "seed_balanced_nrr": 0.5681818181818182,
+      "seed_balanced_ci95_low": 0.36363636363636365,
+      "seed_balanced_ci95_high": 0.7727272727272727
+    },
+    "benign_variants": {
+      "raw_blocked": 9,
+      "inverse_blocked": 10,
+      "total": 408,
+      "delta_fpr": 0.0024509803921568627,
+      "delta_fpr_ci95_low": 0.0,
+      "delta_fpr_ci95_high": 0.007352941176470588
+    },
+    "clean_benign": {
+      "raw_blocked": 6,
+      "inverse_blocked": 7,
+      "total": 204,
+      "delta_fpr": 0.004901960784313725,
+      "delta_fpr_ci95_low": 0.0,
+      "delta_fpr_ci95_high": 0.014705882352941176
+    }
+  },
+  "cost": {
+    "mean_generated_views": 8.076567656765675,
+    "mean_generated_views_ci95_low": 7.902310231023102,
+    "mean_generated_views_ci95_high": 8.24026402640264,
+    "truncated_rows": 1159,
+    "total_rows": 1515,
+    "truncated_rate": 0.765016501650165,
+    "truncated_rate_ci95_low": 0.7287128712871287,
+    "truncated_rate_ci95_high": 0.7993399339933994,
+    "unique_inferences": 9618,
+    "view_errors": 0,
+    "provider_errors": 0
+  },
+  "decision": "keep_opt_in_do_not_enable_by_default",
+  "limitations": [
+    "The public 505-seed benchmark is development evidence, not a locked independent test.",
+    "Candidate OR evaluation can recover attacks and add false positives; both directions are reported.",
+    "Only Kanana Safeguard-Prompt was measured; semantic fidelity and downstream LLM comprehension were not measured."
+  ]
+}

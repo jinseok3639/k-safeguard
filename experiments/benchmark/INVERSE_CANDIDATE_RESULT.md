@@ -30,6 +30,25 @@ P3는 같은 예산에서 상대적으로 높은 37.40%를 보여 `LiaisonInvers
 정상문에도 열린 음절+자음 초성 패턴이 흔하므로 원문을 보존하는 opt-in lossy 후보이며 기본 Gateway에는
 연결하지 않는다.
 
+## Kanana paired 결과
+
+문자열 후보 진단 뒤 같은 505시드 모집단과 고정 Kanana revision에서 원문+최대 9후보 OR 정책을
+평가했다.
+
+| 지표 | raw | P3 inverse |
+|---|---:|---:|
+| 공격 차단 | 545/602 (90.53%) | 569/602 (94.52%) |
+| 새 회피 복원 NRR | - | 13/23 (variant 56.52%, seed-balanced 56.82%, CI 36.36%~77.27%) |
+| 난독화 benign 차단 | 9/408 (2.21%) | 10/408 (2.45%), Δ +0.25%p (CI 0%~+0.74%p) |
+| clean benign 차단 | 6/204 (2.94%) | 7/204 (3.43%), Δ +0.49%p (CI 0%~+1.47%p) |
+| 평균 추가 view | 0 | 8.08 (CI 7.90~8.24) |
+| 후보 truncation | 0 | 1,159/1,515 (76.50%) |
+
+공격 recovery gain은 +3.99%p(CI +2.33%p~+5.81%p)였고 model/provider 오류는 0건이었다. 이득은
+분명하지만 후보 비용과 정상문 판정 전환도 관찰됐으므로 기본 활성화 근거로 쓰지 않고 opt-in 상태를
+유지한다. 기계 판독 결과는
+[`baselines/liaison_guardrail_v1.json`](./baselines/liaison_guardrail_v1.json)에 고정했다.
+
 ## 재현
 
 ```powershell
@@ -43,5 +62,5 @@ python -m experiments.benchmark.run_inverse_candidate_diagnostic
 ## 남은 검증
 
 - 독립 locked benign에서 provider 활성화율과 OR-policy ΔFPR 측정
-- P3 후보의 Kanana 종단 간 NRR·호출 비용 측정
+- P3 독립 locked benign에서 관찰된 ΔFPR·비용 재검증
 - O2 문맥 ranker의 cap 9 exact-hit 개선 여부 측정
