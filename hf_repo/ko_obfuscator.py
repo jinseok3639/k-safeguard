@@ -119,7 +119,7 @@ def break_spacing(text, intensity=1.0, seed=0):
 
 
 def zwsp_inject(text, intensity=1.0, seed=0):
-    """호모글리프/투명문자: 음절 사이 zero-width space 삽입 (토크나이저 교란)"""
+    """투명문자: 음절 사이 zero-width space 삽입 (토크나이저 교란)"""
     rng = random.Random(seed)
     pick = _pick(text, intensity, rng)
     out = []
