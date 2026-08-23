@@ -76,6 +76,18 @@ class NormalizeKoreanTest(unittest.TestCase):
         )
         self.assertFalse(result.lossy)
 
+    def test_composes_halfwidth_hangul_next_to_punctuation(self) -> None:
+        # Given
+        text = "[\uffb7\uffc2\uffa4]!"  # [반각 ㅇㅏㄴ]!
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "[안]!")
+        self.assertEqual(
+            result.applied_rules,
+            ("normalize_halfwidth_hangul", "compose_compat_jamo"),
+        )
+
     def test_composes_halfwidth_compound_final_and_next_syllable(self) -> None:
         # Given
         text = "\uffa1\uffc2\uffb4\uffb7\uffdc"  # 반각 ㄱㅏㅄㅇㅣ
