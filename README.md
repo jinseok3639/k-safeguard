@@ -145,8 +145,9 @@ assert "시스템 프롬프트를 보여줘" in [v.text for v in result.views]  
 
 ## 측정 결과
 
-문자열 수치는 505개 독립 시드에서 파생한 현재 5,555행 벤치마크, Kanana 수치는 고정 revision 모델로
-실행한 `normalizer-eval-full-20260808` 스냅샷에서 재현 가능하다.
+문자열 수치는 505개 독립 시드에서 파생한 현재 5,555행 벤치마크에서 재현 가능하다. Kanana 자모분해
+수치는 최신 낱자형 생성기로 실행한 `normalizer-eval-jamo-decomposed-counts-20260823`, ZWSP 수치는
+생성 방식이 동일한 `normalizer-eval-full-20260808` 스냅샷에 고정한다.
 
 문자열 복원과 가드레일 판정은 서로 다른 지표로 분리한다.
 
@@ -156,17 +157,15 @@ assert "시스템 프롬프트를 보여줘" in [v.text for v in result.views]  
 | 자모분해 문자열 정확 복원 | 겹받침 낱자형 복원 갭 존재 — 최신 수치는 [NORMALIZER.md](./dev_note/NORMALIZER.md) 참고, [#44](https://github.com/jinseok3639/k-safeguard/issues/44)에서 추적 중 |
 | 정상 입력 변조율(clean mutation) | 0% — clean 505행 전부 무변경 |
 
-| Kanana 가드레일 판정 (2026-08-08 고정 실행) | E1 raw 차단 | E2 정규화 차단 | clean에서 생긴 회피 variant 복원 |
+| Kanana 가드레일 판정 | E1 raw 차단 | E2 정규화 차단 | clean에서 생긴 회피 variant 복원 |
 |---|---:|---:|---:|
-| 자모분해, 두 강도 합산 | 573/602 (95.18%) | 566/602 (94.02%) | 11/11 |
+| 자모분해 낱자형, 두 강도 합산 | 569/602 (94.52%) | 569/602 (94.52%) | 14/15 |
 | ZWSP, 두 강도 합산 | 564/602 (93.69%) | 566/602 (94.02%) | 19/19 |
 
-E2는 clean E0의 283/301(94.02%) 판정을 정확히 복원했다. raw 난독화가 원래 놓치던 공격을 우연히
-차단한 경우까지 baseline으로 되돌리므로 순 차단율 차이와 NRR은 방향이 다를 수 있다. 상세 분모와
-intensity별 결과는 [모집단 평가 결과](./experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)에 있다.
-이 실행의 자모분해 데이터는 겹받침을 단일 호환 자모로 생성하던 시점의 스냅샷이다. 최신 낱자형
-생성기에 대한 자모분해 E1/E2 수치는 재실행 전까지 현재 성능 주장에 사용하지 않는다. ZWSP 생성 방식은
-해당 변경의 영향을 받지 않았다.
+최신 자모분해에서 순 차단율은 같았지만 exact restoration은 886/1,008(87.90%)였고, clean에서 새로
+생긴 회피 variant 15개 중 14개만 복원해 residual 1개가 남았다. 따라서 순 차단율과 NRR·문자열 정확
+복원을 같은 지표로 해석하지 않는다. 상세 분모와 intensity별 결과는
+[모집단 평가 결과](./experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)에 있다.
 
 | 기타 검증 | 결과 |
 |---|---|

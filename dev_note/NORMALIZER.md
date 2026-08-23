@@ -74,13 +74,12 @@ print(result.edits)
 [#44](https://github.com/jinseok3639/k-safeguard/issues/44)에서 별도로 추적한다.
 
 이 표는 문자열 정확 복원과 clean mutation 검증이며 가드레일 차단율이 아니다. 가드레일 E1/E2는
-동일 505개 모집단에서 별도로 측정했다. 두 intensity를 합친 공격 차단은 `jamo_decompose`
-573/602(95.18%) → 566/602(94.02%), `zwsp_inject` 564/602(93.69%) → 566/602(94.02%)였다.
-clean에서 난독화 때문에 새로 생긴 회피 variant는 각각 11/11, 19/19 복원됐다. 순 차단율과 NRR의 방향이
-다를 수 있는 이유와 상세 분모는
+동일 505개 모집단에서 별도로 측정했다. 최신 낱자형 생성기의 `jamo_decompose` 공격 차단은 두
+intensity 합산 569/602(94.52%) → 569/602(94.52%)였다. 순 차단율은 같지만 clean에서 난독화 때문에
+새로 생긴 회피 variant는 15개 중 14개만 복원돼 residual 1개가 남았다. 생성 방식이 바뀌지 않은
+`zwsp_inject`의 고정 실행은 564/602(93.69%) → 566/602(94.02%), 회피 variant 복원 19/19였다.
+순 차단율과 NRR의 방향이 다를 수 있는 이유와 상세 분모는
 [`NORMALIZER_POPULATION_RESULT.md`](../experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)에 기록한다.
-단, 이 Kanana 실행의 자모분해 데이터는 겹받침을 단일 호환 자모로 만들던 이전 생성기 스냅샷이다.
-최신 낱자형 생성기에 대한 자모분해 E1/E2는 재실행이 필요하며, 위 값을 현재 성능으로 해석하지 않는다.
 
 ## 테스트
 

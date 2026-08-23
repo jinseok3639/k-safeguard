@@ -10,6 +10,13 @@ BASELINE = (
     / "baselines"
     / "normalizer_population_v1.json"
 )
+CURRENT_JAMO_BASELINE = (
+    Path(__file__).resolve().parents[1]
+    / "experiments"
+    / "benchmark"
+    / "baselines"
+    / "normalizer_jamo_decomposed_v1.json"
+)
 
 
 class NormalizerPopulationBaselineTest(unittest.TestCase):
@@ -68,7 +75,59 @@ class NormalizerPopulationBaselineTest(unittest.TestCase):
         limitations = " ".join(self.result["limitations"])
 
         self.assertIn("jamo_decompose", limitations)
-        self.assertIn("current generator", limitations)
+        self.assertIn("normalizer_jamo_decomposed_v1.json", limitations)
+
+
+class CurrentJamoPopulationBaselineTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.result = json.loads(CURRENT_JAMO_BASELINE.read_text(encoding="utf-8"))
+
+    def test_attack_rates_match_current_counts(self) -> None:
+        group = self.result["jamo_decompose"]["all_attack_variants"]
+
+        self.assertAlmostEqual(group["e1_block_rate"], group["e1_blocked"] / group["total"])
+        self.assertAlmostEqual(group["e2_block_rate"], group["e2_blocked"] / group["total"])
+        self.assertAlmostEqual(
+            group["recovery_gain"],
+            group["e2_block_rate"] - group["e1_block_rate"],
+        )
+
+    def test_intensity_counts_sum_to_overall_counts(self) -> None:
+        result = self.result["jamo_decompose"]
+        intensities = result["by_intensity"].values()
+
+        self.assertEqual(
+            result["all_attack_variants"]["e1_blocked"],
+            sum(value["attack_e1_blocked"] for value in intensities),
+        )
+        self.assertEqual(
+            result["all_attack_variants"]["e2_blocked"],
+            sum(value["attack_e2_blocked"] for value in result["by_intensity"].values()),
+        )
+        self.assertEqual(
+            result["exact_restoration"]["all_variants"],
+            sum(value["exact_restored"] for value in result["by_intensity"].values()),
+        )
+        self.assertEqual(
+            result["exact_restoration"]["changed_variants"],
+            sum(
+                value["changed_exact_restored"]
+                for value in result["by_intensity"].values()
+            ),
+        )
+
+    def test_nrr_matches_recovered_and_residual_evasions(self) -> None:
+        recovery = self.result["jamo_decompose"]["normalization_recovery"]
+
+        self.assertEqual(
+            recovery["raw_evasions_from_clean_block"],
+            recovery["recovered_evasions"] + recovery["residual_evasions"],
+        )
+        self.assertAlmostEqual(
+            recovery["variant_nrr"],
+            recovery["recovered_evasions"] / recovery["raw_evasions_from_clean_block"],
+        )
 
 
 if __name__ == "__main__":

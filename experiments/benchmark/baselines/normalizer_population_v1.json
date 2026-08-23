@@ -124,6 +124,6 @@
     "The 505 public seeds are a development population, not a locked independent test.",
     "Downstream LLM intent recognition and semantic fidelity were not measured.",
     "A negative net recovery gain can coexist with full NRR because obfuscation may accidentally block attacks missed at E0; E2 restores the E0 decision.",
-    "The jamo_decompose run predates decomposed compound-final generation; its guardrail metrics are historical and require a rerun against the current generator."
+    "The jamo_decompose run predates decomposed compound-final generation; current-generator evidence is recorded separately in normalizer_jamo_decomposed_v1.json."
   ]
 }
