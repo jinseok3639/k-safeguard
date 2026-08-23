@@ -129,6 +129,15 @@ class CurrentJamoPopulationBaselineTest(unittest.TestCase):
             recovery["recovered_evasions"] / recovery["raw_evasions_from_clean_block"],
         )
 
+    def test_compound_final_fix_has_no_population_residual(self) -> None:
+        result = self.result["jamo_decompose"]
+        recovery = result["normalization_recovery"]
+        exact = result["exact_restoration"]
+
+        self.assertEqual(exact["all_variants"], exact["all_total"])
+        self.assertEqual(exact["changed_variants"], exact["changed_total"])
+        self.assertEqual(recovery["residual_evasions"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
