@@ -328,6 +328,22 @@ class GenerateChosungCandidatesTest(unittest.TestCase):
         self.assertEqual([candidate.text for candidate in result.candidates], [text])
         self.assertEqual(result.matched_spans, 0)
 
+    def test_does_not_partially_restore_repeated_chat_initials(self) -> None:
+        # Given
+        lexicon = ChosungLexicon.from_sources([("domain", ["카카"])])
+        text = "ㅋㅋㅋ"
+        # When
+        result = generate_chosung_candidates(
+            text,
+            lexicon,
+            allow_partial_restoration=True,
+            partial_sources=("domain",),
+            min_partial_initials=2,
+        )
+        # Then
+        self.assertEqual([candidate.text for candidate in result.candidates], [text])
+        self.assertEqual(result.matched_spans, 0)
+
     def test_requires_minimum_initial_evidence(self) -> None:
         # Given
         text = "ㅎㄱㅇ"
