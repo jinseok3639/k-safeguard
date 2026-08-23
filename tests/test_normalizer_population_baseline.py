@@ -64,6 +64,12 @@ class NormalizerPopulationBaselineTest(unittest.TestCase):
                 self.assertEqual(exact["all_variants"], exact["all_total"])
                 self.assertEqual(exact["changed_variants"], exact["changed_total"])
 
+    def test_records_historical_jamo_generator_limitation(self) -> None:
+        limitations = " ".join(self.result["limitations"])
+
+        self.assertIn("jamo_decompose", limitations)
+        self.assertIn("current generator", limitations)
+
 
 if __name__ == "__main__":
     unittest.main()

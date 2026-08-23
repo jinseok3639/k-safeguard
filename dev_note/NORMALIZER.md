@@ -79,6 +79,8 @@ print(result.edits)
 clean에서 난독화 때문에 새로 생긴 회피 variant는 각각 11/11, 19/19 복원됐다. 순 차단율과 NRR의 방향이
 다를 수 있는 이유와 상세 분모는
 [`NORMALIZER_POPULATION_RESULT.md`](../experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)에 기록한다.
+단, 이 Kanana 실행의 자모분해 데이터는 겹받침을 단일 호환 자모로 만들던 이전 생성기 스냅샷이다.
+최신 낱자형 생성기에 대한 자모분해 E1/E2는 재실행이 필요하며, 위 값을 현재 성능으로 해석하지 않는다.
 
 ## 테스트
 

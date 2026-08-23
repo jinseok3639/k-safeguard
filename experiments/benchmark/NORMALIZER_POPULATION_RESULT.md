@@ -4,6 +4,11 @@
 >
 > 결과 지위: 공개 505개 시드의 개발 모집단 근거
 
+> **호환성 주의**: 이 실행은 겹받침을 단일 호환 자모로 생성하던 커밋 `3c1c004`의 스냅샷이다.
+> 이후 생성기는 실제 키보드 입력처럼 겹받침을 두 낱자로 분해하도록 바뀌었다. 따라서 아래
+> `jamo_decompose` 가드레일 수치는 역사적 근거이며, 최신 생성기 기준 현재 성능으로 사용하려면
+> 다시 실행해야 한다. `zwsp_inject`는 이 생성기 변경의 영향을 받지 않았다.
+
 ## 실행 범위
 
 - 공격 301개, benign hard-negative 204개, 합계 505개 독립 시드
@@ -19,6 +24,8 @@
 
 ## 1. 문자열 정확 복원
 
+다음 표는 Kanana 실행 당시 데이터 스냅샷의 결과다.
+
 | technique | intensity | 전체 exact | 실제 변경 variant exact | 생성 오류 |
 |---|---:|---:|---:|---:|
 | `jamo_decompose` | 0.5 | 505/505 | 504/504 | 0 |
@@ -28,6 +35,10 @@
 
 적용 가능한 한글 음절이 없는 공격 시드 1개는 생성 단계부터 원문과 같았다. `505/505`는 문자열
 동일성 지표이며 가드레일 차단 건수가 아니다.
+
+현재 겹받침 낱자형 생성기로 다시 만든 벤치마크에서 `jamo_decompose` exact restoration은 intensity
+0.5에서 463/505, 1.0에서 425/505다. 최신 문자열 결과는
+[`dev_note/NORMALIZER.md`](../../dev_note/NORMALIZER.md)에 기록하며, 아래 E1/E2 스냅샷과 섞지 않는다.
 
 ## 2. 가드레일 E1→E2 판정
 
@@ -58,8 +69,9 @@ E2의 94.02%는 clean E0의 283/301을 intensity마다 반복한 값과 정확�
 ## 3. 정상 입력 비용
 
 clean 505개는 모두 정규화 무변경이었고 benign E0와 E3는 모두 6/204(2.94%)였다. core gateway는
-정규화 결과가 원문과 같으면 중복 view를 추가하지 않으므로, **정규화 무변경 입력**에서는 classifier
-호출 수와 판정이 구조적으로 그대로다. 이 보장은 모든 가능한 정상문이 무변경이라는 뜻은 아니다.
+[`normalization.text not in seen`](https://github.com/jinseok3639/k-safeguard/blob/main/src/k_safeguard/gateway.py#L102-L114)
+조건 때문에 정규화 결과가 원문과 같으면 중복 view를 추가하지 않는다. 따라서 **정규화 무변경 입력**에서는
+classifier 호출 수와 판정이 구조적으로 그대로다. 이 보장은 모든 가능한 정상문이 무변경이라는 뜻은 아니다.
 별도의 benign hard-negative와 손실성 provider 평가는 계속 필요하다.
 
 난독화 benign에서 E1→E2 ΔFPR은 `jamo_decompose` +0.49%p, `zwsp_inject` +0.25%p였다. 두 값의
@@ -72,3 +84,4 @@ seed-cluster bootstrap 95% CI는 각각 -2.21%p~+3.19%p, -1.96%p~+2.45%p로 0을
 - 문자열 exact restoration, NRR, 순 Recovery Gain은 서로 다른 질문에 답하므로 한 수치처럼 합치지
   않는다.
 - 독립 locked test 전에는 일반적인 “방어력 복원”을 주장하지 않는다.
+- `jamo_decompose`는 최신 겹받침 낱자형 생성기로 E1/E2를 재실행하기 전까지 역사적 비교로만 쓴다.
