@@ -69,10 +69,12 @@ def _legacy_position_sets(positions: tuple[int, ...]) -> Iterator[tuple[int, ...
 def _diverse_position_sets(positions: tuple[int, ...]) -> Iterator[tuple[int, ...]]:
     """전부 복원 후 치환 개수 tier를 round-robin으로 지연 생성한다."""
     yield positions
-    iterators = [
-        iter(combinations(positions, replacement_count))
-        for replacement_count in _replacement_count_order(len(positions))
-    ]
+    iterators = []
+    for replacement_count in _replacement_count_order(len(positions)):
+        iterator = iter(combinations(positions, replacement_count))
+        yield next(iterator)
+        iterators.append(iterator)
+
     while iterators:
         remaining = []
         for iterator in iterators:
