@@ -110,6 +110,52 @@ class NormalizeKoreanTest(unittest.TestCase):
         # Then
         self.assertEqual(result.text, "가나")
 
+    def test_composes_every_decomposed_compound_final(self) -> None:
+        # Given
+        cases = {
+            "ㄱㅅ": "ㄳ",
+            "ㄴㅈ": "ㄵ",
+            "ㄴㅎ": "ㄶ",
+            "ㄹㄱ": "ㄺ",
+            "ㄹㅁ": "ㄻ",
+            "ㄹㅂ": "ㄼ",
+            "ㄹㅅ": "ㄽ",
+            "ㄹㅌ": "ㄾ",
+            "ㄹㅍ": "ㄿ",
+            "ㄹㅎ": "ㅀ",
+            "ㅂㅅ": "ㅄ",
+        }
+        for decomposed, compound in cases.items():
+            with self.subTest(compound=compound):
+                text = f"ㄱㅏ{decomposed}"
+                expected = chr(HANGUL_BASE + COMPAT_JONG.index(compound))
+                # When
+                result = normalize_korean(text)
+                # Then
+                self.assertEqual(result.text, expected)
+
+    def test_composes_decomposed_compound_finals_across_syllable_boundaries(self) -> None:
+        cases = {
+            "ㄱㅏㅂㅅㅇㅣ": "값이",
+            "ㅇㅓㅂㅅㄷㅏ": "없다",
+            "ㅇㅣㄹㄱㄱㅗ": "읽고",
+            "ㄱㅏㅂㅅ": "값",
+            "ㄱㅏㅄㅇㅣ": "값이",
+        }
+        for text, expected in cases.items():
+            with self.subTest(text=text):
+                self.assertEqual(normalize_korean(text).text, expected)
+
+    def test_keeps_second_final_as_next_initial_when_followed_by_vowel(self) -> None:
+        cases = {
+            "ㄱㅏㅂㅅㅏ": "갑사",
+            "ㄱㅏㅂㅅㅣ": "갑시",
+            "ㅇㅣㄹㄱㅗ": "일고",
+        }
+        for text, expected in cases.items():
+            with self.subTest(text=text):
+                self.assertEqual(normalize_korean(text).text, expected)
+
     def test_composes_modern_jamo_syllable_without_trailing_final_consonant(self) -> None:
         # Given
         no_batchim = unicodedata.normalize("NFD", "가")
@@ -167,6 +213,19 @@ class NormalizeKoreanTest(unittest.TestCase):
         edit = result.edits[0]
         self.assertEqual((edit.source_start, edit.source_end), (1, 3))
         self.assertEqual((edit.before, edit.after), ("ㅇㅏ", "아"))
+
+    def test_compound_final_edit_span_uses_all_original_jamo_offsets(self) -> None:
+        # Given
+        text = "AㄱㅏㅂㅅB"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "A값B")
+        self.assertEqual(len(result.edits), 1)
+        edit = result.edits[0]
+        self.assertEqual((edit.source_start, edit.source_end), (1, 5))
+        self.assertEqual((edit.before, edit.after), ("ㄱㅏㅂㅅ", "값"))
+        self.assertFalse(edit.lossy)
 
     def test_empty_string_is_valid(self) -> None:
         # Given
