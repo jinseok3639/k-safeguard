@@ -3,37 +3,25 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="k-safeguard 한국어 표기 난독화 정규화 라이브러리를 브라우저에서 직접 시험합니다."
-    />
-    <title>k-safeguard Playground</title>
+    <meta name="description" content="k-safeguard 한국어 정규화 데모" />
+    <title>k-safeguard demo</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="page-glow" aria-hidden="true"></div>
     <header class="site-header">
-      <a class="brand" href="./" aria-label="k-safeguard 홈">
-        <span class="brand-mark">KS</span>
-        <span>k-safeguard</span>
-      </a>
-      <div class="header-meta">
-        <span class="privacy-pill">입력은 브라우저 안에서만 처리됩니다</span>
-        <a href="https://github.com/jinseok3639/k-safeguard">GitHub ↗</a>
-      </div>
+      <a class="brand" href="./">k-safeguard demo</a>
+      <a href="https://github.com/jinseok3639/k-safeguard">GitHub</a>
     </header>
 
     <main>
-      <section class="hero">
-        <p class="eyebrow">KOREAN TEXT HARDENING PLAYGROUND</p>
-        <h1>흐트러진 한글이<br /><span>어떻게 복원되는지</span> 확인하세요.</h1>
-        <p class="hero-copy">
-          서버로 문장을 보내지 않습니다. 현재 커밋의 실제 Python wheel이 브라우저에서 정규화 과정과
-          후보 view를 생성합니다.
-        </p>
+      <section class="intro">
+        <div>
+          <h1>한국어 정규화 데모</h1>
+          <p>입력은 브라우저에서만 처리됩니다.</p>
+        </div>
         <div class="runtime-line" aria-live="polite">
           <span id="status-dot" class="status-dot" data-mode="loading"></span>
-          <span id="runtime-status">런타임을 준비하고 있습니다</span>
+          <span id="runtime-status">런타임 준비 중</span>
           <span class="runtime-version"><span id="package-version">v—</span> · <span id="commit-version">—</span></span>
         </div>
       </section>
@@ -41,19 +29,12 @@
       <section class="workspace" aria-label="정규화 시험 공간">
         <form id="analysis-form" class="panel input-panel">
           <div class="panel-heading">
-            <div>
-              <p class="step-label">01 · INPUT</p>
-              <h2>분석할 문장</h2>
-            </div>
+            <h2>입력</h2>
             <span id="character-count" class="character-count">0 / 1,000</span>
           </div>
 
           <label class="sr-only" for="input-text">분석할 한국어 문장</label>
-          <textarea
-            id="input-text"
-            spellcheck="false"
-            placeholder="예: ㅇㅏㄴㄴㅕㅇ"
-          >ㅇㅏㄴㄴㅕㅇ</textarea>
+          <textarea id="input-text" spellcheck="false" placeholder="문장을 입력하세요">ㅇㅏㄴㄴㅕㅇ</textarea>
 
           <div class="examples" aria-label="예제 입력">
             <span>예제</span>
@@ -64,21 +45,21 @@
           </div>
 
           <fieldset class="preset-fieldset">
-            <legend>실행 preset</legend>
+            <legend>모드</legend>
             <div class="segmented-control">
               <label>
                 <input type="radio" name="preset" value="safe" checked />
-                <span><strong>안전 모드</strong><small>무손실 core만</small></span>
+                <span><strong>안전</strong><small>무손실 규칙</small></span>
               </label>
               <label>
                 <input type="radio" name="preset" value="experimental" />
-                <span><strong>실험 모드</strong><small>된소리 후보 포함</small></span>
+                <span><strong>실험</strong><small>된소리 후보 포함</small></span>
               </label>
             </div>
           </fieldset>
 
           <p id="experimental-note" class="experimental-note" hidden>
-            실험 후보는 문맥상 모호한 lossy 변환입니다. 실제 서비스의 기본 경로에는 자동 연결되지 않습니다.
+            실험 모드는 문맥상 틀린 결과를 만들 수 있습니다.
           </p>
 
           <button id="analyze-button" class="primary-button" type="submit" disabled>
@@ -88,33 +69,29 @@
 
         <section class="panel result-panel" aria-live="polite">
           <div class="panel-heading">
-            <div>
-              <p class="step-label">02 · RESULT</p>
-              <h2>분석 결과</h2>
-            </div>
+            <h2>결과</h2>
           </div>
 
           <div id="result-empty" class="result-empty">
-            <div class="empty-glyph">가</div>
-            <p>런타임 준비가 끝나면<br />문장을 분석할 수 있습니다.</p>
+            <p>문장을 입력하세요.</p>
           </div>
 
           <div id="result-error" class="result-error" hidden>
-            <strong>분석을 완료하지 못했습니다.</strong>
+            <strong>분석하지 못했습니다.</strong>
             <p></p>
           </div>
 
           <div id="result-content" hidden>
             <div class="metrics-grid">
-              <article><span>정규화 시간</span><strong id="metric-duration">—</strong></article>
-              <article><span>생성 view</span><strong id="metric-views">—</strong></article>
-              <article><span>변경 구간</span><strong id="metric-edits">—</strong></article>
+              <article><span>처리 시간</span><strong id="metric-duration">—</strong></article>
+              <article><span>View</span><strong id="metric-views">—</strong></article>
+              <article><span>변경</span><strong id="metric-edits">—</strong></article>
               <article><span>상한 도달</span><strong id="metric-truncated">—</strong></article>
             </div>
 
             <section class="comparison-section">
               <div class="section-title">
-                <h3>전후 비교</h3><span id="changed-badge" class="changed-badge">—</span>
+                <h3>비교</h3><span id="changed-badge" class="changed-badge">—</span>
               </div>
               <div class="comparison-grid">
                 <article><span>원문</span><pre id="original-output"></pre></article>
@@ -128,7 +105,7 @@
             </section>
 
             <section class="detail-section">
-              <h3>변경 trace</h3>
+              <h3>변경 내역</h3>
               <div id="edits-list" class="edits-list"></div>
             </section>
 
@@ -140,20 +117,10 @@
         </section>
       </section>
 
-      <section class="scope-note">
-        <p class="step-label">WHAT THIS DEMO PROVES</p>
-        <h2>문자열 복원과 가드레일 판정은 다릅니다.</h2>
-        <p>
-          이 페이지는 정규화와 후보 생성을 실행합니다. 특정 모델의 공격 차단율이나 실제 서비스 안전성을
-          보장하지 않으며, 모델 기반 판정은 별도 평가 환경에서 검증해야 합니다.
-        </p>
-      </section>
+      <p class="scope-note">문자열 복원 결과이며 가드레일 판정이 아닙니다.</p>
     </main>
 
-    <footer>
-      <span>Team Ondol · Apache-2.0</span>
-      <span>Python in WebAssembly · No input logging</span>
-    </footer>
+    <footer>Apache-2.0</footer>
     <script src="./app.js" defer></script>
   </body>
 </html>
