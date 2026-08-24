@@ -1,4 +1,6 @@
 import unittest
+from itertools import combinations as itertools_combinations
+from unittest.mock import patch
 
 from k_safeguard import Gateway
 from k_safeguard.providers import (
@@ -28,7 +30,7 @@ class TensifyInverseProviderTest(unittest.TestCase):
         # Then
         self.assertEqual(proposal.text, "곡 섰다")
 
-    def test_orders_more_replacements_before_partial_candidates(self) -> None:
+    def test_keeps_full_restore_first_then_single_position_candidates(self) -> None:
         # Given
         provider = TensifyInverseProvider(max_candidates=3)
         text = "까싸"
@@ -45,6 +47,7 @@ class TensifyInverseProviderTest(unittest.TestCase):
                 ("tense_ratio", "1.000000"),
                 ("min_tense_syllables", "1"),
                 ("min_tense_ratio", "0.000000"),
+                ("diversify_from", "17"),
                 ("source_positions", "0,1"),
                 ("generator_version", TENSIFY_CANDIDATE_VERSION),
             ),
@@ -60,6 +63,50 @@ class TensifyInverseProviderTest(unittest.TestCase):
         # Then
         self.assertEqual(first, second)
         self.assertEqual(first, ["가다사", "가다싸"])
+
+    def test_spreads_long_sentence_budget_across_replacement_counts(self) -> None:
+        provider = TensifyInverseProvider(max_candidates=5, diversify_from=5)
+
+        proposals = list(provider.generate("까따빠싸짜"))
+        replacement_counts = [
+            int(dict(proposal.metadata)["replacement_count"])
+            for proposal in proposals
+        ]
+
+        self.assertEqual(replacement_counts, [5, 1, 4, 2, 3])
+
+    def test_creates_only_diverse_tier_iterators_that_budget_can_consume(self) -> None:
+        provider = TensifyInverseProvider(max_candidates=9)
+
+        with patch(
+            "k_safeguard.providers.tensify.combinations",
+            wraps=itertools_combinations,
+        ) as mocked_combinations:
+            proposals = list(provider.generate("까" * 100))
+
+        self.assertEqual(len(proposals), 9)
+        self.assertEqual(mocked_combinations.call_count, 8)
+
+    def test_diverse_branch_stops_after_exhausting_all_combinations(self) -> None:
+        provider = TensifyInverseProvider(max_candidates=9, diversify_from=2)
+
+        proposals = list(provider.generate("까싸"))
+
+        self.assertEqual(
+            [proposal.text for proposal in proposals],
+            ["가사", "가싸", "까사"],
+        )
+
+    def test_diverse_branch_preserves_mixed_text_and_isolated_jamo(self) -> None:
+        provider = TensifyInverseProvider(max_candidates=9)
+        text = "까!" * 8 + "API" + "까?" * 9 + " ㄲㅏ🙂"
+
+        proposals = list(provider.generate(text))
+
+        self.assertEqual(proposals[0].text, text.replace("까", "가"))
+        self.assertTrue(all("API" in proposal.text for proposal in proposals))
+        self.assertTrue(all(proposal.text.endswith(" ㄲㅏ🙂") for proposal in proposals))
+        self.assertIn(("total_hangul_syllables", "17"), proposals[0].metadata)
 
     def test_returns_no_candidate_without_tense_syllable(self) -> None:
         # Given
@@ -111,6 +158,9 @@ class TensifyInverseProviderTest(unittest.TestCase):
         # Given / When / Then: min_tense_ratio가 [0,1] 범위 밖
         with self.assertRaisesRegex(ValueError, "min_tense_ratio"):
             TensifyInverseProvider(min_tense_ratio=1.1)
+        # Given / When / Then: diversify threshold가 2 미만
+        with self.assertRaisesRegex(ValueError, "diversify_from"):
+            TensifyInverseProvider(diversify_from=1)
 
     def test_rejects_non_string_direct_call(self) -> None:
         # Given

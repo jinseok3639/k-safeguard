@@ -10,13 +10,14 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from k_safeguard.providers import (
+    DEFAULT_TENSIFY_DIVERSIFY_FROM,
     TENSIFY_CANDIDATE_VERSION,
     TensifyInverseProvider,
 )
 
 
 DEFAULT_INPUT = Path("hf_repo/benchmark.jsonl")
-DEFAULT_OUTPUT = Path("experiments/benchmark/baselines/tensify_inverse_v1.json")
+DEFAULT_OUTPUT = Path("build/tensify_inverse_v3.json")
 
 
 def parse_args() -> argparse.Namespace:
@@ -24,6 +25,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--max-candidates", type=int, default=9)
+    parser.add_argument(
+        "--diversify-from",
+        type=int,
+        default=DEFAULT_TENSIFY_DIVERSIFY_FROM,
+    )
     return parser.parse_args()
 
 
@@ -44,8 +50,12 @@ def observe_rows(
     rows: Iterable[dict[str, Any]],
     *,
     max_candidates: int,
+    diversify_from: int = DEFAULT_TENSIFY_DIVERSIFY_FROM,
 ) -> list[dict[str, Any]]:
-    provider = TensifyInverseProvider(max_candidates=max_candidates)
+    provider = TensifyInverseProvider(
+        max_candidates=max_candidates,
+        diversify_from=diversify_from,
+    )
     observations: list[dict[str, Any]] = []
     for row in rows:
         technique = row.get("technique")
@@ -140,10 +150,13 @@ def main() -> None:
     args = parse_args()
     if args.max_candidates < 1:
         raise ValueError("max-candidates는 1 이상이어야 합니다.")
+    if args.diversify_from < 2:
+        raise ValueError("diversify-from은 2 이상이어야 합니다.")
 
     observations = observe_rows(
         load_rows(args.input),
         max_candidates=args.max_candidates,
+        diversify_from=args.diversify_from,
     )
     summary = build_summary(observations)
     payload = {
@@ -153,7 +166,8 @@ def main() -> None:
             "name": TensifyInverseProvider.name,
             "version": TENSIFY_CANDIDATE_VERSION,
             "max_candidates": args.max_candidates,
-            "ordering": "replacement_count_desc_then_source_positions_asc",
+            "ordering": "legacy_descending_below_threshold_else_full_then_count_extremes_round_robin",
+            "diversify_from": args.diversify_from,
         },
         "scope": {
             "techniques": ["clean", "tensify"],
