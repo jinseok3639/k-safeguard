@@ -9,6 +9,9 @@ const worker = new Worker("./worker.js");
 const elements = {
   form: document.querySelector("#analysis-form"),
   input: document.querySelector("#input-text"),
+  inputInspector: document.querySelector("#input-inspector"),
+  inputKindSummary: document.querySelector("#input-kind-summary"),
+  inputVisual: document.querySelector("#input-visual"),
   count: document.querySelector("#character-count"),
   submit: document.querySelector("#analyze-button"),
   status: document.querySelector("#runtime-status"),
@@ -56,6 +59,53 @@ function updateCharacterCount() {
   const length = Array.from(elements.input.value).length;
   elements.count.textContent = `${length.toLocaleString()} / ${state.maxInputLength.toLocaleString()}`;
   elements.count.classList.toggle("over-limit", length > state.maxInputLength);
+}
+
+function isModernJamo(codePoint) {
+  return (
+    (codePoint >= 0x1100 && codePoint <= 0x11ff) ||
+    (codePoint >= 0xa960 && codePoint <= 0xa97f) ||
+    (codePoint >= 0xd7b0 && codePoint <= 0xd7ff)
+  );
+}
+
+function isCompatibilityJamo(codePoint) {
+  return codePoint >= 0x3130 && codePoint <= 0x318f;
+}
+
+function updateInputInspector() {
+  const characters = Array.from(elements.input.value);
+  let zwspCount = 0;
+  let modernJamoCount = 0;
+  let compatibilityJamoCount = 0;
+
+  const visual = characters.map((character) => {
+    const codePoint = character.codePointAt(0);
+    if (codePoint === 0x200b) {
+      zwspCount += 1;
+      return "⟦ZWSP⟧";
+    }
+    if (isModernJamo(codePoint)) {
+      modernJamoCount += 1;
+      return `⟦U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}⟧`;
+    }
+    if (isCompatibilityJamo(codePoint)) compatibilityJamoCount += 1;
+    return character;
+  }).join("");
+
+  const summary = [];
+  if (zwspCount) summary.push(`ZWSP ${zwspCount}개`);
+  if (modernJamoCount) summary.push(`조합형 자모 ${modernJamoCount}개`);
+  if (compatibilityJamoCount) summary.push(`호환 자모 ${compatibilityJamoCount}개`);
+
+  elements.inputInspector.hidden = summary.length === 0;
+  elements.inputKindSummary.textContent = summary.join(" · ");
+  elements.inputVisual.textContent = visual;
+}
+
+function updateInputDetails() {
+  updateCharacterCount();
+  updateInputInspector();
 }
 
 function showError(message) {
@@ -173,7 +223,7 @@ worker.onmessage = (event) => {
     elements.commit.textContent = manifest.commit.slice(0, 7);
     setStatus("브라우저에서 실행 준비 완료", "ready");
     setBusy(false);
-    updateCharacterCount();
+    updateInputDetails();
     return;
   }
   if (type === "result" && requestId === state.requestId) {
@@ -216,13 +266,19 @@ elements.form.addEventListener("submit", (event) => {
   });
 });
 
-elements.input.addEventListener("input", updateCharacterCount);
+elements.input.addEventListener("input", updateInputDetails);
 
 document.querySelectorAll("[data-example]").forEach((button) => {
   button.addEventListener("click", () => {
     elements.input.value = button.dataset.example;
+    const requestedPreset = button.dataset.preset || "safe";
+    const preset = document.querySelector(`input[name="preset"][value="${requestedPreset}"]`);
+    if (preset) {
+      preset.checked = true;
+      preset.dispatchEvent(new Event("change"));
+    }
     elements.input.focus();
-    updateCharacterCount();
+    updateInputDetails();
   });
 });
 
@@ -232,5 +288,5 @@ document.querySelectorAll('input[name="preset"]').forEach((input) => {
   });
 });
 
-updateCharacterCount();
+updateInputDetails();
 worker.postMessage({ type: "init" });

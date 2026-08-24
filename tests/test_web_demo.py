@@ -66,6 +66,9 @@ class WebDemoBuildTest(unittest.TestCase):
         required_ids = {
             "analysis-form",
             "input-text",
+            "input-inspector",
+            "input-kind-summary",
+            "input-visual",
             "character-count",
             "analyze-button",
             "runtime-status",
@@ -82,6 +85,41 @@ class WebDemoBuildTest(unittest.TestCase):
                 self.assertIn(f'#{element_id}', javascript)
         self.assertIn('<script src="./app.js" defer></script>', html)
         self.assertIn('new Worker("./worker.js")', javascript)
+
+    def test_static_ui_examples_use_real_special_characters(self) -> None:
+        root = Path(__file__).resolve().parents[1] / "web"
+        html = (root / "index.html").read_text(encoding="utf-8")
+        javascript = (root / "app.js").read_text(encoding="utf-8")
+
+        self.assertGreaterEqual(html.count("data-example="), 6)
+        self.assertIn('data-example="오\u200b늘 점\u200b심 같이 먹어요."', html)
+        self.assertIn('data-example="내일 만나요."', html)
+        self.assertIn('data-preset="experimental"', html)
+        self.assertIn('return "⟦ZWSP⟧"', javascript)
+        self.assertIn("isModernJamo(codePoint)", javascript)
+
+        safe_examples = {
+            "오늘 날씨가 좋네요.": "오늘 날씨가 좋네요.",
+            "ㅇㅗㄴㅡㄹ ㄴㅏㄹㅆㅣㄱㅏ ㅈㅗㅎㄴㅔㅇㅛ.": "오늘 날씨가 좋네요.",
+            "내일 만나요.": "내일 만나요.",
+            "오\u200b늘 점\u200b심 같이 먹어요.": "오늘 점심 같이 먹어요.",
+            "오늘 ㅎㅚㅇㅢ는 3시에 시작해요.": "오늘 회의는 3시에 시작해요.",
+        }
+        for example, expected in safe_examples.items():
+            with self.subTest(example=example):
+                self.assertIn(f'data-example="{example}"', html)
+                self.assertEqual(
+                    analyze_payload({"text": example, "preset": "safe"})["normalized"],
+                    expected,
+                )
+
+        experimental = analyze_payload(
+            {"text": "쎄계 여행을 가고 싶어요.", "preset": "experimental"}
+        )
+        candidates = [
+            view["text"] for view in experimental["views"] if view["kind"] == "candidate"
+        ]
+        self.assertIn("세계 여행을 가고 싶어요.", candidates)
 
     def test_builds_static_site_and_version_manifest(self) -> None:
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as temp:

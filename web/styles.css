@@ -87,6 +87,21 @@ textarea {
 textarea:focus { border-color: var(--accent); }
 textarea::placeholder { color: #909296; }
 
+.input-inspector {
+  margin-top: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  background: #f7f7f5;
+}
+.input-inspector span { display: block; color: var(--muted); font-size: 11px; }
+.input-inspector code {
+  display: block;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font: 11px/1.6 var(--mono);
+}
+
 .examples { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
 .examples > span { margin-right: 2px; color: var(--muted); font-size: 12px; }
 .examples button {

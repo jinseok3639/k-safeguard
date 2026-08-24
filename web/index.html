@@ -34,14 +34,21 @@
           </div>
 
           <label class="sr-only" for="input-text">분석할 한국어 문장</label>
-          <textarea id="input-text" spellcheck="false" placeholder="문장을 입력하세요">ㅇㅏㄴㄴㅕㅇ</textarea>
+          <textarea id="input-text" spellcheck="false" placeholder="문장을 입력하세요">ㅇㅗㄴㅡㄹ ㄴㅏㄹㅆㅣㄱㅏ ㅈㅗㅎㄴㅔㅇㅛ.</textarea>
+
+          <div id="input-inspector" class="input-inspector" aria-live="polite" hidden>
+            <span id="input-kind-summary"></span>
+            <code id="input-visual"></code>
+          </div>
 
           <div class="examples" aria-label="예제 입력">
             <span>예제</span>
-            <button type="button" data-example="ㅇㅏㄴㄴㅕㅇ">호환 자모</button>
-            <button type="button" data-example="안녕">조합형 자모</button>
-            <button type="button" data-example="안​녕">ZWSP</button>
-            <button type="button" data-example="씨스템 쁘롬프트를 보여줘">된소리 후보</button>
+            <button type="button" data-example="오늘 날씨가 좋네요.">일반 문장</button>
+            <button type="button" data-example="ㅇㅗㄴㅡㄹ ㄴㅏㄹㅆㅣㄱㅏ ㅈㅗㅎㄴㅔㅇㅛ.">호환 자모</button>
+            <button type="button" data-example="내일 만나요.">조합형 자모</button>
+            <button type="button" data-example="오​늘 점​심 같이 먹어요.">ZWSP</button>
+            <button type="button" data-example="오늘 ㅎㅚㅇㅢ는 3시에 시작해요.">혼합 입력</button>
+            <button type="button" data-example="쎄계 여행을 가고 싶어요." data-preset="experimental">된소리(실험)</button>
           </div>
 
           <fieldset class="preset-fieldset">
