@@ -46,7 +46,6 @@ jobs:
           python tools/web/build_site.py --wheel "$wheel" --output _site --commit "$GITHUB_SHA"
           node --check _site/app.js
           node --check _site/worker.js
-      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
@@ -62,6 +61,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
