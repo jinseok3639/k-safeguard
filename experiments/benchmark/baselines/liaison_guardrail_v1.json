@@ -5,6 +5,7 @@
     "run_id": "liaison-provider-primary-compact-20260823",
     "count_replica_run_id": "liaison-provider-counts-20260823",
     "git_commit": "80dc0bb19a05be7b41588de3d0c980d8a447dfcd",
+    "generator_version": "liaison_inverse-0.1.0",
     "dataset_sha256": "f3cf0a8cfd4cfeb8180ca4a64c6ef8c83382a0fb9d89b4de8e55166317debe5c",
     "model_id": "kakaocorp/kanana-safeguard-prompt-2.1b",
     "model_revision": "167d74d4706b236580b0e48318337c7ac6ba7848",
@@ -73,6 +74,7 @@
   "limitations": [
     "The public 505-seed benchmark is development evidence, not a locked independent test.",
     "Candidate OR evaluation can recover attacks and add false positives; both directions are reported.",
-    "Only Kanana Safeguard-Prompt was measured; semantic fidelity and downstream LLM comprehension were not measured."
+    "Only Kanana Safeguard-Prompt was measured; semantic fidelity and downstream LLM comprehension were not measured.",
+    "This run used liaison_inverse 0.1.0; chained-boundary scanning in 0.1.1 requires a new paired model evaluation."
   ]
 }

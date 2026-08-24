@@ -26,24 +26,32 @@ class LiaisonInverseProviderTest(unittest.TestCase):
         self.assertEqual(proposal.text, "꽃이")
 
     def test_orders_single_pair_candidates_before_combinations(self) -> None:
-        provider = LiaisonInverseProvider(max_candidates=3)
+        provider = LiaisonInverseProvider(max_candidates=4)
 
         proposals = list(provider.generate("가나다라"))
 
         self.assertEqual(
             [proposal.text for proposal in proposals],
-            ["간아다라", "가나달아", "간아달아"],
+            ["간아다라", "가나달아", "가낟아라", "간아달아"],
         )
         self.assertEqual(
             proposals[0].metadata,
             (
                 ("replacement_count", "1"),
-                ("candidate_pairs", "2"),
+                ("candidate_pairs", "3"),
                 ("min_pairs", "1"),
                 ("source_positions", "0"),
                 ("generator_version", LIAISON_CANDIDATE_VERSION),
             ),
         )
+
+    def test_reaches_each_boundary_without_combining_overlaps(self) -> None:
+        provider = LiaisonInverseProvider(max_candidates=1000)
+
+        proposals = list(provider.generate("가머글게"))
+
+        self.assertIn("가먹을게", [proposal.text for proposal in proposals])
+        self.assertEqual(len(proposals), 2)
 
     def test_preserves_vowels_and_right_final(self) -> None:
         provider = LiaisonInverseProvider(max_candidates=1)

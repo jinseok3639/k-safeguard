@@ -126,10 +126,12 @@ def evaluate(
             )
             by_limit[str(limit)] = {
                 "exact_hits": exact_hits,
-                "changed_rows": len(changed),
                 "exact_hit_rate": exact_hits / len(changed) if changed else None,
             }
-        result[technique] = {"by_candidate_limit": by_limit}
+        result[technique] = {
+            "changed_rows": len(changed),
+            "by_candidate_limit": by_limit,
+        }
     return result
 
 

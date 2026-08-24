@@ -8,7 +8,7 @@ from typing import Iterator
 from ..gateway import CandidateProposal
 
 
-LIAISON_CANDIDATE_VERSION = "0.1.0"
+LIAISON_CANDIDATE_VERSION = "0.1.1"
 _HANGUL_BASE = 0xAC00
 _HANGUL_END = 0xD7A3
 _SYLLABLES_PER_INITIAL = 21 * 28
@@ -51,8 +51,7 @@ def _join_syllable(initial: int, medial: int, final: int) -> str:
 
 def _candidate_positions(text: str) -> tuple[int, ...]:
     positions: list[int] = []
-    index = 0
-    while index + 1 < len(text):
+    for index in range(len(text) - 1):
         left, right = text[index], text[index + 1]
         if (
             _HANGUL_BASE <= ord(left) <= _HANGUL_END
@@ -62,10 +61,25 @@ def _candidate_positions(text: str) -> tuple[int, ...]:
             right_initial, _, _ = _split_syllable(right)
             if left_final == 0 and right_initial in _INITIAL_TO_FINAL:
                 positions.append(index)
-                index += 2
-                continue
-        index += 1
-    return tuple(positions)
+
+    # Preserve the previous greedy scan's candidates first, then consider the
+    # boundaries it skipped. This keeps common-case ordering stable while making
+    # every single boundary reachable for chained liaison spellings.
+    primary: list[int] = []
+    deferred: list[int] = []
+    for index in positions:
+        if primary and index == primary[-1] + 1:
+            deferred.append(index)
+        else:
+            primary.append(index)
+    return tuple(primary + deferred)
+
+
+def _positions_do_not_overlap(positions: tuple[int, ...]) -> bool:
+    return all(
+        abs(left - right) > 1
+        for left, right in combinations(positions, 2)
+    )
 
 
 def _reverse_liaison(text: str, positions: tuple[int, ...]) -> str:
@@ -113,8 +127,11 @@ class LiaisonInverseProvider:
             return
 
         emitted = 0
-        for replacement_count in range(1, len(positions) + 1):
+        max_non_overlapping = (len(positions) + 1) // 2
+        for replacement_count in range(1, max_non_overlapping + 1):
             for selected in combinations(positions, replacement_count):
+                if not _positions_do_not_overlap(selected):
+                    continue
                 yield CandidateProposal(
                     text=_reverse_liaison(text, selected),
                     lossy=True,

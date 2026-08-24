@@ -4,6 +4,7 @@
   "source": {
     "git_commit": "5875620b3b6f65547fe22296f1c4dbed7a733335",
     "generator_commit": "63bc98d",
+    "generator_version": "liaison_inverse-0.1.1",
     "dataset_sha256": "f3cf0a8cfd4cfeb8180ca4a64c6ef8c83382a0fb9d89b4de8e55166317debe5c",
     "target_leakage": false
   },
@@ -35,9 +36,9 @@
       "changed_rows": 599,
       "by_candidate_limit": {
         "1": {"exact_hits": 12, "exact_hit_rate": 0.02003338898163606},
-        "3": {"exact_hits": 91, "exact_hit_rate": 0.15191986644407346},
-        "9": {"exact_hits": 224, "exact_hit_rate": 0.3739565943238731},
-        "32": {"exact_hits": 284, "exact_hit_rate": 0.4741235392320534}
+        "3": {"exact_hits": 101, "exact_hit_rate": 0.1686143572621035},
+        "9": {"exact_hits": 333, "exact_hit_rate": 0.5559265442404007},
+        "32": {"exact_hits": 495, "exact_hit_rate": 0.8263772954924875}
       }
     }
   },

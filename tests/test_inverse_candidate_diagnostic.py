@@ -44,7 +44,7 @@ class InverseCandidateDiagnosticTest(unittest.TestCase):
 
         for technique in ("final_insertion", "final_near_sound", "liaison"):
             metric = result[technique]["by_candidate_limit"]["9"]
-            self.assertEqual(metric["changed_rows"], 1)
+            self.assertEqual(result[technique]["changed_rows"], 1)
             self.assertEqual(metric["exact_hits"], 1)
             self.assertEqual(metric["exact_hit_rate"], 1.0)
 
