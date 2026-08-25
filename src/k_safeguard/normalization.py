@@ -30,6 +30,19 @@ COMPAT_JONG = (
 _COMPAT_CHO_INDEX = {char: index for index, char in enumerate(COMPAT_CHO)}
 _COMPAT_JUNG_INDEX = {char: index for index, char in enumerate(COMPAT_JUNG)}
 _COMPAT_JONG_INDEX = {char: index for index, char in enumerate(COMPAT_JONG) if char}
+_COMPAT_COMPOUND_JONG_INDEX = {
+    ("ㄱ", "ㅅ"): _COMPAT_JONG_INDEX["ㄳ"],
+    ("ㄴ", "ㅈ"): _COMPAT_JONG_INDEX["ㄵ"],
+    ("ㄴ", "ㅎ"): _COMPAT_JONG_INDEX["ㄶ"],
+    ("ㄹ", "ㄱ"): _COMPAT_JONG_INDEX["ㄺ"],
+    ("ㄹ", "ㅁ"): _COMPAT_JONG_INDEX["ㄻ"],
+    ("ㄹ", "ㅂ"): _COMPAT_JONG_INDEX["ㄼ"],
+    ("ㄹ", "ㅅ"): _COMPAT_JONG_INDEX["ㄽ"],
+    ("ㄹ", "ㅌ"): _COMPAT_JONG_INDEX["ㄾ"],
+    ("ㄹ", "ㅍ"): _COMPAT_JONG_INDEX["ㄿ"],
+    ("ㄹ", "ㅎ"): _COMPAT_JONG_INDEX["ㅀ"],
+    ("ㅂ", "ㅅ"): _COMPAT_JONG_INDEX["ㅄ"],
+}
 
 
 @dataclass(frozen=True)
@@ -94,6 +107,7 @@ def _make_edit(
 def _remove_hangul_zwsp(
     units: list[_Unit],
 ) -> tuple[list[_Unit], list[NormalizationEdit]]:
+    """한글·자모에 인접한 U+200B만 제거하고 다른 format 문자는 보존한다."""
     output: list[_Unit] = []
     edits: list[NormalizationEdit] = []
     removed_run: list[_Unit] = []
@@ -209,15 +223,32 @@ def _compose_compat_jamo(
             candidate_index = index + 2
             if candidate_index < len(units):
                 candidate = units[candidate_index].char
-                candidate_jong = _COMPAT_JONG_INDEX.get(candidate)
-                followed_by_vowel = (
-                    candidate in _COMPAT_CHO_INDEX
-                    and candidate_index + 1 < len(units)
-                    and units[candidate_index + 1].char in _COMPAT_JUNG_INDEX
+                next_index = candidate_index + 1
+                compound_jong = (
+                    _COMPAT_COMPOUND_JONG_INDEX.get(
+                        (candidate, units[next_index].char)
+                    )
+                    if next_index < len(units)
+                    else None
                 )
-                if candidate_jong is not None and not followed_by_vowel:
-                    jongseong_index = candidate_jong
-                    consumed = 3
+                compound_followed_by_vowel = (
+                    compound_jong is not None
+                    and next_index + 1 < len(units)
+                    and units[next_index + 1].char in _COMPAT_JUNG_INDEX
+                )
+                if compound_jong is not None and not compound_followed_by_vowel:
+                    jongseong_index = compound_jong
+                    consumed = 4
+                else:
+                    candidate_jong = _COMPAT_JONG_INDEX.get(candidate)
+                    followed_by_vowel = (
+                        candidate in _COMPAT_CHO_INDEX
+                        and next_index < len(units)
+                        and units[next_index].char in _COMPAT_JUNG_INDEX
+                    )
+                    if candidate_jong is not None and not followed_by_vowel:
+                        jongseong_index = candidate_jong
+                        consumed = 3
             syllable = chr(
                 HANGUL_BASE
                 + choseong_index * 21 * 28

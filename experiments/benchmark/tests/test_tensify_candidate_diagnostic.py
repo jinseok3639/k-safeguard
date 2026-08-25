@@ -1,12 +1,17 @@
 import unittest
+from pathlib import Path
 
 from experiments.benchmark.run_tensify_candidate_diagnostic import (
+    DEFAULT_OUTPUT,
     build_summary,
     observe_rows,
 )
 
 
 class TensifyCandidateDiagnosticTest(unittest.TestCase):
+    def test_default_output_does_not_overwrite_historical_baseline(self) -> None:
+        self.assertEqual(DEFAULT_OUTPUT, Path("build/tensify_inverse_v3.json"))
+
     def test_observes_exact_rank_and_clean_candidate_cost(self) -> None:
         rows = [
             {
