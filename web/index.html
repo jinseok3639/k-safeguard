@@ -48,26 +48,8 @@
             <button type="button" data-example="내일 만나요.">조합형 자모</button>
             <button type="button" data-example="오​늘 점​심 같이 먹어요.">ZWSP</button>
             <button type="button" data-example="오늘 ㅎㅚㅇㅢ는 3시에 시작해요.">혼합 입력</button>
-            <button type="button" data-example="쎄계 여행을 가고 싶어요." data-preset="experimental">된소리(실험)</button>
+            <button type="button" data-example="API ㅌㅔㅅㅡㅌㅡ를 시작해요.">코드스위칭</button>
           </div>
-
-          <fieldset class="preset-fieldset">
-            <legend>모드</legend>
-            <div class="segmented-control">
-              <label>
-                <input type="radio" name="preset" value="safe" checked />
-                <span><strong>안전</strong><small>무손실 규칙</small></span>
-              </label>
-              <label>
-                <input type="radio" name="preset" value="experimental" />
-                <span><strong>실험</strong><small>된소리 후보 포함</small></span>
-              </label>
-            </div>
-          </fieldset>
-
-          <p id="experimental-note" class="experimental-note" hidden>
-            실험 모드는 문맥상 틀린 결과를 만들 수 있습니다.
-          </p>
 
           <button id="analyze-button" class="primary-button" type="submit" disabled>
             <span>런타임 준비 중</span><span aria-hidden="true">→</span>
@@ -91,7 +73,6 @@
           <div id="result-content" hidden>
             <div class="metrics-grid">
               <article><span>처리 시간</span><strong id="metric-duration">—</strong></article>
-              <article><span>View</span><strong id="metric-views">—</strong></article>
               <article><span>변경</span><strong id="metric-edits">—</strong></article>
               <article><span>상한 도달</span><strong id="metric-truncated">—</strong></article>
             </div>
@@ -116,10 +97,6 @@
               <div id="edits-list" class="edits-list"></div>
             </section>
 
-            <section class="detail-section">
-              <h3>Gateway views</h3>
-              <div id="views-list" class="views-list"></div>
-            </section>
           </div>
         </section>
       </section>

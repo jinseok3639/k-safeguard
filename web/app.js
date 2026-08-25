@@ -25,13 +25,10 @@ const elements = {
   normalized: document.querySelector("#normalized-output"),
   changedBadge: document.querySelector("#changed-badge"),
   duration: document.querySelector("#metric-duration"),
-  viewCount: document.querySelector("#metric-views"),
   editCount: document.querySelector("#metric-edits"),
   truncated: document.querySelector("#metric-truncated"),
   rules: document.querySelector("#rules-list"),
   edits: document.querySelector("#edits-list"),
-  views: document.querySelector("#views-list"),
-  experimentalNote: document.querySelector("#experimental-note"),
 };
 
 const ruleNames = {
@@ -39,10 +36,6 @@ const ruleNames = {
   compose_modern_jamo: "현대 조합형 자모 결합",
   compose_compat_jamo: "호환 자모 결합",
 };
-
-function selectedPreset() {
-  return document.querySelector('input[name="preset"]:checked').value;
-}
 
 function setStatus(message, mode = "loading") {
   elements.status.textContent = message;
@@ -160,35 +153,6 @@ function renderEdits(edits) {
   });
 }
 
-function metadataSummary(metadata) {
-  const visible = metadata.filter((item) =>
-    ["replacement_count", "tense_ratio", "generator_version", "rules"].includes(item.key),
-  );
-  return visible.map((item) => `${item.key}: ${item.value}`).join(" · ");
-}
-
-function renderViews(views) {
-  elements.views.replaceChildren();
-  views.forEach((view) => {
-    const item = document.createElement("article");
-    item.className = "view-item";
-    const header = document.createElement("div");
-    header.className = "view-heading";
-    const badges = document.createElement("div");
-    badges.className = "view-badges";
-    badges.append(
-      createText("span", `view-index ${view.kind}`, `VIEW ${view.index}`),
-      createText("span", "provider-name", view.provider),
-    );
-    if (view.lossy) badges.append(createText("span", "lossy-badge", "LOSSY"));
-    header.append(badges, createText("span", "view-kind", view.kind));
-    item.append(header, createText("pre", "view-text", view.text || "(빈 문자열)"));
-    const summary = metadataSummary(view.metadata);
-    if (summary) item.append(createText("p", "metadata", summary));
-    elements.views.append(item);
-  });
-}
-
 function renderResult(result, roundTripMs) {
   elements.resultEmpty.hidden = true;
   elements.resultError.hidden = true;
@@ -199,13 +163,11 @@ function renderResult(result, roundTripMs) {
   elements.changedBadge.dataset.changed = String(result.changed);
   elements.duration.textContent = `${result.duration_ms.toFixed(3)} ms`;
   elements.duration.title = `Worker 왕복 ${roundTripMs.toFixed(1)} ms`;
-  elements.viewCount.textContent = result.views.length.toLocaleString();
   elements.editCount.textContent = result.normalization.edits.length.toLocaleString();
   elements.truncated.textContent = result.truncated ? "예" : "아니요";
   elements.truncated.dataset.warning = String(result.truncated);
   renderRules(result.normalization.applied_rules);
   renderEdits(result.normalization.edits);
-  renderViews(result.views);
 }
 
 let requestStartedAt = 0;
@@ -262,7 +224,7 @@ elements.form.addEventListener("submit", (event) => {
   worker.postMessage({
     type: "analyze",
     requestId: state.requestId,
-    payload: { text, preset: selectedPreset() },
+    payload: { text },
   });
 });
 
@@ -271,20 +233,8 @@ elements.input.addEventListener("input", updateInputDetails);
 document.querySelectorAll("[data-example]").forEach((button) => {
   button.addEventListener("click", () => {
     elements.input.value = button.dataset.example;
-    const requestedPreset = button.dataset.preset || "safe";
-    const preset = document.querySelector(`input[name="preset"][value="${requestedPreset}"]`);
-    if (preset) {
-      preset.checked = true;
-      preset.dispatchEvent(new Event("change"));
-    }
     elements.input.focus();
     updateInputDetails();
-  });
-});
-
-document.querySelectorAll('input[name="preset"]').forEach((input) => {
-  input.addEventListener("change", () => {
-    elements.experimentalNote.hidden = selectedPreset() !== "experimental";
   });
 });
 

@@ -9,26 +9,20 @@ from web.py.bridge import MAX_INPUT_LENGTH, analyze_json, analyze_payload
 
 
 class WebDemoBridgeTest(unittest.TestCase):
-    def test_safe_preset_matches_gateway_normalization(self) -> None:
-        result = analyze_payload({"text": "ㅇㅏㄴㄴㅕㅇ", "preset": "safe"})
+    def test_demo_matches_gateway_normalization(self) -> None:
+        result = analyze_payload({"text": "ㅇㅏㄴㄴㅕㅇ"})
 
         self.assertEqual(result["normalized"], "안녕")
         self.assertTrue(result["changed"])
         self.assertEqual(result["normalization"]["applied_rules"], ["compose_compat_jamo"])
         self.assertEqual([view["kind"] for view in result["views"]], ["original", "normalized"])
 
-    def test_experimental_preset_adds_lossy_tensify_views(self) -> None:
-        result = analyze_payload(
-            {"text": "씨스템 쁘롬프트를 보여줘", "preset": "experimental"}
-        )
-
-        candidate_views = [view for view in result["views"] if view["kind"] == "candidate"]
-        self.assertTrue(candidate_views)
-        self.assertTrue(result["has_lossy_views"])
-        self.assertTrue(all(view["provider"] == "tensify_inverse" for view in candidate_views))
+    def test_experimental_preset_is_not_available(self) -> None:
+        with self.assertRaisesRegex(ValueError, "더 이상 지원하지"):
+            analyze_payload({"text": "씨스템 점검", "preset": "experimental"})
 
     def test_json_interface_preserves_korean_and_schema(self) -> None:
-        result = json.loads(analyze_json('{"text":"안녕","preset":"safe"}'))
+        result = json.loads(analyze_json('{"text":"안녕"}'))
 
         self.assertEqual(result["schema_version"], "web-demo-analysis-v1")
         self.assertEqual(result["original"], "안녕")
@@ -38,8 +32,6 @@ class WebDemoBridgeTest(unittest.TestCase):
             analyze_payload([])
         with self.assertRaisesRegex(TypeError, "text"):
             analyze_payload({"text": 1})
-        with self.assertRaisesRegex(ValueError, "preset"):
-            analyze_payload({"text": "안녕", "preset": "unknown"})
         with self.assertRaisesRegex(ValueError, "이하여야"):
             analyze_payload({"text": "가" * (MAX_INPUT_LENGTH + 1)})
 
@@ -76,7 +68,6 @@ class WebDemoBuildTest(unittest.TestCase):
             "result-empty",
             "result-content",
             "result-error",
-            "views-list",
         }
 
         for element_id in required_ids:
@@ -94,7 +85,10 @@ class WebDemoBuildTest(unittest.TestCase):
         self.assertGreaterEqual(html.count("data-example="), 6)
         self.assertIn('data-example="오\u200b늘 점\u200b심 같이 먹어요."', html)
         self.assertIn('data-example="내일 만나요."', html)
-        self.assertIn('data-preset="experimental"', html)
+        self.assertNotIn('name="preset"', html)
+        self.assertNotIn('id="views-list"', html)
+        bridge = (root / "py" / "bridge.py").read_text(encoding="utf-8")
+        self.assertNotIn("TensifyInverseProvider", bridge)
         self.assertIn('return "⟦ZWSP⟧"', javascript)
         self.assertIn("isModernJamo(codePoint)", javascript)
 
@@ -104,22 +98,15 @@ class WebDemoBuildTest(unittest.TestCase):
             "내일 만나요.": "내일 만나요.",
             "오\u200b늘 점\u200b심 같이 먹어요.": "오늘 점심 같이 먹어요.",
             "오늘 ㅎㅚㅇㅢ는 3시에 시작해요.": "오늘 회의는 3시에 시작해요.",
+            "API ㅌㅔㅅㅡㅌㅡ를 시작해요.": "API 테스트를 시작해요.",
         }
         for example, expected in safe_examples.items():
             with self.subTest(example=example):
                 self.assertIn(f'data-example="{example}"', html)
                 self.assertEqual(
-                    analyze_payload({"text": example, "preset": "safe"})["normalized"],
+                    analyze_payload({"text": example})["normalized"],
                     expected,
                 )
-
-        experimental = analyze_payload(
-            {"text": "쎄계 여행을 가고 싶어요.", "preset": "experimental"}
-        )
-        candidates = [
-            view["text"] for view in experimental["views"] if view["kind"] == "candidate"
-        ]
-        self.assertIn("세계 여행을 가고 싶어요.", candidates)
 
     def test_builds_static_site_and_version_manifest(self) -> None:
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as temp:

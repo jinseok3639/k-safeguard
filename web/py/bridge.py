@@ -9,12 +9,10 @@ from typing import Any
 
 from k_safeguard import Gateway
 from k_safeguard.normalization import NORMALIZER_VERSION
-from k_safeguard.providers import TensifyInverseProvider
 
 
 BRIDGE_SCHEMA_VERSION = "web-demo-analysis-v1"
 MAX_INPUT_LENGTH = 1_000
-PRESETS = ("safe", "experimental")
 
 
 def _package_version() -> str:
@@ -28,43 +26,32 @@ def _metadata(items: tuple[tuple[str, str], ...]) -> list[dict[str, str]]:
     return [{"key": key, "value": value} for key, value in items]
 
 
-def _validate_payload(payload: object) -> tuple[str, str]:
+def _validate_payload(payload: object) -> str:
     if not isinstance(payload, dict):
         raise TypeError("요청은 JSON object여야 합니다.")
 
     text = payload.get("text")
-    preset = payload.get("preset", "safe")
     if not isinstance(text, str):
         raise TypeError("text는 문자열이어야 합니다.")
     if len(text) > MAX_INPUT_LENGTH:
         raise ValueError(f"입력은 {MAX_INPUT_LENGTH:,}자 이하여야 합니다.")
-    if preset not in PRESETS:
-        raise ValueError(f"preset은 {', '.join(PRESETS)} 중 하나여야 합니다.")
-    return text, preset
+    if "preset" in payload:
+        raise ValueError("preset은 더 이상 지원하지 않습니다.")
+    return text
 
 
 def analyze_payload(payload: object) -> dict[str, Any]:
-    """Run the selected demo preset and return a JSON-serializable trace."""
+    """Run the safe default pipeline and return a JSON-serializable trace."""
 
-    text, preset = _validate_payload(payload)
-    providers = ()
-    if preset == "experimental":
-        providers = (
-            TensifyInverseProvider(
-                max_candidates=8,
-                min_tense_ratio=0.10,
-            ),
-        )
-
+    text = _validate_payload(payload)
     started = perf_counter_ns()
-    result = Gateway(providers=providers, max_views=10).process(text)
+    result = Gateway().process(text)
     duration_ms = (perf_counter_ns() - started) / 1_000_000
 
     return {
         "schema_version": BRIDGE_SCHEMA_VERSION,
         "package_version": _package_version(),
         "normalizer_version": NORMALIZER_VERSION,
-        "preset": preset,
         "duration_ms": duration_ms,
         "input_length": len(text),
         "original": result.original,
@@ -124,7 +111,6 @@ def runtime_metadata_json() -> str:
             "package_version": _package_version(),
             "normalizer_version": NORMALIZER_VERSION,
             "max_input_length": MAX_INPUT_LENGTH,
-            "presets": list(PRESETS),
         },
         ensure_ascii=False,
     )
