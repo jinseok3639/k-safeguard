@@ -9,7 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
-from k_safeguard.providers import (
+from k_safeguard.providers.tensify import (
     DEFAULT_TENSIFY_DIVERSIFY_FROM,
     TENSIFY_CANDIDATE_VERSION,
     TensifyInverseProvider,

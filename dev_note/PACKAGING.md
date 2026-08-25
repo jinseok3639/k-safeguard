@@ -7,12 +7,12 @@ distribution 이름은 `k-safeguard`, Python import 이름은 `k_safeguard`다.
 
 | 설치 | 포함 | 기본 활성화 |
 |---|---|---|
-| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 primitive, `TensifyInverseProvider`(된소리 역변형, 무의존) | 무손실 core만 |
-| `k-safeguard[wordfreq]` | `wordfreq` 기반 실험적 초성 provider | 아니요, 명시적 주입 필요 |
+| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 진단 primitive | 무손실 core만 |
+| `k-safeguard[wordfreq]` | 과거 초성 후보 실험 재현용 `wordfreq` | 배포 API에서 사용하지 않음 |
 | 외부 provider | 형태소 분석기, 로컬·원격 복원기, 사용자 사전 | 사용자 정책에 따름 |
 
-`TensifyInverseProvider`는 core wheel에 포함되지만 opt-in provider라 기본 Gateway에 자동 연결되지
-않는다. 추가 dependency 없이 `Gateway(providers=[TensifyInverseProvider(...)])`로 주입한다.
+초성·된소리 다중 view provider는 공개 API에서 제거했다. 구현 모듈은 기존 실험을 재현하기 위해
+wheel에 남아 있지만 배포 Gateway 구성으로 지원하지 않는다.
 
 기본 wheel은 외부 런타임 dependency가 0개다. `torch`, `transformers`, 가드레일 모델과 복원 모델은
 프로젝트 평가 환경 또는 사용자가 선택한 별도 provider에 속하며 패키지 dependency로 선언하지 않는다.
@@ -27,18 +27,9 @@ result = Gateway().process("ㅇㅏㄴㄴㅕㅇ")
 ```
 
 `GatewayResult.views`의 첫 항목은 항상 원문이다. 무손실 정규화가 실제로 바뀐 경우 두 번째 view로
-추가된다. 후보 provider는 opt-in이며 모든 후보에는 provider, `lossy`, confidence와 metadata가 붙는다.
-기본 `max_views`는 10이며 원문·무손실 정규화문·모든 provider 후보를 합친 총 예산이다. 개발
-benchmark에서 16과 같은 방어 지표를 유지한 최소 관측 예산이며, 서비스 요구에 따라 명시적으로
-재정의할 수 있다.
-
-```python
-from k_safeguard import ChosungLexicon, Gateway
-from k_safeguard.providers import ChosungLexiconProvider
-
-provider = ChosungLexiconProvider(ChosungLexicon(["시스템", "산사태"]))
-result = Gateway(providers=[provider]).process("ㅅㅅㅌ 점검")
-```
+추가된다. 외부 candidate provider를 직접 구현하면 모든 후보에 provider, `lossy`, confidence와
+metadata가 붙는다. 기본 `max_views`는 10이며 원문·무손실 정규화문·외부 provider 후보를 합친
+총 예산이다. 초성·된소리 내장 provider는 이 공개 확장 경로에 포함되지 않는다.
 
 provider 오류는 기본적으로 `provider_errors`에 기록하고 원문·무손실 view를 반환한다. 배포 정책상
 오류를 즉시 전파해야 하면 `strict_providers=True`를 사용한다.

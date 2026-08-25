@@ -72,9 +72,9 @@ output = "coverage.xml"
 [tool.mutmut]
 # providers/__init__.py, k_safeguard/__init__.py는 실제로 mutate할 분기가
 # 없지만, mutmut이 만드는 mutants/ 복사 패키지 트리에서 빠지면
-# `from k_safeguard.providers import ChosungLexiconProvider` 같은 re-export
-# import가 깨져 baseline 테스트 수집 단계에서 ImportError가 난다 — 그래서
-# 목록에 함께 포함한다. providers/wordfreq.py만 coverage omit과 동일한
+# 내부 실험 provider가 import하는 패키지 초기화 파일이 복사 트리에서 빠지면
+# baseline 테스트 수집 단계에서 ImportError가 난다 — 그래서 목록에 함께 포함한다.
+# providers/wordfreq.py만 coverage omit과 동일한
 # 기준(실험적 opt-in 의존성)으로 제외한다.
 source_paths = [
   "src/k_safeguard/__init__.py",

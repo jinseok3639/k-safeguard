@@ -1,5 +1,8 @@
 # 된소리 역변형 후보 진단
 
+> 상태: 연구 재현 전용. 2026-08-25 결정으로 된소리 다중 view provider는 공개 API에서 제거했다.
+> 내부 구현과 아래 결과는 기존 실험을 재현하기 위해 보존한다.
+
 > 기준선: [`baselines/tensify_inverse_v1.json`](./baselines/tensify_inverse_v1.json)
 >
 > historical baseline generator: `tensify_inverse` 0.1.0
@@ -14,7 +17,7 @@
 
 전체 정규화 평가에서 `tensify` 강도 1.0 공격의 raw block rate가 A1 10.31%, A2 20.56%로
 가장 낮았다. 평음 초성을 경음 초성으로 바꾼 입력을 원문 하나로 확정하는 것은 불가능하므로,
-기본 무손실 정규화기는 유지하고 원문과 함께 검사할 bounded 후보 provider를 진단했다.
+기본 무손실 정규화기는 유지하고 원문과 함께 검사하는 bounded 후보 방식을 과거 실험에서 진단했다.
 
 ## 후보 정책
 
@@ -27,9 +30,11 @@
 - 원문은 항상 보존하며 모든 후보를 `lossy=True`, `confidence=None`으로 표시한다.
 - 외부 사전, 형태소 분석기, Torch와 모델 가중치가 필요 없다.
 
-provider 0.2.0부터 다음 조건을 선택적으로 설정할 수 있다.
+과거 provider 0.2.0부터 다음 조건을 선택적으로 설정했다.
 
 ```python
+from k_safeguard.providers.tensify import TensifyInverseProvider
+
 TensifyInverseProvider(
     max_candidates=9,
     min_tense_syllables=1,

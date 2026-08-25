@@ -41,6 +41,7 @@
 - 2026-08 시드 데이터셋: 505 시드(공격 301/정상 204) → 파생 5,555행, HF `kimchunsik03/KoreanGuardrail`, 데이터 CC-BY-4.0
 - 2026-08 SLM 파인튜닝 노선 폐기. 규칙 기반 무손실 정규화 + opt-in 후보 provider로 확정. "모델 재학습 없이"가 프로젝트의 핵심 주장이므로 재론하지 않는다
 - 2026-08 lossy provider(초성·된소리)는 기본 비활성 유지. 근거는 `experiments/benchmark/TENSIFY_LOCKED_RESULT.md`, `CHOSUNG_GUARDRAIL_IMPACT.md`
+- 2026-08-25 초성·된소리 다중 view provider는 배포 공개 API에서 제거. 기존 후보 구현은 과거 실험 재현용 내부 모듈로만 보존하며 Gateway 권장 경로에 연결하지 않는다
 - (미결) 평가 규격(`EVALUATION_SPEC.md`)의 주력 트랙 재정의 — GitHub Issue "EVALUATION_SPEC.md 0.2.0 개정 필요" 참고. 결정되면 여기에 한 줄 추가
 
 <!-- SLM 항목: "모델 재학습 없이"가 한 줄 요약의 핵심 주장이므로 파인튜닝 노선이 다시 거론되면 이 줄을 먼저 보여준다 -->
@@ -90,7 +91,7 @@
 ## 패키지 불변식
 
 - 원문 view는 항상 첫 번째로 보존한다.
-- 기본 Gateway 경로는 무손실 정규화만 연결한다. lossy provider(초성·된소리 등)는 명시적으로 주입해야 한다.
+- 기본 Gateway 경로는 무손실 정규화만 연결한다. 초성·된소리 다중 view provider는 공개 배포 경로에 제공하지 않는다.
 - 전역 Unicode NFC를 적용하지 않는다. 현대 한글 자모열만 조합해 코드스위칭·이모지 ZWJ를 보존한다.
 - 새 정규화·후보 생성 규칙에는 경계 케이스 테스트(빈 입력, 문장부호, 한영 혼용, 독립 자모)를 추가한다.
 

@@ -24,10 +24,9 @@
 - U+200C ZWNJ, U+200D ZWJ, U+2060 WORD JOINER, U+FEFF BOM, U+00AD SOFT HYPHEN
   (한글·자모 사이에 있어도 원문 그대로 보존)
 
-초성체의 opt-in 다중 후보 생성기는 [`CHOSUNG_CANDIDATES.md`](./CHOSUNG_CANDIDATES.md)를 참고한다.
-된소리화의 opt-in bounded 역변형 후보는
-[`TENSIFY_CANDIDATES.md`](../experiments/benchmark/TENSIFY_CANDIDATES.md)를 참고한다.
-기본 `normalize_korean()`에는 연결하지 않아 무손실 동작과 clean mutation 0% 경계를 유지한다.
+초성체·된소리의 다중 후보 provider는 복원율과 오탐 평가 결과를 근거로 공개 API에서 제거했다.
+기존 후보 생성 구현과 결과 문서는 과거 실험 재현용으로만 보존한다. 배포 `Gateway`와
+`normalize_korean()`은 두 변형을 바꾸거나 여러 복원 view로 확장하지 않는다.
 
 ## 사용법
 
