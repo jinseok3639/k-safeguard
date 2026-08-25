@@ -117,11 +117,15 @@ view 목록 ──▶ 기존 가드레일(그대로) ──▶ OR 집계 ──�
 
 | rule ID | 처리 대상 | 정책 |
 |---|---|---|
-| `remove_hangul_zwsp` | 한글·자모와 인접한 U+200B | 해당 문자만 제거 |
+| `remove_hangul_zwsp` | 한글·자모와 인접한 U+200B ZERO WIDTH SPACE | U+200B만 제거 |
 | `compose_modern_jamo` | `안` 같은 현대 조합형 자모열 | 음절로 조합 |
 | `compose_compat_jamo` | `ㅇㅏㄴ` 같은 호환 자모열 | 모음 경계 확인 후 조합 |
 
-전역 NFC를 적용하지 않고 현대 한글 자모열만 조합한다. 그래서 emoji ZWJ, 결합문자, 한영 코드스위칭 입력을 임의로 훼손하지 않는다. 자세한 내용은 [정규화기 문서](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/NORMALIZER.md).
+이 규칙은 범용 투명문자 제거기가 아니다. U+200C ZWNJ, U+200D ZWJ, U+2060 WORD JOINER,
+U+FEFF BOM, U+00AD SOFT HYPHEN은 한글·자모 사이에 있어도 보존한다. 또한 전역 NFC를 적용하지 않고
+현대 한글 자모열만 조합한다. 그래서 emoji ZWJ, 결합문자, 한영 코드스위칭 입력을 임의로 훼손하지
+않는다. 자세한 내용은
+[정규화기 문서](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/NORMALIZER.md).
 
 ### 후보 provider (opt-in, 기본 비활성)
 

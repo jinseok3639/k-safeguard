@@ -33,7 +33,8 @@ configs:
 
 # Korean Hangul-Obfuscation Guardrail Robustness Benchmark
 
-한글 **자모 단위 표기 난독화**(자모분해·초성체·된소리/쌍자음화·띄어쓰기 파괴·투명문자)에
+한글 **표기 난독화**(자모분해·초성체·된소리/쌍자음화·종성 삽입/교체·연음·띄어쓰기
+파괴·투명문자)에
 대해 한국어 프롬프트 가드레일이 얼마나 강건한지 측정하는 벤치마크입니다. 프롬프트
 인젝션(A1)·프롬프트 리킹(A2) 회피 및 과방어(over-defense)를 함께 평가합니다.
 
@@ -53,6 +54,11 @@ configs:
 `benchmark.jsonl`은 시드에서 결정론적으로 파생되므로, 리포지토리에 포함된
 `ko_obfuscator.py` + `build_benchmark.py`로 언제든 재현할 수 있습니다.
 
+```powershell
+cd hf_repo
+python build_benchmark.py --output benchmark.jsonl
+```
+
 ### benchmark 컬럼
 
 | 컬럼 | 설명 |
@@ -63,10 +69,15 @@ configs:
 | `text` | 난독화 적용 후 텍스트 (모델 입력) |
 | `label` | `attack` / `benign` |
 | `category` | `A1_injection` / `A2_leaking` / `benign_hard_negative` |
-| `technique` | `clean` / `jamo_decompose` / `chosung` / `tensify` / `break_spacing` / `zwsp_inject` |
+| `technique` | `clean` / `jamo_decompose` / `chosung` / `tensify` / `final_insertion` / `final_near_sound` / `liaison` / `break_spacing` / `zwsp_inject` |
 | `intensity` | 난독화 강도 (0 / 0.5 / 1.0) |
 
 `technique=clean`, `intensity=0` 행은 난독화 없는 대조군입니다.
+
+O2 종성 변형은 단순 토큰 교란인 `final_insertion`과 종성 중화군 교체인
+`final_near_sound`로 분리합니다. P3 `liaison`은 겹받침·종성 ㅇ/ㅎ·형태소 경계를 처리하지 않는
+단순 인접 음절 규칙입니다. 세 변환은 모두 손실성이므로 사람 검수나 별도 intent-recognition 없이
+의미 보존을 자동으로 가정하지 않습니다.
 
 ## 사용 예
 
