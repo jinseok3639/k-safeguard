@@ -1,4 +1,4 @@
-"""된소리화된 완성형 한글을 위한 bounded 역변형 후보 provider."""
+"""과거 된소리 다중 view 실험을 재현하기 위한 내부 provider."""
 
 from __future__ import annotations
 
@@ -160,8 +160,4 @@ class TensifyInverseProvider:
                 return
 
 
-__all__ = [
-    "DEFAULT_TENSIFY_DIVERSIFY_FROM",
-    "TENSIFY_CANDIDATE_VERSION",
-    "TensifyInverseProvider",
-]
+__all__: list[str] = []
