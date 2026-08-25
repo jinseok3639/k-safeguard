@@ -92,6 +92,7 @@ def _is_hangul_related(char: str) -> bool:
 
 
 def _remove_hangul_zwsp(text: str) -> str:
+    """한글·자모에 인접한 U+200B만 제거하고 다른 format 문자는 보존한다."""
     output: list[str] = []
     for index, char in enumerate(text):
         if char != ZWSP:
