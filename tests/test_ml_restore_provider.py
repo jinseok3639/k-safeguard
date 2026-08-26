@@ -1,10 +1,12 @@
 """`MlRestoreProvider`의 Gateway 계약 테스트.
 
-`k-safeguard[ml-restore]` extra가 있어야 돌아가므로 `tests/`가 아니라 여기에 둔다
-(`test_wordfreq_provider.py` 선례). 기본 테스트 스위트는 의존성 없이 통과해야 한다.
+결정론적인 가짜 복원기를 끼워 **계약만** 본다. `MlRestoreProvider`의 onnxruntime
+의존은 `from_directory()` 안의 지연 import뿐이라 계약 자체는 extra 없이 검증할 수
+있고, 그래서 `test_wordfreq_provider.py`와 달리 여기(`tests/`)에 둔다 —
+`WordfreqChosungProvider`는 생성자에서 `wordfreq`를 실제로 쓰지만 이쪽은 아니다.
 
-무거운 모델을 싣지 않는다 — 결정론적인 가짜 복원기를 끼워 계약만 본다. 실제 가중치로
-수치를 재현하는 검증은 샌드박스의 `exp/verify_port_parity.py`가 한다.
+실제 가중치로 수치를 재현하는 검증은 별도다. 샌드박스의 `exp/verify_port_parity.py`가
+ONNX 추론 경로를 기준 구현과 대조한다.
 """
 
 import unittest
