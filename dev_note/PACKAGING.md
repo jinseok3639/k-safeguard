@@ -9,10 +9,17 @@ distribution 이름은 `k-safeguard`, Python import 이름은 `k_safeguard`다.
 |---|---|---|
 | `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 primitive | 무손실 core만 |
 | `k-safeguard[wordfreq]` | `wordfreq` 기반 실험적 초성 provider | 아니요, 명시적 주입 필요 |
+| `k-safeguard[ml-restore]` | 자모 슬롯 복원 provider의 **추론 코드만** (`onnxruntime`, `numpy`). 모델 가중치는 미포함 | 아니요, 명시적 주입 필요 |
 | 외부 provider | 형태소 분석기, 로컬·원격 복원기, 사용자 사전 | 사용자 정책에 따름 |
 
 기본 wheel은 외부 런타임 dependency가 0개다. `torch`, `transformers`, 가드레일 모델과 복원 모델은
 프로젝트 평가 환경 또는 사용자가 선택한 별도 provider에 속하며 패키지 dependency로 선언하지 않는다.
+
+`ml-restore` extra도 이 경계를 지킨다 — `onnxruntime`은 **추론 런타임**일 뿐이고 모델 가중치
+자체는 wheel에 들어가지 않는다(`verify_artifacts.py`의 `FORBIDDEN_SUFFIXES`가 `.onnx`·`.pt`를
+막는다). 가중치는 호출자가 경로로 주며, `MlRestoreProvider.from_directory()`가 그 디렉터리의
+`manifest.json`을 읽어 세션을 만든다. 자모 인코딩·후보 위치 규칙은 의존성이 없는
+`k_safeguard.jamo_slots`에 있어 extra 없이도 import·테스트된다.
 
 ## public API
 
