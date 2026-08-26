@@ -8,9 +8,17 @@
 (`run_clean_baseline.py`가 외부 모델 경로를 받는 것과 같다). 가중치 준비 방법은
 [ML_RESTORE_CANDIDATES.md](./ML_RESTORE_CANDIDATES.md)에 있다.
 
-`hf_repo/benchmark.jsonl`에는 `clean`과 `tensify`만 있다. provider가 가진 기법 중
-benchmark에 해당 행이 없는 것(`liaison`, `jongseong_cram`)은 여기서 잴 수 없고,
-그 수치는 별도 샌드박스 실험에 기록돼 있다.
+`hf_repo/benchmark.jsonl`에는 6종(`clean`, `tensify`, `chosung`, `jamo_decompose`,
+`break_spacing`, `zwsp_inject`)이 있는데, 이 복원기가 다루는 것은 그중 `tensify`뿐이라
+`clean`과 함께 두 종만 평가한다. provider가 가진 나머지 기법(`liaison`,
+`jongseong_cram`)은 benchmark에 해당 난독화 행이 아예 없어 여기서 잴 수 없고, 그 수치는
+별도 샌드박스 실험에 기록돼 있다.
+
+**용어 주의** — 이 러너가 내는 `*_char_error`는 **문자 오류율**(편집거리/길이)이다.
+`EVALUATION_SPEC.md` §9.2가 `CER`을 **Conditional Evasion Rate**(clean에서 block된 짝 중
+변형 후 pass된 비율)로 이미 선점했으므로, 혼동을 막으려고 여기서는 `CER`이라는 약어를
+쓰지 않는다. 가드레일 판정에 기반한 CER·NRR은
+[ML_RESTORE_GUARDRAIL_IMPACT.md](./ML_RESTORE_GUARDRAIL_IMPACT.md)에 있다.
 """
 
 from __future__ import annotations
@@ -89,8 +97,8 @@ def observe_rows(
         original = row["original"]
         text = row["text"]
         restored, confidence = restore(text)
-        raw_cer = char_error_rate(original, text)
-        residual_cer = char_error_rate(original, restored)
+        raw_char_error = char_error_rate(original, text)
+        residual_char_error = char_error_rate(original, restored)
         observations.append(
             {
                 "id": row.get("id"),
@@ -103,9 +111,9 @@ def observe_rows(
                 "confidence": confidence,
                 "mutated": restored != text,
                 "exact": restored == original,
-                "raw_cer": raw_cer,
-                "residual_cer": residual_cer,
-                "cer_reduction": raw_cer - residual_cer,
+                "raw_char_error": raw_char_error,
+                "residual_char_error": residual_char_error,
+                "char_error_reduction": raw_char_error - residual_char_error,
             }
         )
     return observations
@@ -129,16 +137,16 @@ def summarize_group(items: list[dict[str, Any]]) -> dict[str, Any]:
         "exact_restoration_rate": (
             sum(item["exact"] for item in changed) / len(changed) if changed else None
         ),
-        "mean_raw_cer": (
-            statistics.fmean(item["raw_cer"] for item in changed) if changed else None
+        "mean_raw_char_error": (
+            statistics.fmean(item["raw_char_error"] for item in changed) if changed else None
         ),
-        "mean_residual_cer": (
-            statistics.fmean(item["residual_cer"] for item in changed)
+        "mean_residual_char_error": (
+            statistics.fmean(item["residual_char_error"] for item in changed)
             if changed
             else None
         ),
-        "mean_cer_reduction": (
-            statistics.fmean(item["cer_reduction"] for item in changed)
+        "mean_char_error_reduction": (
+            statistics.fmean(item["char_error_reduction"] for item in changed)
             if changed
             else None
         ),

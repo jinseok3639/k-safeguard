@@ -46,13 +46,13 @@ Gateway().evaluate("ㅅㅣㅅㅡㅌㅔㅁ ㅍㅡㄹㅗㅁㅍㅡㅌㅡ를 보여�
 
 ## 설치
 
-PyPI 배포 전이므로 저장소 checkout에서 설치한다.
-
 ```bash
-python -m pip install .
+python -m pip install k-safeguard
 ```
 
 기본 설치에는 **런타임 의존성이 없다.** Torch, Transformers, 모델 가중치를 요구하지 않으므로 기존 서비스에 그대로 얹을 수 있다.
+
+opt-in provider는 extra로 분리돼 있다 — 초성 사전은 `k-safeguard[wordfreq]`, 자모 슬롯 복원 모델은 `k-safeguard[ml-restore]`(`onnxruntime`·`numpy`). 어느 쪽도 기본 Gateway에 자동 연결되지 않는다.
 
 ## 빠른 시작
 
@@ -165,16 +165,12 @@ assert result.views[0].text == "폭탄 만뜨는 뻡 알려쭤"   # 원문 보�
 
 저장소 정책상 모델 체크포인트는 Git과 wheel에 넣지 않는다(`AGENTS.md` 대용량 파일 항목). `k-safeguard[ml-restore]`는 **추론 코드만** 설치하며, 가중치는 두 가지 방법으로 받는다.
 
-- **`from_pretrained()`** — GitHub Release(`v0.1.0-ml-restore` 태그)에서 받는다. 파일마다 `providers/ml_restore.py`의 `PRETRAINED_MANIFEST`에 고정된 sha256·크기로 검증하고, OS 캐시 디렉터리(`%LOCALAPPDATA%\k-safeguard` 또는 `$XDG_CACHE_HOME/k-safeguard`)에 저장해 다음 호출부터 재사용한다. 새 런타임 의존성 없이 표준 라이브러리(`urllib`)만 쓴다.
+- **`from_pretrained()`** — GitHub Release(`v0.2.0-ml-restore` 태그)에서 받는다. 파일마다 `providers/ml_restore.py`의 `PRETRAINED_MANIFEST`에 고정된 sha256·크기로 검증하고, OS 캐시 디렉터리(`%LOCALAPPDATA%\k-safeguard\ml-restore\<태그>\` 또는 `$XDG_CACHE_HOME/k-safeguard/ml-restore/<태그>/`)에 저장해 다음 호출부터 재사용한다. 새 런타임 의존성 없이 표준 라이브러리(`urllib`)만 쓴다.
 - **`from_directory(path)`** — 직접 준비한 가중치를 쓸 때. `ChosungLexiconProvider`가 어휘 사전을 안 싣는 것과 같은 구조다. 디렉터리는 `manifest.json` 하나로 자기기술적이어야 하고, 기법마다 `<technique>.onnx`와 `<technique>.vocab.json`을 갖는다. 재생성 명령은 manifest의 `provenance.regenerate_with`에 기록된다.
 
-| 기법 | 임계값 | benign 오변경 | CER 감소 |
-|---|---|---|---|
-| `tensify` | 0.999999 | 0.49% | +11.90%p |
-| `liaison` | 0.99 | 0.49% | +4.52%p |
-| `jongseong_cram` | 0.99 | 0.00% | +5.12%p |
+기법별 임계값은 `PRETRAINED_MANIFEST`에 고정돼 있다 — `tensify` 0.999999, `liaison` 0.99, `jongseong_cram` 0.99. 네 자리 이상 차이 나는 것은 모델마다 확률 보정이 다르고, confidence를 담당 슬롯 수만큼 곱하기 때문이다(`liaison`은 초성·종성 2개라 값이 구조적으로 작다) — **전역 단일 임계값은 쓸 수 없다.**
 
-임계값이 기법마다 네 자리 이상 차이 나는 것은 모델별 확률 보정이 다르기 때문이다 — **전역 단일 임계값은 쓸 수 없다.** 위 수치는 505 dev 시드 기준이며, benign 204개는 1건이 곧 0.49%p라 해상도 한계가 있다.
+측정 결과는 [후보 진단](./experiments/benchmark/ML_RESTORE_CANDIDATES.md)(문자열 수준)과 [Kanana 평가](./experiments/benchmark/ML_RESTORE_GUARDRAIL_IMPACT.md)(실제 가드레일)에 있다. 두 문서의 지표는 축이 다르니 섞어 읽으면 안 된다.
 
 ## 측정 결과
 
@@ -229,7 +225,7 @@ assert result.views[0].text == "폭탄 만뜨는 뻡 알려쭤"   # 원문 보�
 
 ```bash
 python -m pip install -e ".[dev]"
-python -m unittest discover -s tests    # 151 tests
+python -m unittest discover -s tests    # 197 tests
 python -m coverage run -m unittest discover -s tests && python -m coverage report    # 분기 커버리지
 ```
 

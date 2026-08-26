@@ -41,8 +41,11 @@ provider = MlRestoreProvider.from_pretrained()
   Gateway가 항상 보존한다.
 - **후보는 기법당 최대 1개다.** 확신 없는 자리를 건드리지 않는 쪽이 오탐을 줄인다는
   것이 실험 결론이므로, 여러 대안을 뿌리는 대신 하나만 낸다.
-- **임계값은 기법마다 다르다.** 모델별 확률 보정이 달라 전역 단일 임계값은 쓸 수 없다.
-  manifest의 권장값을 기본으로 쓴다.
+- **임계값은 기법마다 다르다.** 모델별 확률 보정이 다르고, confidence를 담당 슬롯 수만큼
+  곱하기 때문이다(`liaison`은 초성·종성 2개라 값이 구조적으로 작다). 전역 단일 임계값은
+  쓸 수 없고, manifest에 기법마다 반드시 있어야 한다 — 생략하면 오류다.
+- **입력 길이에 상한이 있다.** `liaison`·`jongseong_cram`은 모든 음절을 후보로 잡으므로
+  긴 입력에서 배치가 그대로 커진다. `MAX_CANDIDATE_SITES`를 넘으면 복원하지 않는다.
 """
 
 from __future__ import annotations
@@ -50,7 +53,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import shutil
+import tempfile
 import urllib.request
 from pathlib import Path
 from typing import Iterator, Mapping
@@ -74,7 +77,12 @@ DEFAULT_ORDER = ("tensify", "liaison", "jongseong_cram")
 #: `from_pretrained()`가 받는 GitHub Release. AGENTS.md의 `<version>-<milestone>`
 #: 태그 관례를 따른다.
 PRETRAINED_REPO = "jinseok3639/k-safeguard"
-PRETRAINED_TAG = "v0.1.0-ml-restore"
+PRETRAINED_TAG = "v0.2.0-ml-restore"
+
+#: 한 번에 방문할 후보 자리 상한. `liaison`·`jongseong_cram`은 모든 음절을 후보로 잡으므로
+#: 긴 입력이 들어오면 배치가 그대로 커진다. 가드레일 앞단은 신뢰할 수 없는 입력을 받는
+#: 자리이므로, 상한을 넘으면 복원을 시도하지 않고 조용히 물러난다(원문은 Gateway가 보존).
+MAX_CANDIDATE_SITES = 4096
 
 # 가중치 run proto-20260826b(ML 샌드박스 exp/run_proto_export.py) 산출물의 고정 해시.
 # 다운로드한 파일이 이 표와 다르면 손상되거나 변조된 것으로 보고 거부한다.
@@ -141,15 +149,39 @@ def _verify_file(path: Path, *, sha256: str, size: int, source: str) -> None:
 
 def _download_file(url: str, dest: Path, *, sha256: str, size: int) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
-    tmp = dest.with_name(dest.name + ".part")
+    # 임시 파일 이름을 프로세스마다 다르게 잡는다. 여러 프로세스가 같은 캐시 디렉터리를
+    # 두고 동시에 처음 받으면 고정 이름은 서로 덮어쓴다.
+    handle_fd, tmp_name = tempfile.mkstemp(
+        dir=str(dest.parent), prefix=dest.name + ".", suffix=".part"
+    )
+    # mkstemp가 연 fd를 바로 닫는다. 아래에서 예외가 나면 Windows는 열린 파일을
+    # 지우지 못해 정리에 실패한다.
+    os.close(handle_fd)
+    tmp = Path(tmp_name)
     try:
         with urllib.request.urlopen(url, timeout=30) as response:
+            # 선언된 크기를 넘어가면 다 받기 전에 끊는다. 신뢰할 수 없는 응답이
+            # 디스크를 채우는 것을 막는다.
             with tmp.open("wb") as handle:
-                shutil.copyfileobj(response, handle)
+                written = 0
+                while True:
+                    chunk = response.read(1 << 16)
+                    if not chunk:
+                        break
+                    written += len(chunk)
+                    if written > size:
+                        raise RuntimeError(
+                            f"{url} 이 선언된 크기({size} bytes)보다 큽니다 — 중단합니다."
+                        )
+                    handle.write(chunk)
+        _verify_file(tmp, sha256=sha256, size=size, source=url)
     except URLError as exc:
         tmp.unlink(missing_ok=True)
         raise RuntimeError(f"가중치 다운로드 실패: {url}") from exc
-    _verify_file(tmp, sha256=sha256, size=size, source=url)
+    except BaseException:
+        # 디스크 풀·타임아웃·Ctrl+C 등 어떤 경로로 빠져나가도 임시 파일을 남기지 않는다.
+        tmp.unlink(missing_ok=True)
+        raise
     os.replace(tmp, dest)      # 검증 통과 후에만 최종 경로로 옮긴다(원자적 교체)
 
 
@@ -170,7 +202,12 @@ class _Restorer:
         self.window = window
         self.threshold = threshold
         self.slots = unknown_slots(technique)
-        self._outputs = [output.name for output in session.get_outputs()]
+        outputs = len(session.get_outputs())
+        if outputs < len(self.slots):
+            raise ValueError(
+                f"{technique} 모델의 출력이 부족합니다: {outputs}개 "
+                f"(담당 슬롯 {len(self.slots)}개). 가중치와 기법이 어긋난 것 같습니다."
+            )
 
     def restore(self, text: str) -> tuple[str, int, float]:
         """(복원문, 바꾼 자리 수, 바꾼 자리 평균 confidence).
@@ -181,7 +218,9 @@ class _Restorer:
         import numpy as np
 
         sites = extract_sites(text, self.technique, self.window)
-        if not sites:
+        if not sites or len(sites) > MAX_CANDIDATE_SITES:
+            # 후보가 없거나 너무 많으면 손대지 않는다. 상한을 넘는 입력에 대해 부분만
+            # 복원하면 어디까지 다뤘는지 알 수 없는 view가 나가므로 전부 포기한다.
             return text, 0, 0.0
 
         chars, positions, slots = encode_sites(sites, self.vocab)
@@ -341,9 +380,23 @@ class MlRestoreProvider:
                     f"가중치에 없는 기법입니다: {technique!r} "
                     f"(사용 가능: {', '.join(sorted(entries))})"
                 )
-            threshold = float(
-                (thresholds or {}).get(technique, entry.get("threshold", 0.0))
-            )
+            override = (thresholds or {}).get(technique)
+            if override is None:
+                # 기본값을 두지 않는다. 키가 빠지면 threshold 0.0이 되어 abstention이
+                # 통째로 꺼지는데, 그건 이 provider의 오탐 억제 설계 전부를 조용히
+                # 무력화한다 — 조용히 넘어가는 대신 여기서 멈춘다.
+                if "threshold" not in entry:
+                    raise ValueError(
+                        f"{technique}에 threshold가 없습니다. abstention 임계값은 "
+                        f"생략할 수 없습니다(0.0이면 모든 예측을 그대로 받아들입니다)."
+                    )
+                override = entry["threshold"]
+            try:
+                threshold = float(override)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"{technique}의 임계값이 숫자가 아닙니다: {override!r}"
+                ) from None
             if not 0.0 <= threshold <= 1.0:
                 raise ValueError(f"{technique}의 임계값은 0~1이어야 합니다: {threshold}")
 

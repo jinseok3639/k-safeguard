@@ -22,7 +22,7 @@ distribution 이름은 `k-safeguard`, Python import 이름은 `k_safeguard`다.
 
 가중치는 두 경로 중 하나로 받는다.
 
-- `MlRestoreProvider.from_pretrained()` — GitHub Release(`v0.1.0-ml-restore` 태그)에서
+- `MlRestoreProvider.from_pretrained()` — GitHub Release(`v0.2.0-ml-restore` 태그)에서
   받는다. `providers/ml_restore.py`의 `PRETRAINED_MANIFEST`에 파일마다 sha256·크기를
   고정해 두고, 다운로드한 뒤 대조해 손상·변조를 막는다. OS 캐시 디렉터리에 저장하고
   재사용하며, 새 의존성 없이 `urllib`(표준 라이브러리)만 쓴다 — `huggingface_hub` 같은
@@ -133,9 +133,12 @@ src/k_safeguard/
 ├── normalization.py
 ├── chosung.py
 ├── gateway.py
+├── jamo_slots.py
 ├── py.typed
 └── providers/
     ├── chosung.py
+    ├── ml_restore.py
+    ├── tensify.py
     └── wordfreq.py
 ```
 
@@ -147,7 +150,7 @@ src/k_safeguard/
 python -m pip install --upgrade build
 python -m build
 python tools/release/verify_artifacts.py
-python -m pip install --force-reinstall --no-deps dist/k_safeguard-0.1.0-py3-none-any.whl
+python -m pip install --force-reinstall --no-deps dist/k_safeguard-0.2.0-py3-none-any.whl
 python -m unittest discover -s tests -v
 ```
 

@@ -67,8 +67,8 @@ class ObserveRowsTest(unittest.TestCase):
         self.assertTrue(attack["changed"])
         self.assertTrue(attack["candidate_emitted"])
         self.assertTrue(attack["exact"])
-        self.assertEqual(attack["residual_cer"], 0.0)
-        self.assertEqual(attack["cer_reduction"], attack["raw_cer"])
+        self.assertEqual(attack["residual_char_error"], 0.0)
+        self.assertEqual(attack["char_error_reduction"], attack["raw_char_error"])
 
     def test_silence_on_clean_input_is_not_a_mutation(self) -> None:
         # Given — 정상 문장에 후보를 내지 않으면 오변경이 아니다
@@ -79,7 +79,7 @@ class ObserveRowsTest(unittest.TestCase):
         self.assertFalse(clean["candidate_emitted"])
         self.assertFalse(clean["mutated"])
         self.assertFalse(clean["changed"])
-        self.assertEqual(clean["residual_cer"], 0.0)
+        self.assertEqual(clean["residual_char_error"], 0.0)
 
     def test_touching_clean_input_counts_as_mutation(self) -> None:
         # Given — 정상 문장을 건드리면 오변경으로 잡혀야 한다
@@ -89,8 +89,8 @@ class ObserveRowsTest(unittest.TestCase):
         # Then
         self.assertTrue(clean["mutated"])
         self.assertFalse(clean["exact"])
-        self.assertGreater(clean["residual_cer"], 0.0)
-        self.assertLess(clean["cer_reduction"], 0.0)
+        self.assertGreater(clean["residual_char_error"], 0.0)
+        self.assertLess(clean["char_error_reduction"], 0.0)
 
     def test_partial_restoration_reduces_but_does_not_zero_error(self) -> None:
         # Given
@@ -99,8 +99,8 @@ class ObserveRowsTest(unittest.TestCase):
         attack = observe_rows(self.rows, restore=restore)[0]
         # Then
         self.assertFalse(attack["exact"])
-        self.assertGreater(attack["cer_reduction"], 0.0)
-        self.assertGreater(attack["residual_cer"], 0.0)
+        self.assertGreater(attack["char_error_reduction"], 0.0)
+        self.assertGreater(attack["residual_char_error"], 0.0)
 
 
 class SummaryTest(unittest.TestCase):
@@ -109,13 +109,13 @@ class SummaryTest(unittest.TestCase):
         items = [
             {
                 "changed": True, "candidate_emitted": True, "mutated": True,
-                "exact": True, "raw_cer": 1.0, "residual_cer": 0.0,
-                "cer_reduction": 1.0,
+                "exact": True, "raw_char_error": 1.0, "residual_char_error": 0.0,
+                "char_error_reduction": 1.0,
             },
             {
                 "changed": False, "candidate_emitted": False, "mutated": False,
-                "exact": False, "raw_cer": 0.0, "residual_cer": 0.0,
-                "cer_reduction": 0.0,
+                "exact": False, "raw_char_error": 0.0, "residual_char_error": 0.0,
+                "char_error_reduction": 0.0,
             },
         ]
         # When
@@ -125,22 +125,22 @@ class SummaryTest(unittest.TestCase):
         self.assertEqual(summary["changed_n"], 1)
         self.assertEqual(summary["candidate_generation_rate"], 0.5)
         self.assertEqual(summary["exact_restoration_rate"], 1.0)
-        self.assertEqual(summary["mean_cer_reduction"], 1.0)
+        self.assertEqual(summary["mean_char_error_reduction"], 1.0)
 
     def test_restoration_metrics_are_none_without_changed_rows(self) -> None:
         # Given
         items = [
             {
                 "changed": False, "candidate_emitted": False, "mutated": False,
-                "exact": False, "raw_cer": 0.0, "residual_cer": 0.0,
-                "cer_reduction": 0.0,
+                "exact": False, "raw_char_error": 0.0, "residual_char_error": 0.0,
+                "char_error_reduction": 0.0,
             }
         ]
         # When
         summary = summarize_group(items)
         # Then
         self.assertIsNone(summary["exact_restoration_rate"])
-        self.assertIsNone(summary["mean_cer_reduction"])
+        self.assertIsNone(summary["mean_char_error_reduction"])
 
     def test_build_summary_splits_by_technique_intensity_and_label(self) -> None:
         # Given

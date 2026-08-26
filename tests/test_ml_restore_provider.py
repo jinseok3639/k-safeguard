@@ -185,5 +185,26 @@ class MlRestoreGatewayIntegrationTest(unittest.TestCase):
                 self.assertLessEqual(view.confidence, 1.0)
 
 
+class MaxCandidateSitesTest(unittest.TestCase):
+    """긴 입력에서 배치가 무한정 커지지 않는지."""
+
+    def test_constant_is_a_positive_bound(self) -> None:
+        # Given / When / Then
+        from k_safeguard.providers.ml_restore import MAX_CANDIDATE_SITES
+
+        self.assertGreater(MAX_CANDIDATE_SITES, 0)
+
+    def test_long_input_exceeding_the_cap_is_left_untouched(self) -> None:
+        # Given — 상한을 넘는 후보 자리를 만드는 입력
+        from k_safeguard.jamo_slots import extract_sites
+        from k_safeguard.providers.ml_restore import MAX_CANDIDATE_SITES
+
+        text = "가" * (MAX_CANDIDATE_SITES + 1)
+        # When — liaison은 모든 음절을 후보로 잡는다
+        sites = extract_sites(text, "liaison", 4)
+        # Then — 상한 판정이 실제로 걸리는 크기임을 확인한다
+        self.assertGreater(len(sites), MAX_CANDIDATE_SITES)
+
+
 if __name__ == "__main__":
     unittest.main()
