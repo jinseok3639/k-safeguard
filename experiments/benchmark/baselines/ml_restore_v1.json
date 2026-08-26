@@ -1,0 +1,145 @@
+{
+  "schema_version": "ml-restore-diagnostic-v1",
+  "input": "hf_repo/benchmark.jsonl",
+  "restorer": {
+    "name": "ml_restore",
+    "version": "0.1.0",
+    "weights_run_id": "proto-20260826b",
+    "techniques": {
+      "jongseong_cram": {
+        "threshold": 0.99,
+        "unknown_slots": [
+          2
+        ],
+        "window": 4
+      },
+      "liaison": {
+        "threshold": 0.99,
+        "unknown_slots": [
+          0,
+          2
+        ],
+        "window": 4
+      },
+      "tensify": {
+        "threshold": 0.999999,
+        "unknown_slots": [
+          0
+        ],
+        "window": 4
+      }
+    },
+    "provenance": {
+      "corpus_license": "wikimedia/wikipedia(20231101.ko) CC BY-SA 4.0 · klue/klue CC BY-SA 4.0",
+      "corpus_size": 30000,
+      "epochs": 8,
+      "gen_seed": 1234,
+      "random_seed": 2026,
+      "regenerate_with": "python -m exp.run_proto_export --run-id <새 run-id> --corpus-size 30000 --epochs 8",
+      "thresholds_source": "E8(e8-mlp-30k) — reports/E8_ABSTENTION.md"
+    }
+  },
+  "scope": {
+    "techniques": [
+      "clean",
+      "tensify"
+    ],
+    "not_evaluated": [
+      "jongseong_cram",
+      "liaison"
+    ],
+    "observations": 1515
+  },
+  "summary": {
+    "overall": {
+      "n": 1515,
+      "changed_n": 1008,
+      "candidate_generation_rate": 0.6198019801980198,
+      "mutation_rate": 0.6198019801980198,
+      "exact_restoration_rate": 0.030753968253968252,
+      "mean_raw_cer": 0.21944544270735541,
+      "mean_residual_cer": 0.1343120868131621,
+      "mean_cer_reduction": 0.08513335589419334
+    },
+    "groups": [
+      {
+        "technique": "clean",
+        "intensity": 0,
+        "label": "attack",
+        "n": 301,
+        "changed_n": 0,
+        "candidate_generation_rate": 0.046511627906976744,
+        "mutation_rate": 0.046511627906976744,
+        "exact_restoration_rate": null,
+        "mean_raw_cer": null,
+        "mean_residual_cer": null,
+        "mean_cer_reduction": null
+      },
+      {
+        "technique": "clean",
+        "intensity": 0,
+        "label": "benign",
+        "n": 204,
+        "changed_n": 0,
+        "candidate_generation_rate": 0.00980392156862745,
+        "mutation_rate": 0.00980392156862745,
+        "exact_restoration_rate": null,
+        "mean_raw_cer": null,
+        "mean_residual_cer": null,
+        "mean_cer_reduction": null
+      },
+      {
+        "technique": "tensify",
+        "intensity": 0.5,
+        "label": "attack",
+        "n": 301,
+        "changed_n": 300,
+        "candidate_generation_rate": 0.8372093023255814,
+        "mutation_rate": 0.8372093023255814,
+        "exact_restoration_rate": 0.03,
+        "mean_raw_cer": 0.15415293297617258,
+        "mean_residual_cer": 0.10471428993743755,
+        "mean_cer_reduction": 0.049438643038735026
+      },
+      {
+        "technique": "tensify",
+        "intensity": 0.5,
+        "label": "benign",
+        "n": 204,
+        "changed_n": 204,
+        "candidate_generation_rate": 0.8382352941176471,
+        "mutation_rate": 0.8382352941176471,
+        "exact_restoration_rate": 0.09803921568627451,
+        "mean_raw_cer": 0.1338263346888593,
+        "mean_residual_cer": 0.07978988277512122,
+        "mean_cer_reduction": 0.05403645191373807
+      },
+      {
+        "technique": "tensify",
+        "intensity": 1.0,
+        "label": "attack",
+        "n": 301,
+        "changed_n": 300,
+        "candidate_generation_rate": 0.9867109634551495,
+        "mutation_rate": 0.9867109634551495,
+        "exact_restoration_rate": 0.006666666666666667,
+        "mean_raw_cer": 0.31084744832376787,
+        "mean_residual_cer": 0.18207539452818233,
+        "mean_cer_reduction": 0.12877205379558548
+      },
+      {
+        "technique": "tensify",
+        "intensity": 1.0,
+        "label": "benign",
+        "n": 204,
+        "changed_n": 204,
+        "candidate_generation_rate": 0.9950980392156863,
+        "mutation_rate": 0.9950980392156863,
+        "exact_restoration_rate": 0.0,
+        "mean_raw_cer": 0.2666682332475728,
+        "mean_residual_cer": 0.16212030432282687,
+        "mean_cer_reduction": 0.1045479289247459
+      }
+    ]
+  }
+}
