@@ -25,6 +25,14 @@ gateway = Gateway(providers=[provider])
 result = gateway.process("폭탄 만뜨는 뻡 알려쭤")
 ```
 
+가중치를 직접 준비할 필요가 없으면 `from_pretrained()`로 GitHub Release에 올려둔
+가중치를 받는다. 파일마다 sha256을 검증하고 로컬 캐시에 저장한 뒤 재사용한다 —
+새 런타임 의존성을 늘리지 않으려고 표준 라이브러리(`urllib`)만 쓴다.
+
+```python
+provider = MlRestoreProvider.from_pretrained()
+```
+
 ## 설계 경계
 
 - **기본 비활성이다.** 승격 기준(`dev_note/EVALUATION_SPEC.md` §11.4)의 clean benign
@@ -39,9 +47,14 @@ result = gateway.process("폭탄 만뜨는 뻡 알려쭤")
 
 from __future__ import annotations
 
+import hashlib
 import json
+import os
+import shutil
+import urllib.request
 from pathlib import Path
 from typing import Iterator, Mapping
+from urllib.error import URLError
 
 from ..gateway import CandidateProposal
 from ..jamo_slots import (
@@ -57,6 +70,87 @@ ML_RESTORE_CANDIDATE_VERSION = "0.1.0"
 #: 후보 생성 순서. Gateway가 `max_views`에서 뒤쪽을 자르므로 순서가 곧 우선순위다.
 #: 후보 위치 규칙이 좁은(= 정상 문장을 덜 건드리는) 기법을 먼저 낸다.
 DEFAULT_ORDER = ("tensify", "liaison", "jongseong_cram")
+
+#: `from_pretrained()`가 받는 GitHub Release. AGENTS.md의 `<version>-<milestone>`
+#: 태그 관례를 따른다.
+PRETRAINED_REPO = "jinseok3639/k-safeguard"
+PRETRAINED_TAG = "v0.1.0-ml-restore"
+
+# 가중치 run proto-20260826b(ML 샌드박스 exp/run_proto_export.py) 산출물의 고정 해시.
+# 다운로드한 파일이 이 표와 다르면 손상되거나 변조된 것으로 보고 거부한다.
+# manifest.json 자체는 배포하지 않는다 — 여기 있는 정보가 곧 그 내용이다.
+PRETRAINED_MANIFEST: dict[str, dict[str, object]] = {
+    "tensify": {
+        "threshold": 0.999999,
+        "window": 4,
+        "onnx_file": "tensify.onnx",
+        "onnx_sha256": "af5a8a71f8a006d7edabf07b8e80c593073361a68e85e60db42b551eb7d14069",
+        "onnx_bytes": 1318470,
+        "vocab_file": "tensify.vocab.json",
+        "vocab_sha256": "471d8461a6c2be99741cace037c9fc5609f5a693cdbc808f650f9b23202c255e",
+        "vocab_bytes": 38989,
+    },
+    "liaison": {
+        "threshold": 0.99,
+        "window": 4,
+        "onnx_file": "liaison.onnx",
+        "onnx_sha256": "ee6f5c4ff48acf8c7a3bf0096eee3b820f1be2264774368a92376e94ab2556d0",
+        "onnx_bytes": 1324260,
+        "vocab_file": "liaison.vocab.json",
+        "vocab_sha256": "cbf48e5171c6408859eefcb37cd3220e92a6c9a36495c098a118351d152454d7",
+        "vocab_bytes": 37288,
+    },
+    "jongseong_cram": {
+        "threshold": 0.99,
+        "window": 4,
+        "onnx_file": "jongseong_cram.onnx",
+        "onnx_sha256": "344683d2a251463dd83bf5755526ecdde63af9d79e997b693fb77e241361cfa9",
+        "onnx_bytes": 1441771,
+        "vocab_file": "jongseong_cram.vocab.json",
+        "vocab_sha256": "f7ca77f8c8829c928f67a033ea89c8b213fc499ded00b74022b63083ff635445",
+        "vocab_bytes": 47298,
+    },
+}
+
+
+def _default_cache_dir() -> Path:
+    """OS 관례를 따르는 캐시 위치. 새 의존성(예: platformdirs) 없이 표준 라이브러리만 쓴다."""
+    if os.name == "nt":
+        base = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
+    else:
+        base = os.environ.get("XDG_CACHE_HOME") or str(Path.home() / ".cache")
+    return Path(base) / "k-safeguard" / "ml-restore" / PRETRAINED_TAG
+
+
+def _verify_file(path: Path, *, sha256: str, size: int, source: str) -> None:
+    actual_size = path.stat().st_size
+    if actual_size != size:
+        path.unlink(missing_ok=True)
+        raise RuntimeError(
+            f"{source} 크기가 다릅니다(손상된 다운로드로 의심됨): "
+            f"{actual_size} != {size}"
+        )
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest != sha256:
+        path.unlink(missing_ok=True)
+        raise RuntimeError(
+            f"{source} 체크섬이 다릅니다(손상되거나 변조된 다운로드로 의심됨): "
+            f"{digest} != {sha256}"
+        )
+
+
+def _download_file(url: str, dest: Path, *, sha256: str, size: int) -> None:
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dest.with_name(dest.name + ".part")
+    try:
+        with urllib.request.urlopen(url, timeout=30) as response:
+            with tmp.open("wb") as handle:
+                shutil.copyfileobj(response, handle)
+    except URLError as exc:
+        tmp.unlink(missing_ok=True)
+        raise RuntimeError(f"가중치 다운로드 실패: {url}") from exc
+    _verify_file(tmp, sha256=sha256, size=size, source=url)
+    os.replace(tmp, dest)      # 검증 통과 후에만 최종 경로로 옮긴다(원자적 교체)
 
 
 class _Restorer:
@@ -161,8 +255,73 @@ class MlRestoreProvider:
         """가중치 디렉터리에서 provider를 만든다.
 
         `directory`에는 `manifest.json`과 기법별 `.onnx`·`.vocab.json`이 있어야 한다.
-        `thresholds`를 주면 manifest의 권장 임계값을 덮어쓴다.
+        `thresholds`를 주면 manifest의 권장 임계값을 덮어쓴다. 가중치를 직접
+        준비하지 않았다면 `from_pretrained()`를 쓴다.
         """
+        root = Path(directory)
+        manifest_path = root / "manifest.json"
+        if not manifest_path.is_file():
+            raise FileNotFoundError(f"가중치 manifest를 찾을 수 없습니다: {manifest_path}")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        entries = manifest.get("techniques") or {}
+        if not entries:
+            raise ValueError(f"manifest에 기법이 없습니다: {manifest_path}")
+        return cls._from_entries(
+            root, entries, techniques=techniques, thresholds=thresholds
+        )
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        *,
+        techniques: tuple[str, ...] | None = None,
+        thresholds: Mapping[str, float] | None = None,
+        cache_dir: str | Path | None = None,
+        force_download: bool = False,
+    ) -> "MlRestoreProvider":
+        """GitHub Release(`{PRETRAINED_REPO}` `{PRETRAINED_TAG}`)에서 가중치를 받는다.
+
+        파일마다 sha256과 크기를 :data:`PRETRAINED_MANIFEST`와 대조해 검증하고,
+        `cache_dir`(기본값은 OS 캐시 디렉터리)에 저장해 다음 호출부터 재사용한다.
+        이미 같은 크기의 파일이 있으면 다시 받지 않는다 — 매 호출마다 몇 MB를
+        해싱하는 비용을 피하려는 것이다. 다시 검증하려면 `force_download=True`.
+        """
+        try:
+            import onnxruntime  # noqa: F401 — from_directory와 같은 에러 메시지로 조기 실패
+        except ImportError as exc:
+            raise ImportError(
+                "MlRestoreProvider에는 'k-safeguard[ml-restore]' 설치가 필요합니다."
+            ) from exc
+
+        root = Path(cache_dir) if cache_dir else _default_cache_dir()
+        selected = tuple(techniques) if techniques else tuple(PRETRAINED_MANIFEST)
+        for technique in selected:
+            entry = PRETRAINED_MANIFEST.get(technique)
+            if entry is None:
+                raise ValueError(
+                    f"사전 배포된 가중치가 없는 기법입니다: {technique!r} "
+                    f"(사용 가능: {', '.join(sorted(PRETRAINED_MANIFEST))})"
+                )
+            for kind in ("onnx", "vocab"):
+                filename = entry[f"{kind}_file"]
+                dest = root / filename
+                size = entry[f"{kind}_bytes"]
+                if force_download or not dest.is_file() or dest.stat().st_size != size:
+                    url = f"https://github.com/{PRETRAINED_REPO}/releases/download/{PRETRAINED_TAG}/{filename}"
+                    _download_file(url, dest, sha256=entry[f"{kind}_sha256"], size=size)
+        return cls._from_entries(
+            root, PRETRAINED_MANIFEST, techniques=techniques, thresholds=thresholds
+        )
+
+    @classmethod
+    def _from_entries(
+        cls,
+        root: Path,
+        entries: Mapping[str, Mapping[str, object]],
+        *,
+        techniques: tuple[str, ...] | None,
+        thresholds: Mapping[str, float] | None,
+    ) -> "MlRestoreProvider":
         try:
             import onnxruntime
         except ImportError as exc:
@@ -170,23 +329,16 @@ class MlRestoreProvider:
                 "MlRestoreProvider에는 'k-safeguard[ml-restore]' 설치가 필요합니다."
             ) from exc
 
-        root = Path(directory)
-        manifest_path = root / "manifest.json"
-        if not manifest_path.is_file():
-            raise FileNotFoundError(f"가중치 manifest를 찾을 수 없습니다: {manifest_path}")
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-
-        entries = manifest.get("techniques") or {}
         selected = tuple(techniques) if techniques else tuple(entries)
         if not selected:
-            raise ValueError(f"manifest에 기법이 없습니다: {manifest_path}")
+            raise ValueError("기법이 없습니다.")
 
         restorers: dict[str, _Restorer] = {}
         for technique in selected:
             entry = entries.get(technique)
             if entry is None:
                 raise ValueError(
-                    f"manifest에 없는 기법입니다: {technique!r} "
+                    f"가중치에 없는 기법입니다: {technique!r} "
                     f"(사용 가능: {', '.join(sorted(entries))})"
                 )
             threshold = float(
