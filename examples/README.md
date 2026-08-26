@@ -22,7 +22,7 @@ python examples/01_normalize_basics.py
 | [02_guardrail_integration.py](./02_guardrail_integration.py) | 난독화 회피를 실제로 막아보기. 기존 가드레일에 한 줄로 끼우는 법 | `Gateway.evaluate()`, `ClassifierResult` |
 | [03_async_and_batch.py](./03_async_and_batch.py) | 원격 API용 비동기 실행, 로컬 모델용 배치 실행, 모델 호출 수·지연 시간 계산 | `evaluate_async()`, `evaluate_batch()` |
 | [04_error_policy.py](./04_error_policy.py) | 가드레일 장애 시 fail-closed / fail-open 정책 선택과 장애·안전 판정 구분 | `error_mode`, `ClassifierExecutionError` |
-| [05_optional_providers.py](./05_optional_providers.py) | 된소리·초성체처럼 확정 불가능한 변형을 lossy 후보로 다루기, 오탐 비용 조절 | `TensifyInverseProvider`, `ChosungLexiconProvider` |
+| [05_ambiguous_policy.py](./05_ambiguous_policy.py) | 된소리·초성체를 임의 복원하지 않고 원문만 보존하는 정책 | `Gateway.process()` |
 | [06_custom_provider.py](./06_custom_provider.py) | 형태소 분석기·사내 복원기를 직접 붙이기, provider 오류 격리 | `CandidateProvider`, `CandidateProposal` |
 
 ## 30초 요약

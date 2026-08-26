@@ -1,4 +1,4 @@
-"""`k-safeguard[wordfreq]`에서만 사용할 수 있는 실험적 provider."""
+"""과거 wordfreq 초성 다중 view 실험을 재현하기 위한 내부 provider."""
 
 from __future__ import annotations
 
@@ -50,4 +50,4 @@ class WordfreqChosungProvider(ChosungLexiconProvider):
         self.priority_word_count = len(priority_words)
 
 
-__all__ = ["WordfreqChosungProvider"]
+__all__: list[str] = []

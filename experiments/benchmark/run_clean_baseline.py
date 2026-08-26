@@ -26,11 +26,11 @@ from experiments.benchmark.adapters import AdapterResult, KananaPromptAdapter
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_INPUT = REPO_ROOT / "SEED_CANDIDATES.csv"
+DEFAULT_INPUT = REPO_ROOT / "dev_note" / "SEED_CANDIDATES.csv"
 DEFAULT_OUTPUT_ROOT = Path(__file__).resolve().parent / "results"
 DEFAULT_MODEL_HOME = Path(r"D:\local llm\guardrails")
 MODEL_MANIFEST = REPO_ROOT / "experiments" / "guardrail" / "models.json"
-EVALUATION_SPEC = REPO_ROOT / "EVALUATION_SPEC.md"
+EVALUATION_SPEC = REPO_ROOT / "dev_note" / "EVALUATION_SPEC.md"
 MODEL_KEY = "kanana-prompt-2.1b"
 EXPECTED_CATEGORY = {
     "A1_injection": "A1",

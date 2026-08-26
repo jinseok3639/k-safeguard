@@ -41,7 +41,7 @@ from experiments.benchmark.run_normalizer_evaluation import (
 )
 from k_safeguard import Gateway, GatewayResult
 from k_safeguard.normalization import NORMALIZER_VERSION
-from k_safeguard.providers import (
+from k_safeguard.providers.tensify import (
     TENSIFY_CANDIDATE_VERSION,
     TensifyInverseProvider,
 )

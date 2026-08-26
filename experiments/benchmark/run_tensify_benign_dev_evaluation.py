@@ -41,7 +41,10 @@ from experiments.benchmark.run_tensify_guardrail_evaluation import (
 )
 from k_safeguard import Gateway, GatewayResult
 from k_safeguard.normalization import NORMALIZER_VERSION
-from k_safeguard.providers import TENSIFY_CANDIDATE_VERSION, TensifyInverseProvider
+from k_safeguard.providers.tensify import (
+    TENSIFY_CANDIDATE_VERSION,
+    TensifyInverseProvider,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
