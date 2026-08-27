@@ -12,6 +12,8 @@
 
 [한국어](https://github.com/jinseok3639/k-safeguard/blob/main/README.md) · **English** &nbsp;|&nbsp; [Benchmark dataset](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) · [Development notes (Korean)](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/README.md)
 
+[Try it in your browser](https://jinseok3639.github.io/k-safeguard/) — a normalization playground that never sends your input to a server
+
 </div>
 
 ---

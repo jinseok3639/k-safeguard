@@ -12,6 +12,8 @@
 
 **한국어** · [English](https://github.com/jinseok3639/k-safeguard/blob/main/README.en.md) &nbsp;|&nbsp; [벤치마크 데이터셋](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) · [개발 문서](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/README.md)
 
+[브라우저에서 직접 시험하기](https://jinseok3639.github.io/k-safeguard/) — 입력을 서버에 전송하지 않는 정규화 playground
+
 </div>
 
 ---

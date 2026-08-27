@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="k-safeguard 한국어 정규화 데모" />
+    <title>k-safeguard demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./">k-safeguard demo</a>
+      <a href="https://github.com/jinseok3639/k-safeguard">GitHub</a>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div>
+          <h1>한국어 정규화 데모</h1>
+          <p>입력은 브라우저에서만 처리됩니다.</p>
+        </div>
+        <div class="runtime-line" aria-live="polite">
+          <span id="status-dot" class="status-dot" data-mode="loading"></span>
+          <span id="runtime-status">런타임 준비 중</span>
+          <span class="runtime-version"><span id="package-version">v—</span> · <span id="commit-version">—</span></span>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="정규화 시험 공간">
+        <form id="analysis-form" class="panel input-panel">
+          <div class="panel-heading">
+            <h2>입력</h2>
+            <span id="character-count" class="character-count">0 / 1,000</span>
+          </div>
+
+          <label class="sr-only" for="input-text">분석할 한국어 문장</label>
+          <textarea id="input-text" spellcheck="false" placeholder="문장을 입력하세요">ㅇㅗㄴㅡㄹ ㄴㅏㄹㅆㅣㄱㅏ ㅈㅗㅎㄴㅔㅇㅛ.</textarea>
+
+          <div id="input-inspector" class="input-inspector" aria-live="polite" hidden>
+            <span id="input-kind-summary"></span>
+            <code id="input-visual"></code>
+          </div>
+
+          <div class="examples" aria-label="예제 입력">
+            <span>예제</span>
+            <button type="button" data-example="오늘 날씨가 좋네요.">일반 문장</button>
+            <button type="button" data-example="ㅇㅗㄴㅡㄹ ㄴㅏㄹㅆㅣㄱㅏ ㅈㅗㅎㄴㅔㅇㅛ.">호환 자모</button>
+            <button type="button" data-example="내일 만나요.">조합형 자모</button>
+            <button type="button" data-example="오​늘 점​심 같이 먹어요.">ZWSP</button>
+            <button type="button" data-example="오늘 ㅎㅚㅇㅢ는 3시에 시작해요.">혼합 입력</button>
+            <button type="button" data-example="API ㅌㅔㅅㅡㅌㅡ를 시작해요.">코드스위칭</button>
+          </div>
+
+          <button id="analyze-button" class="primary-button" type="submit" disabled>
+            <span>런타임 준비 중</span><span aria-hidden="true">→</span>
+          </button>
+        </form>
+
+        <section class="panel result-panel" aria-live="polite">
+          <div class="panel-heading">
+            <h2>결과</h2>
+          </div>
+
+          <div id="result-empty" class="result-empty">
+            <p>문장을 입력하세요.</p>
+          </div>
+
+          <div id="result-error" class="result-error" hidden>
+            <strong>분석하지 못했습니다.</strong>
+            <p></p>
+          </div>
+
+          <div id="result-content" hidden>
+            <div class="metrics-grid">
+              <article><span>처리 시간</span><strong id="metric-duration">—</strong></article>
+              <article><span>변경</span><strong id="metric-edits">—</strong></article>
+              <article><span>상한 도달</span><strong id="metric-truncated">—</strong></article>
+            </div>
+
+            <section class="comparison-section">
+              <div class="section-title">
+                <h3>비교</h3><span id="changed-badge" class="changed-badge">—</span>
+              </div>
+              <div class="comparison-grid">
+                <article><span>원문</span><pre id="original-output"></pre></article>
+                <article><span>정규화</span><pre id="normalized-output"></pre></article>
+              </div>
+            </section>
+
+            <section class="detail-section">
+              <h3>적용 규칙</h3>
+              <div id="rules-list" class="rules-list"></div>
+            </section>
+
+            <section class="detail-section">
+              <h3>변경 내역</h3>
+              <div id="edits-list" class="edits-list"></div>
+            </section>
+
+          </div>
+        </section>
+      </section>
+
+      <p class="scope-note">문자열 복원 결과이며 가드레일 판정이 아닙니다.</p>
+    </main>
+
+    <footer>Apache-2.0</footer>
+    <script src="./app.js" defer></script>
+  </body>
+</html>

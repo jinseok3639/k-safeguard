@@ -186,6 +186,12 @@ def verify_sdist(path: Path, project_name: str, version: str) -> None:
         f"{root}/README.md",
         f"{root}/pyproject.toml",
         f"{root}/tools/release/verify_artifacts.py",
+        f"{root}/tools/web/build_site.py",
+        f"{root}/web/app.js",
+        f"{root}/web/index.html",
+        f"{root}/web/py/bridge.py",
+        f"{root}/web/styles.css",
+        f"{root}/web/worker.js",
         *(f"{root}/src/{member}" for member in REQUIRED_PACKAGE_FILES),
     }
     with tarfile.open(path, "r:gz") as archive:
