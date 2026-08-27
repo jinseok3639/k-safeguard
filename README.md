@@ -261,8 +261,8 @@ variant 15개도 모두 복원했다. E2는 clean E0 판정으로 돌아가므�
 ## 개발
 
 ```bash
-python -m pip install -e ".[dev]"
-python -m unittest discover -s tests    # 197 tests
+python -m pip install -e ".[dev,mutation]"
+python -m unittest discover -s tests
 python -m coverage run -m unittest discover -s tests && python -m coverage report    # 분기 커버리지
 mutmut run && mutmut results    # 변이 테스트
 ```
