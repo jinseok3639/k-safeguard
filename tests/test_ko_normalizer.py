@@ -291,6 +291,86 @@ class NormalizeKoreanTest(unittest.TestCase):
             ("remove_hangul_zwsp", "compose_compat_jamo"),
         )
 
+    def test_repeated_zwsp_edits_keep_original_offsets(self) -> None:
+        # Given
+        text = "가\u200b나\u200b다"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "가나다")
+        self.assertEqual(
+            [
+                (edit.source_start, edit.source_end, edit.before, edit.after)
+                for edit in result.edits
+            ],
+            [(1, 2, "\u200b", ""), (3, 4, "\u200b", "")],
+        )
+
+    def test_preserves_non_hangul_zwsp_after_removed_neighbor(self) -> None:
+        # Given
+        text = "가\u200b\u200bA"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "가\u200bA")
+        self.assertEqual(len(result.edits), 1)
+        self.assertEqual(
+            (result.edits[0].source_start, result.edits[0].source_end),
+            (1, 2),
+        )
+
+    def test_consecutive_compositions_remain_one_edit(self) -> None:
+        # Given
+        text = "ㅇㅏㄴㄴㅕㅇ"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "안녕")
+        self.assertEqual(len(result.edits), 1)
+        self.assertEqual(
+            (
+                result.edits[0].source_start,
+                result.edits[0].source_end,
+                result.edits[0].before,
+                result.edits[0].after,
+            ),
+            (0, 6, text, "안녕"),
+        )
+
+    def test_composition_spans_include_consumed_repeated_final(self) -> None:
+        # Given
+        cases = (
+            ("ㅈㅏㅂㅂㅂㅎㅓ", "잡ㅂㅂ허"),
+            ("잡ᆸᆸ허", "잡ᆸᆸ허"),
+        )
+        for text, expected in cases:
+            with self.subTest(text=text):
+                # When
+                result = normalize_korean(text)
+                # Then
+                self.assertEqual(result.text, expected)
+                self.assertEqual(
+                    [
+                        (edit.source_start, edit.source_end)
+                        for edit in result.edits
+                    ],
+                    [(0, 3), (5, 7)],
+                )
+                self.assertEqual(result.edits[0].before, text[:3])
+                self.assertEqual(result.edits[1].before, text[5:7])
+
+    def test_long_repeated_zwsp_input_is_normalized(self) -> None:
+        # Given
+        syllable_count = 2_000
+        text = "가\u200b" * syllable_count
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "가" * syllable_count)
+        self.assertEqual(len(result.edits), syllable_count)
+        self.assertEqual(result.edits[0].source_start, 1)
+        self.assertEqual(result.edits[-1].source_end, len(text))
+
     def test_preserves_isolated_chosung(self) -> None:
         # Given
         text = "ㅇㅋ ㅋㅋ"
