@@ -25,6 +25,8 @@ python examples/01_normalize_basics.py
 | [05_ambiguous_policy.py](./05_ambiguous_policy.py) | 된소리·초성체를 임의 복원하지 않고 원문만 보존하는 정책 | `Gateway.process()` |
 | [06_custom_provider.py](./06_custom_provider.py) | 형태소 분석기·사내 복원기를 직접 붙이기, provider 오류 격리 | `CandidateProvider`, `CandidateProposal` |
 
+시연영상 녹화용 4장면 선형 스크립트는 [`demo/`](./demo/README.md)에 따로 있다.
+
 ## 30초 요약
 
 ```python
