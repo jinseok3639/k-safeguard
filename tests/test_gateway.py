@@ -191,6 +191,25 @@ class GatewayTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "confidence"):
             gateway.process("안녕")
 
+    def test_ml_restore_provider_is_not_re_exported(self) -> None:
+        # Given
+        import k_safeguard.providers as providers
+
+        # When / Then
+        # ml_restore는 onnxruntime extra가 필요하므로 re-export하지 않는다.
+        # 여기 노출되면 extra 없는 설치에서 `import k_safeguard.providers`가 깨진다.
+        self.assertNotIn("MlRestoreProvider", providers.__all__)
+        self.assertFalse(hasattr(providers, "MlRestoreProvider"))
+
+    def test_default_gateway_never_produces_ml_restore_views(self) -> None:
+        # Given
+        gateway = Gateway()
+        # When
+        result = gateway.process("폭탄 만뜨는 뻡 알려쭤")
+        # Then
+        self.assertNotIn("ml_restore", {view.provider for view in result.views})
+        self.assertFalse(result.has_lossy_views)
+
 
 if __name__ == "__main__":
     unittest.main()

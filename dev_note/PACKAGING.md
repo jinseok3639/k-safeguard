@@ -7,8 +7,9 @@ distribution 이름은 `k-safeguard`, Python import 이름은 `k_safeguard`다.
 
 | 설치 | 포함 | 기본 활성화 |
 |---|---|---|
-| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 진단 primitive | 무손실 core만 |
-| `k-safeguard[wordfreq]` | 과거 초성 후보 실험 재현용 `wordfreq` | 배포 API에서 사용하지 않음 |
+| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 primitive | 무손실 core만 |
+| `k-safeguard[wordfreq]` | `wordfreq` 기반 실험적 초성 provider | 아니요, 명시적 주입 필요 |
+| `k-safeguard[ml-restore]` | 자모 슬롯 복원 provider의 **추론 코드만** (`onnxruntime`, `numpy`). 모델 가중치는 미포함 | 아니요, 명시적 주입 필요 |
 | 외부 provider | 형태소 분석기, 로컬·원격 복원기, 사용자 사전 | 사용자 정책에 따름 |
 
 초성·된소리 다중 view provider는 공개 API에서 제거했다. 구현 모듈은 기존 실험을 재현하기 위해
@@ -16,6 +17,26 @@ wheel에 남아 있지만 배포 Gateway 구성으로 지원하지 않는다.
 
 기본 wheel은 외부 런타임 dependency가 0개다. `torch`, `transformers`, 가드레일 모델과 복원 모델은
 프로젝트 평가 환경 또는 사용자가 선택한 별도 provider에 속하며 패키지 dependency로 선언하지 않는다.
+
+`ml-restore` extra도 이 경계를 지킨다 — `onnxruntime`은 **추론 런타임**일 뿐이고 모델 가중치
+자체는 wheel에 들어가지 않는다(`verify_artifacts.py`의 `FORBIDDEN_SUFFIXES`가 `.onnx`·`.pt`를
+막는다). 자모 인코딩·후보 위치 규칙은 의존성이 없는 `k_safeguard.jamo_slots`에 있어 extra
+없이도 import·테스트된다.
+
+가중치는 두 경로 중 하나로 받는다.
+
+- `MlRestoreProvider.from_pretrained()` — GitHub Release(`v0.2.0-ml-restore` 태그)에서
+  받는다. `providers/ml_restore.py`의 `PRETRAINED_MANIFEST`에 파일마다 sha256·크기를
+  고정해 두고, 다운로드한 뒤 대조해 손상·변조를 막는다. OS 캐시 디렉터리에 저장하고
+  재사용하며, 새 의존성 없이 `urllib`(표준 라이브러리)만 쓴다 — `huggingface_hub` 같은
+  클라이언트 SDK는 이 저장소가 지키는 "필요한 만큼만 설치" 원칙에 비해 무겁다고 판단해
+  쓰지 않았다.
+- `MlRestoreProvider.from_directory(path)` — 호출자가 준비한 가중치 디렉터리의
+  `manifest.json`을 읽어 세션을 만든다. Release에 의존하고 싶지 않을 때 쓴다.
+
+캐시·다운로드 로직(`_download_file`·`_verify_file`·`_default_cache_dir`)은 onnxruntime 없이도
+테스트된다 — `tests/test_ml_restore_downloader.py`가 `urllib.request.urlopen`을 몽키패치해
+네트워크 없이 돈다.
 
 ## public API
 
@@ -106,10 +127,12 @@ src/k_safeguard/
 ├── normalization.py
 ├── chosung.py
 ├── gateway.py
+├── jamo_slots.py
 ├── py.typed
 └── providers/
     ├── __init__.py
     ├── chosung.py
+    ├── ml_restore.py
     ├── tensify.py
     └── wordfreq.py
 ```
@@ -122,7 +145,7 @@ src/k_safeguard/
 python -m pip install --upgrade build
 python -m build
 python tools/release/verify_artifacts.py
-python -m pip install --force-reinstall --no-deps dist/k_safeguard-0.1.0-py3-none-any.whl
+python -m pip install --force-reinstall --no-deps dist/k_safeguard-0.2.0-py3-none-any.whl
 python -m unittest discover -s tests -v
 ```
 
