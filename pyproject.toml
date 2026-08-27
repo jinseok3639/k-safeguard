@@ -88,6 +88,7 @@ source_paths = [
   "src/k_safeguard/providers/__init__.py",
   "src/k_safeguard/providers/chosung.py",
   "src/k_safeguard/providers/liaison.py",
+  "src/k_safeguard/providers/spaced_jamo.py",
   "src/k_safeguard/providers/tensify.py",
 ]
 runner = "python -m unittest discover -s tests"

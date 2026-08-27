@@ -7,7 +7,7 @@ distribution 이름은 `k-safeguard`, Python import 이름은 `k_safeguard`다.
 
 | 설치 | 포함 | 기본 활성화 |
 |---|---|---|
-| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 primitive, `LiaisonInverseProvider`(무의존 opt-in 후보) | 무손실 core만 |
+| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 primitive, `LiaisonInverseProvider`·`SpacedJamoProvider`(무의존 opt-in 후보) | 무손실 core만 |
 | `k-safeguard[wordfreq]` | `wordfreq` 기반 실험적 초성 provider | 아니요, 명시적 주입 필요 |
 | `k-safeguard[ml-restore]` | 자모 슬롯 복원 provider의 **추론 코드만** (`onnxruntime`, `numpy`). 모델 가중치는 미포함 | 아니요, 명시적 주입 필요 |
 | 외부 provider | 형태소 분석기, 로컬·원격 복원기, 사용자 사전 | 사용자 정책에 따름 |
@@ -16,6 +16,12 @@ distribution 이름은 `k-safeguard`, Python import 이름은 `k_safeguard`다.
 wheel에 남아 있지만 배포 Gateway 구성으로 지원하지 않는다.
 `LiaisonInverseProvider`는 core wheel에 포함되는 별도 opt-in provider이며 기본 Gateway에는 자동
 연결되지 않는다. 추가 dependency 없이 `Gateway(providers=[...])`로 명시적으로 주입한다.
+
+`SpacedJamoProvider`(`providers/spaced_jamo.py`)는 추가 dependency 없는 opt-in 후보 provider로
+core wheel에 포함된다. 여러 복원 view를 만들지 않고, 공백을 걷어낸 자모열이 완성형 음절로 전부
+조합될 때만 후보 하나를 낸다. `providers` namespace에 re-export하지 않으므로
+`from k_safeguard.providers.spaced_jamo import SpacedJamoProvider`로 직접 import해
+`Gateway(providers=[...])`로 주입한다.
 
 기본 wheel은 외부 런타임 dependency가 0개다. `torch`, `transformers`, 가드레일 모델과 복원 모델은
 프로젝트 평가 환경 또는 사용자가 선택한 별도 provider에 속하며 패키지 dependency로 선언하지 않는다.
@@ -135,6 +141,7 @@ src/k_safeguard/
     ├── __init__.py
     ├── chosung.py
     ├── ml_restore.py
+    ├── spaced_jamo.py
     ├── tensify.py
     └── wordfreq.py
 ```

@@ -133,13 +133,35 @@ emoji ZWJ, 결합문자, 한영 코드스위칭 입력을 임의로 훼손하지
 
 문맥 없이는 원문을 확정할 수 없는 변형은 기본 Gateway에서 복원하지 않는다. 연음 provider는
 명시적 opt-in으로만 제공하고, 초성·된소리 후보 구현은 과거 실험 재현용 내부 모듈로만 남긴다.
+띄어 쓴 자모와 ML 복원도 정보 손실이 있어 기본 Gateway에는 자동 연결하지 않는다.
 
 | provider | 대상 | 추가 의존성 | 현재 상태 |
 |---|---|---|---|
 | `LiaisonInverseProvider` | `머글게` 같은 단순 연음 표기 | 없음 | 개발 NRR 56.52%, 평균 +8.08 view·ΔFPR 관찰로 기본 비활성 |
+| `SpacedJamoProvider` | `ㅇ ㅓ ㅂ ㅅ ㅇ ㅣ`처럼 공백으로 분리된 자모 | 없음 | 한 어절 개발 exact 504/504, 공백 삭제는 lossy라 기본 비활성 |
 | `TensifyInverseProvider` | 된소리·쌍자음화 | 없음 | 독립 locked-test ΔFPR-obf +14.29%p로 공개 API 제거, 연구 재현 전용 |
 | `ChosungLexiconProvider` | 초성체 | `wordfreq` extra | NRR 13.04%로 공개 API 제거, 연구 재현 전용 |
 | `MlRestoreProvider` | 된소리·연음·종성 크래밍 | `ml-restore` extra + 별도 가중치 | 실제 Kanana에서 탐지 복원 확인(TPR 94.0%→14.0%→복원 후 93.4%). 그러나 승격 5기준 중 clean benign Mutation Rate가 임계값 구간에서 5.4~7.8%(기준 ≤1%)라 **기본 비활성 유지** |
+
+#### 띄어 쓴 자모 복원 — SpacedJamoProvider
+
+`ㅅ ㅣ ㅅ ㅡ ㅌ ㅔ ㅁ`처럼 자모를 공백으로 띄어 쓴 난독화를 되돌린다. 붙어 있는 자모만 조합하는
+무손실 정규화기와 달리 공백을 먼저 걷어내며, 공백 삭제는 lossy라 원문을 덮어쓰지 않고 후보
+view만 추가한다. 자모 4개 이상이 ASCII 공백으로 이어진 구간이 완성형 음절로 전부 조합될 때만
+후보 하나를 낸다.
+
+```python
+from k_safeguard import Gateway
+from k_safeguard.providers.spaced_jamo import SpacedJamoProvider
+
+gateway = Gateway(providers=[SpacedJamoProvider()])
+result = gateway.process("ㅅ ㅣ ㅅ ㅡ ㅌ ㅔ ㅁ 점검")
+
+assert result.views[0].text == "ㅅ ㅣ ㅅ ㅡ ㅌ ㅔ ㅁ 점검"   # 원문 보존
+assert "시스템 점검" in [v.text for v in result.views]      # 복원 후보 추가
+```
+
+#### 연음 역복원 — LiaisonInverseProvider
 
 ```python
 from k_safeguard import Gateway
@@ -254,8 +276,8 @@ variant 15개도 모두 복원했다. E2는 clean E0 판정으로 돌아가므�
 ## 개발
 
 ```bash
-python -m pip install -e ".[dev]"
-python -m unittest discover -s tests    # 197 tests
+python -m pip install -e ".[dev,mutation]"
+python -m unittest discover -s tests
 python -m coverage run -m unittest discover -s tests && python -m coverage report    # 분기 커버리지
 mutmut run && mutmut results    # 변이 테스트
 ```
