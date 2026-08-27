@@ -13,6 +13,20 @@ python examples/demo/run_demo.py
 추가 의존성·GPU·네트워크가 필요 없다. 가드레일 자리에는 키워드 매칭 stub이 들어 있어
 어디서든 그대로 돌아간다.
 
+## Jupyter 영상 시연
+
+[`k_safeguard_demo.ipynb`](./k_safeguard_demo.ipynb)는 아래 4장면을 설명 셀과 실행 셀로 나눈
+영상 녹화용 노트북이다. 저장소의 `src/` 경로를 자동으로 찾아 사용하므로 k-safeguard를 editable로
+설치하지 않아도 된다. JupyterLab만 데모 가상환경에 설치해 실행한다.
+
+```powershell
+.\.venv-demo\Scripts\python.exe -m pip install jupyterlab
+.\.venv-demo\Scripts\python.exe -m jupyter lab examples\demo\k_safeguard_demo.ipynb
+```
+
+녹화 전 `Kernel > Restart Kernel and Run All Cells`로 전체 실행을 확인하고, 왼쪽 사이드바를 숨긴 뒤
+브라우저 배율을 110~125%로 맞추면 결과 표가 읽기 좋다.
+
 ## run_demo.py — 4장면 선형 데모
 
 위에서 아래로 한 번에 실행되며 콘솔에 4개 장면을 출력한다. 녹화하면서 장면별로 끊어

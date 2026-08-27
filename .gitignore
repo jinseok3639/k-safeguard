@@ -1,6 +1,7 @@
 .venv-experiment/
 .venv-report/
 .venv-package/
+.venv-demo/
 .venv-wheel-test/
 __pycache__/
 *.py[cod]
