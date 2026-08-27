@@ -8,11 +8,13 @@
 | rule ID | 처리 대상 | 정책 |
 |---|---|---|
 | `remove_hangul_zwsp` | 한글·자모와 인접한 U+200B ZERO WIDTH SPACE | U+200B만 제거 |
+| `normalize_halfwidth_hangul` | U+FFA1–U+FFDC의 현대 반각 한글 자모 | 표준 호환 자모로 변환 후 음절 조합 |
 | `compose_modern_jamo` | `안` 같은 현대 조합형 자모열 | 명확한 초성+중성(+종성)을 음절로 조합 |
 | `compose_compat_jamo` | `ㅇㅏㄴ`, `ㄱㅏㅂㅅ` 같은 호환 자모열 | 겹받침 낱자형과 다음 모음 경계를 확인해 음절로 조합 |
 
-전역 Unicode NFC를 적용하지 않고 현대 한글 자모열만 직접 조합한다. 이렇게 하면 한글과 무관한
-결합문자, emoji ZWJ sequence와 코드스위칭 입력을 임의로 바꾸지 않는다.
+전역 Unicode NFC/NFKC를 적용하지 않고 지원 범위의 한글 자모열만 직접 조합한다. 반각 한글
+filler(U+FFA0), 반각 가타카나와 전각 라틴 등은 보존하므로 한글과 무관한 결합문자, emoji ZWJ
+sequence와 코드스위칭 입력을 임의로 바꾸지 않는다.
 
 다음 항목은 문맥 없이는 원문을 확정할 수 없어 MVP에서 변경하지 않는다.
 
@@ -24,10 +26,9 @@
 - U+200C ZWNJ, U+200D ZWJ, U+2060 WORD JOINER, U+FEFF BOM, U+00AD SOFT HYPHEN
   (한글·자모 사이에 있어도 원문 그대로 보존)
 
-초성체의 opt-in 다중 후보 생성기는 [`CHOSUNG_CANDIDATES.md`](./CHOSUNG_CANDIDATES.md)를 참고한다.
-된소리화의 opt-in bounded 역변형 후보는
-[`TENSIFY_CANDIDATES.md`](../experiments/benchmark/TENSIFY_CANDIDATES.md)를 참고한다.
-기본 `normalize_korean()`에는 연결하지 않아 무손실 동작과 clean mutation 0% 경계를 유지한다.
+초성체·된소리의 다중 후보 provider는 복원율과 오탐 평가 결과를 근거로 공개 API에서 제거했다.
+기존 후보 생성 구현과 결과 문서는 과거 실험 재현용으로만 보존한다. 배포 `Gateway`와
+`normalize_korean()`은 두 변형을 바꾸거나 여러 복원 view로 확장하지 않는다.
 
 ## 사용법
 
@@ -76,8 +77,13 @@ print(result.edits)
 [#44](https://github.com/jinseok3639/k-safeguard/issues/44)에서 겹받침 11종의 낱자형과
 다음 음절 모음 경계를 조합하도록 수정해 새 벤치마크에서도 `505/505`를 회복했다.
 
-이 결과는 문자열 정확 복원과 clean mutation 검증이다. 가드레일 탐지 복원 효과는 이후 E0/E1/E2/E3
-평가에서 별도로 측정한다.
+이 표는 문자열 정확 복원과 clean mutation 검증이며 가드레일 차단율이 아니다. 가드레일 E1/E2는
+동일 505개 모집단에서 별도로 측정했다. 겹받침 복원을 적용한 `jamo_decompose` 공격 차단은 두
+intensity 합산 569/602(94.52%) → 566/602(94.02%)였다. exact restoration 1,008/1,008과 함께
+clean에서 난독화 때문에 새로 생긴 회피 variant 15개를 모두 복원해 residual은 0개였다. 생성 방식이 바뀌지 않은
+`zwsp_inject`의 고정 실행은 564/602(93.69%) → 566/602(94.02%), 회피 variant 복원 19/19였다.
+순 차단율과 NRR의 방향이 다를 수 있는 이유와 상세 분모는
+[`NORMALIZER_POPULATION_RESULT.md`](../experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)에 기록한다.
 
 ## 테스트
 
@@ -85,5 +91,7 @@ print(result.edits)
 python -m unittest discover -s tests -v
 ```
 
-현재 테스트는 clean 무변경, 현대·호환 자모, 음절 경계, 한글 인접 ZWSP 제거, ZWSP 외 format 문자
-보존, emoji ZWJ, 독립 초성, 문장부호, 코드스위칭, 원문 offset, 빈 입력과 결정성을 포함한다.
+현재 테스트는 clean 무변경, 현대·호환 자모, 반각 현대 한글 51개 매핑 전수, 대표 반각 음절과
+음절 경계, 한글 인접 ZWSP 제거, ZWSP 외 format 문자 보존, emoji ZWJ, 독립 초성, 문장부호,
+코드스위칭, 원문 offset, 빈 입력과 결정성을 포함한다. 현대 한글 11,172음절 반각 변환 전수 복원은
+별도 진단에서 실패 0건을 확인했다.

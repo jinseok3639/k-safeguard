@@ -1,6 +1,6 @@
 """k-safeguard의 보수적인 한국어 표기 정규화 core.
 
-정보 손실 없이 처리할 수 있는 Hangul 인접 ZWSP와 현대·호환 자모 조합만 적용한다.
+정보 손실 없이 처리할 수 있는 Hangul 인접 ZWSP와 현대·호환·반각 자모 조합만 적용한다.
 초성체, 된소리, 연음과 띄어쓰기는 문맥상 모호하므로 이 단계에서는 변경하지 않는다.
 """
 
@@ -42,6 +42,37 @@ _COMPAT_COMPOUND_JONG_INDEX = {
     ("ㄹ", "ㅍ"): _COMPAT_JONG_INDEX["ㄿ"],
     ("ㄹ", "ㅎ"): _COMPAT_JONG_INDEX["ㅀ"],
     ("ㅂ", "ㅅ"): _COMPAT_JONG_INDEX["ㅄ"],
+}
+
+_HALFWIDTH_COMPAT_CONSONANTS = (
+    "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄸ", "ㄹ", "ㄺ",
+    "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅃ", "ㅄ",
+    "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ",
+)
+_HALFWIDTH_CONSONANT_CODEPOINTS = tuple(range(0xFFA1, 0xFFBF))
+_HALFWIDTH_VOWEL_CODEPOINTS = (
+    *range(0xFFC2, 0xFFC8),
+    *range(0xFFCA, 0xFFD0),
+    *range(0xFFD2, 0xFFD8),
+    *range(0xFFDA, 0xFFDD),
+)
+_HALFWIDTH_TO_COMPAT = {
+    **{
+        chr(codepoint): compat
+        for codepoint, compat in zip(
+            _HALFWIDTH_CONSONANT_CODEPOINTS,
+            _HALFWIDTH_COMPAT_CONSONANTS,
+            strict=True,
+        )
+    },
+    **{
+        chr(codepoint): compat
+        for codepoint, compat in zip(
+            _HALFWIDTH_VOWEL_CODEPOINTS,
+            COMPAT_JUNG,
+            strict=True,
+        )
+    },
 }
 
 
@@ -86,6 +117,7 @@ def _is_hangul_related(char: str) -> bool:
         0xAC00 <= code <= 0xD7A3
         or 0x1100 <= code <= 0x11FF
         or 0x3130 <= code <= 0x318F
+        or 0xFFA0 <= code <= 0xFFDC
     )
 
 
@@ -131,6 +163,45 @@ def _remove_hangul_zwsp(
 
     if removed_run:
         edits.append(_make_edit("remove_hangul_zwsp", removed_run, ""))
+    return output, edits
+
+
+def _normalize_halfwidth_hangul(
+    units: list[_Unit],
+) -> tuple[list[_Unit], list[NormalizationEdit]]:
+    """현대 반각 한글 자모만 표준 호환 자모로 변환한다."""
+    output: list[_Unit] = []
+    edits: list[NormalizationEdit] = []
+    changed_run: list[_Unit] = []
+    replacement_run: list[str] = []
+
+    for unit in units:
+        compat = _HALFWIDTH_TO_COMPAT.get(unit.char)
+        if compat is not None:
+            output.append(_Unit(compat, unit.source_start, unit.source_end))
+            changed_run.append(unit)
+            replacement_run.append(compat)
+            continue
+        if changed_run:
+            edits.append(
+                _make_edit(
+                    "normalize_halfwidth_hangul",
+                    changed_run,
+                    "".join(replacement_run),
+                )
+            )
+            changed_run = []
+            replacement_run = []
+        output.append(unit)
+
+    if changed_run:
+        edits.append(
+            _make_edit(
+                "normalize_halfwidth_hangul",
+                changed_run,
+                "".join(replacement_run),
+            )
+        )
     return output, edits
 
 
@@ -298,7 +369,12 @@ def normalize_korean(text: str) -> NormalizationResult:
 
     units = [_Unit(char, index, index + 1) for index, char in enumerate(text)]
     edits: list[NormalizationEdit] = []
-    rules = (_remove_hangul_zwsp, _compose_modern_jamo, _compose_compat_jamo)
+    rules = (
+        _remove_hangul_zwsp,
+        _normalize_halfwidth_hangul,
+        _compose_modern_jamo,
+        _compose_compat_jamo,
+    )
     for transform in rules:
         units, rule_edits = transform(units)
         edits.extend(rule_edits)

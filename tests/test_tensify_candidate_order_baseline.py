@@ -2,7 +2,7 @@ import json
 import unittest
 from pathlib import Path
 
-from k_safeguard.providers import (
+from k_safeguard.providers.tensify import (
     DEFAULT_TENSIFY_DIVERSIFY_FROM,
     TENSIFY_CANDIDATE_VERSION,
     TensifyInverseProvider,
