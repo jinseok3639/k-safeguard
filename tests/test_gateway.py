@@ -201,6 +201,16 @@ class GatewayTest(unittest.TestCase):
         self.assertNotIn("MlRestoreProvider", providers.__all__)
         self.assertFalse(hasattr(providers, "MlRestoreProvider"))
 
+    def test_spaced_jamo_provider_is_not_re_exported(self) -> None:
+        # Given
+        import k_safeguard.providers as providers
+
+        # When / Then
+        # spaced_jamo는 공백 삭제라는 lossy 단계를 포함하는 opt-in provider다.
+        # 배포 공개 API 표면에 올리지 않고 모듈 경로로만 주입한다.
+        self.assertNotIn("SpacedJamoProvider", providers.__all__)
+        self.assertFalse(hasattr(providers, "SpacedJamoProvider"))
+
     def test_default_gateway_never_produces_ml_restore_views(self) -> None:
         # Given
         gateway = Gateway()
