@@ -1,14 +1,12 @@
 """k-safeguard의 보수적인 한국어 표기 정규화 core.
 
-정보 손실 없이 처리할 수 있는 Hangul 인접 ZWSP와 현대·호환 자모 조합만 적용한다.
+정보 손실 없이 처리할 수 있는 Hangul 인접 ZWSP와 현대·호환·반각 자모 조합만 적용한다.
 초성체, 된소리, 연음과 띄어쓰기는 문맥상 모호하므로 이 단계에서는 변경하지 않는다.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from difflib import SequenceMatcher
-from typing import Callable
 
 
 NORMALIZER_VERSION = "0.1.0"
@@ -32,6 +30,50 @@ COMPAT_JONG = (
 _COMPAT_CHO_INDEX = {char: index for index, char in enumerate(COMPAT_CHO)}
 _COMPAT_JUNG_INDEX = {char: index for index, char in enumerate(COMPAT_JUNG)}
 _COMPAT_JONG_INDEX = {char: index for index, char in enumerate(COMPAT_JONG) if char}
+_COMPAT_COMPOUND_JONG_INDEX = {
+    ("ㄱ", "ㅅ"): _COMPAT_JONG_INDEX["ㄳ"],
+    ("ㄴ", "ㅈ"): _COMPAT_JONG_INDEX["ㄵ"],
+    ("ㄴ", "ㅎ"): _COMPAT_JONG_INDEX["ㄶ"],
+    ("ㄹ", "ㄱ"): _COMPAT_JONG_INDEX["ㄺ"],
+    ("ㄹ", "ㅁ"): _COMPAT_JONG_INDEX["ㄻ"],
+    ("ㄹ", "ㅂ"): _COMPAT_JONG_INDEX["ㄼ"],
+    ("ㄹ", "ㅅ"): _COMPAT_JONG_INDEX["ㄽ"],
+    ("ㄹ", "ㅌ"): _COMPAT_JONG_INDEX["ㄾ"],
+    ("ㄹ", "ㅍ"): _COMPAT_JONG_INDEX["ㄿ"],
+    ("ㄹ", "ㅎ"): _COMPAT_JONG_INDEX["ㅀ"],
+    ("ㅂ", "ㅅ"): _COMPAT_JONG_INDEX["ㅄ"],
+}
+
+_HALFWIDTH_COMPAT_CONSONANTS = (
+    "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄸ", "ㄹ", "ㄺ",
+    "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅃ", "ㅄ",
+    "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ",
+)
+_HALFWIDTH_CONSONANT_CODEPOINTS = tuple(range(0xFFA1, 0xFFBF))
+_HALFWIDTH_VOWEL_CODEPOINTS = (
+    *range(0xFFC2, 0xFFC8),
+    *range(0xFFCA, 0xFFD0),
+    *range(0xFFD2, 0xFFD8),
+    *range(0xFFDA, 0xFFDD),
+)
+_HALFWIDTH_TO_COMPAT = {
+    **{
+        chr(codepoint): compat
+        for codepoint, compat in zip(
+            _HALFWIDTH_CONSONANT_CODEPOINTS,
+            _HALFWIDTH_COMPAT_CONSONANTS,
+            strict=True,
+        )
+    },
+    **{
+        chr(codepoint): compat
+        for codepoint, compat in zip(
+            _HALFWIDTH_VOWEL_CODEPOINTS,
+            COMPAT_JUNG,
+            strict=True,
+        )
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -75,39 +117,118 @@ def _is_hangul_related(char: str) -> bool:
         0xAC00 <= code <= 0xD7A3
         or 0x1100 <= code <= 0x11FF
         or 0x3130 <= code <= 0x318F
+        or 0xFFA0 <= code <= 0xFFDC
     )
 
 
-def _remove_hangul_zwsp(text: str) -> str:
-    output: list[str] = []
-    for index, char in enumerate(text):
-        if char != ZWSP:
-            output.append(char)
+def _make_edit(
+    rule_id: str,
+    source_units: list[_Unit],
+    after: str,
+) -> NormalizationEdit:
+    return NormalizationEdit(
+        rule_id=rule_id,
+        source_start=source_units[0].source_start,
+        source_end=source_units[-1].source_end,
+        before="".join(unit.char for unit in source_units),
+        after=after,
+        confidence=1.0,
+    )
+
+
+def _remove_hangul_zwsp(
+    units: list[_Unit],
+) -> tuple[list[_Unit], list[NormalizationEdit]]:
+    """한글·자모에 인접한 U+200B만 제거하고 다른 format 문자는 보존한다."""
+    output: list[_Unit] = []
+    edits: list[NormalizationEdit] = []
+    removed_run: list[_Unit] = []
+
+    for index, unit in enumerate(units):
+        if unit.char != ZWSP:
+            if removed_run:
+                edits.append(_make_edit("remove_hangul_zwsp", removed_run, ""))
+                removed_run = []
+            output.append(unit)
             continue
-        left = text[index - 1] if index > 0 else ""
-        right = text[index + 1] if index + 1 < len(text) else ""
+        left = units[index - 1].char if index > 0 else ""
+        right = units[index + 1].char if index + 1 < len(units) else ""
         if (left and _is_hangul_related(left)) or (right and _is_hangul_related(right)):
+            removed_run.append(unit)
             continue
-        output.append(char)
-    return "".join(output)
+        if removed_run:
+            edits.append(_make_edit("remove_hangul_zwsp", removed_run, ""))
+            removed_run = []
+        output.append(unit)
+
+    if removed_run:
+        edits.append(_make_edit("remove_hangul_zwsp", removed_run, ""))
+    return output, edits
 
 
-def _compose_modern_jamo(text: str) -> str:
+def _normalize_halfwidth_hangul(
+    units: list[_Unit],
+) -> tuple[list[_Unit], list[NormalizationEdit]]:
+    """현대 반각 한글 자모만 표준 호환 자모로 변환한다."""
+    output: list[_Unit] = []
+    edits: list[NormalizationEdit] = []
+    changed_run: list[_Unit] = []
+    replacement_run: list[str] = []
+
+    for unit in units:
+        compat = _HALFWIDTH_TO_COMPAT.get(unit.char)
+        if compat is not None:
+            output.append(_Unit(compat, unit.source_start, unit.source_end))
+            changed_run.append(unit)
+            replacement_run.append(compat)
+            continue
+        if changed_run:
+            edits.append(
+                _make_edit(
+                    "normalize_halfwidth_hangul",
+                    changed_run,
+                    "".join(replacement_run),
+                )
+            )
+            changed_run = []
+            replacement_run = []
+        output.append(unit)
+
+    if changed_run:
+        edits.append(
+            _make_edit(
+                "normalize_halfwidth_hangul",
+                changed_run,
+                "".join(replacement_run),
+            )
+        )
+    return output, edits
+
+
+def _compose_modern_jamo(
+    units: list[_Unit],
+) -> tuple[list[_Unit], list[NormalizationEdit]]:
     """현대 조합형 자모(U+1100 계열)의 명확한 초·중·종 연속열을 조합한다."""
-    output: list[str] = []
+    output: list[_Unit] = []
+    edits: list[NormalizationEdit] = []
+    changed_run: list[_Unit] = []
+    replacement_run: list[str] = []
     index = 0
-    while index < len(text):
-        choseong = ord(text[index])
+    while index < len(units):
+        choseong = ord(units[index].char)
         if (
             0x1100 <= choseong <= 0x1112
-            and index + 1 < len(text)
-            and 0x1161 <= ord(text[index + 1]) <= 0x1175
+            and index + 1 < len(units)
+            and 0x1161 <= ord(units[index + 1].char) <= 0x1175
         ):
-            jungseong = ord(text[index + 1])
+            jungseong = ord(units[index + 1].char)
             jongseong_index = 0
             consumed = 2
-            if index + 2 < len(text) and 0x11A8 <= ord(text[index + 2]) <= 0x11C2:
-                jongseong_index = ord(text[index + 2]) - 0x11A7
+            if (
+                index + 2 < len(units)
+                and 0x11A8 <= ord(units[index + 2].char) <= 0x11C2
+            ):
+                jongseong_index = ord(units[index + 2].char) - 0x11A7
                 consumed = 3
             syllable = chr(
                 HANGUL_BASE
@@ -115,112 +236,129 @@ def _compose_modern_jamo(text: str) -> str:
                 + (jungseong - 0x1161) * 28
                 + jongseong_index
             )
-            output.append(syllable)
+            source_units = units[index : index + consumed]
+            output.append(
+                _Unit(
+                    syllable,
+                    source_units[0].source_start,
+                    source_units[-1].source_end,
+                )
+            )
+            changed_run.extend(source_units)
+            replacement_run.append(syllable)
             index += consumed
             continue
-        output.append(text[index])
+        if changed_run:
+            edits.append(
+                _make_edit(
+                    "compose_modern_jamo",
+                    changed_run,
+                    "".join(replacement_run),
+                )
+            )
+            changed_run = []
+            replacement_run = []
+        output.append(units[index])
         index += 1
-    return "".join(output)
+
+    if changed_run:
+        edits.append(
+            _make_edit(
+                "compose_modern_jamo",
+                changed_run,
+                "".join(replacement_run),
+            )
+        )
+    return output, edits
 
 
-def _compose_compat_jamo(text: str) -> str:
+def _compose_compat_jamo(
+    units: list[_Unit],
+) -> tuple[list[_Unit], list[NormalizationEdit]]:
     """호환 자모의 명확한 C+V(+C) 연속열을 완성형 음절로 조합한다."""
-    output: list[str] = []
+    output: list[_Unit] = []
+    edits: list[NormalizationEdit] = []
+    changed_run: list[_Unit] = []
+    replacement_run: list[str] = []
     index = 0
-    while index < len(text):
-        choseong_index = _COMPAT_CHO_INDEX.get(text[index])
+    while index < len(units):
+        choseong_index = _COMPAT_CHO_INDEX.get(units[index].char)
         if (
             choseong_index is not None
-            and index + 1 < len(text)
-            and text[index + 1] in _COMPAT_JUNG_INDEX
+            and index + 1 < len(units)
+            and units[index + 1].char in _COMPAT_JUNG_INDEX
         ):
-            jungseong_index = _COMPAT_JUNG_INDEX[text[index + 1]]
+            jungseong_index = _COMPAT_JUNG_INDEX[units[index + 1].char]
             jongseong_index = 0
             consumed = 2
             candidate_index = index + 2
-            if candidate_index < len(text):
-                candidate = text[candidate_index]
-                candidate_jong = _COMPAT_JONG_INDEX.get(candidate)
-                followed_by_vowel = (
-                    candidate in _COMPAT_CHO_INDEX
-                    and candidate_index + 1 < len(text)
-                    and text[candidate_index + 1] in _COMPAT_JUNG_INDEX
+            if candidate_index < len(units):
+                candidate = units[candidate_index].char
+                next_index = candidate_index + 1
+                compound_jong = (
+                    _COMPAT_COMPOUND_JONG_INDEX.get(
+                        (candidate, units[next_index].char)
+                    )
+                    if next_index < len(units)
+                    else None
                 )
-                if candidate_jong is not None and not followed_by_vowel:
-                    jongseong_index = candidate_jong
-                    consumed = 3
+                compound_followed_by_vowel = (
+                    compound_jong is not None
+                    and next_index + 1 < len(units)
+                    and units[next_index + 1].char in _COMPAT_JUNG_INDEX
+                )
+                if compound_jong is not None and not compound_followed_by_vowel:
+                    jongseong_index = compound_jong
+                    consumed = 4
+                else:
+                    candidate_jong = _COMPAT_JONG_INDEX.get(candidate)
+                    followed_by_vowel = (
+                        candidate in _COMPAT_CHO_INDEX
+                        and next_index < len(units)
+                        and units[next_index].char in _COMPAT_JUNG_INDEX
+                    )
+                    if candidate_jong is not None and not followed_by_vowel:
+                        jongseong_index = candidate_jong
+                        consumed = 3
+            syllable = chr(
+                HANGUL_BASE
+                + choseong_index * 21 * 28
+                + jungseong_index * 28
+                + jongseong_index
+            )
+            source_units = units[index : index + consumed]
             output.append(
-                chr(
-                    HANGUL_BASE
-                    + choseong_index * 21 * 28
-                    + jungseong_index * 28
-                    + jongseong_index
+                _Unit(
+                    syllable,
+                    source_units[0].source_start,
+                    source_units[-1].source_end,
                 )
             )
+            changed_run.extend(source_units)
+            replacement_run.append(syllable)
             index += consumed
             continue
-        output.append(text[index])
+        if changed_run:
+            edits.append(
+                _make_edit(
+                    "compose_compat_jamo",
+                    changed_run,
+                    "".join(replacement_run),
+                )
+            )
+            changed_run = []
+            replacement_run = []
+        output.append(units[index])
         index += 1
-    return "".join(output)
 
-
-def _source_span(units: list[_Unit], start: int, end: int) -> tuple[int, int]:
-    if start < end:
-        return units[start].source_start, units[end - 1].source_end
-    if start < len(units):
-        # 세 정규화 규칙(ZWSP 제거·현대/호환 자모 조합)은 문자 수를 줄이거나
-        # 유지할 뿐 새 문자를 추가하지 않는다. 무작위 대입(30만+ 케이스)으로도
-        # SequenceMatcher의 순수 삽입(insert) opcode가 문자열 끝이 아닌 위치에서
-        # 발생하는 입력을 찾지 못했다 — 공개 API 입력만으로는 도달하지 않는다.
-        point = units[start].source_start  # pragma: no cover
-    elif units:
-        point = units[-1].source_end
-    else:
-        # 빈 문자열은 세 규칙 모두 무변화(before == after)라 _apply_rule의 조기
-        # 반환으로 끝나 이 지점에 도달하기 전에 끝난다 — units가 비어있는 채로
-        # 여기 도달할 수 없다.
-        point = 0  # pragma: no cover
-    return point, point
-
-
-def _apply_rule(
-    units: list[_Unit],
-    rule_id: str,
-    transform: Callable[[str], str],
-    confidence: float,
-) -> tuple[list[_Unit], list[NormalizationEdit]]:
-    before = "".join(unit.char for unit in units)
-    after = transform(before)
-    if before == after:
-        return units, []
-
-    output: list[_Unit] = []
-    edits: list[NormalizationEdit] = []
-    matcher = SequenceMatcher(a=before, b=after, autojunk=False)
-    for tag, source_start, source_end, target_start, target_end in matcher.get_opcodes():
-        if tag == "equal":
-            output.extend(units[source_start:source_end])
-            continue
-
-        original_start, original_end = _source_span(units, source_start, source_end)
-        replacement = after[target_start:target_end]
-        for char in replacement:
-            output.append(_Unit(char, original_start, original_end))
+    if changed_run:
         edits.append(
-            NormalizationEdit(
-                rule_id=rule_id,
-                source_start=original_start,
-                source_end=original_end,
-                before=before[source_start:source_end],
-                after=replacement,
-                confidence=confidence,
+            _make_edit(
+                "compose_compat_jamo",
+                changed_run,
+                "".join(replacement_run),
             )
         )
-
-    if "".join(unit.char for unit in output) != after:  # pragma: no cover
-        # SequenceMatcher opcode를 그대로 재조립하므로 항상 after와 일치한다 —
-        # 공개 API 입력만으로는 도달할 수 없는 내부 정렬 방어 코드.
-        raise RuntimeError(f"정규화 내부 정렬 오류: {rule_id}")
     return output, edits
 
 
@@ -232,12 +370,13 @@ def normalize_korean(text: str) -> NormalizationResult:
     units = [_Unit(char, index, index + 1) for index, char in enumerate(text)]
     edits: list[NormalizationEdit] = []
     rules = (
-        ("remove_hangul_zwsp", _remove_hangul_zwsp, 1.0),
-        ("compose_modern_jamo", _compose_modern_jamo, 1.0),
-        ("compose_compat_jamo", _compose_compat_jamo, 1.0),
+        _remove_hangul_zwsp,
+        _normalize_halfwidth_hangul,
+        _compose_modern_jamo,
+        _compose_compat_jamo,
     )
-    for rule_id, transform, confidence in rules:
-        units, rule_edits = _apply_rule(units, rule_id, transform, confidence)
+    for transform in rules:
+        units, rule_edits = transform(units)
         edits.extend(rule_edits)
 
     normalized = "".join(unit.char for unit in units)

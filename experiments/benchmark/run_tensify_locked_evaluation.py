@@ -54,7 +54,10 @@ from experiments.benchmark.validate_tensify_locked_set import (
 )
 from hf_repo.ko_obfuscator import tensify
 from k_safeguard.normalization import NORMALIZER_VERSION
-from k_safeguard.providers import TENSIFY_CANDIDATE_VERSION, TensifyInverseProvider
+from k_safeguard.providers.tensify import (
+    TENSIFY_CANDIDATE_VERSION,
+    TensifyInverseProvider,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

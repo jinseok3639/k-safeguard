@@ -73,7 +73,7 @@ workflow와 environment 값은 대소문자까지 실제 설정과 일치해야 
 ```bash
 python -m pip install --no-deps \
   --index-url https://test.pypi.org/simple/ \
-  "k-safeguard==0.1.0"
+  "k-safeguard==0.2.0"
 python -c "from k_safeguard import Gateway; assert Gateway().process('ㅇㅏㄴ').normalized == '안'"
 ```
 
@@ -121,7 +121,7 @@ TestPyPI workflow와 달리 smoke-test는 `--no-deps`와 `--index-url` 없이 �
 ### 6.3 배포 후
 
 ```bash
-python -m pip install "k-safeguard==0.1.0"
+python -m pip install "k-safeguard==0.2.0"
 python -c "from k_safeguard import Gateway; assert Gateway().process('ㅇㅏㄴ').normalized == '안'"
 ```
 

@@ -14,7 +14,8 @@ from experiments.benchmark.run_tensify_guardrail_evaluation import (
     summarize_transition,
 )
 from k_safeguard import Gateway
-from k_safeguard.providers import LiaisonInverseProvider, TensifyInverseProvider
+from k_safeguard.providers.liaison import LiaisonInverseProvider
+from k_safeguard.providers.tensify import TensifyInverseProvider
 
 
 def result(block: bool) -> AdapterResult:
