@@ -77,8 +77,13 @@ print(result.edits)
 [#44](https://github.com/jinseok3639/k-safeguard/issues/44)에서 겹받침 11종의 낱자형과
 다음 음절 모음 경계를 조합하도록 수정해 새 벤치마크에서도 `505/505`를 회복했다.
 
-이 결과는 문자열 정확 복원과 clean mutation 검증이다. 가드레일 탐지 복원 효과는 이후 E0/E1/E2/E3
-평가에서 별도로 측정한다.
+이 표는 문자열 정확 복원과 clean mutation 검증이며 가드레일 차단율이 아니다. 가드레일 E1/E2는
+동일 505개 모집단에서 별도로 측정했다. 겹받침 복원을 적용한 `jamo_decompose` 공격 차단은 두
+intensity 합산 569/602(94.52%) → 566/602(94.02%)였다. exact restoration 1,008/1,008과 함께
+clean에서 난독화 때문에 새로 생긴 회피 variant 15개를 모두 복원해 residual은 0개였다. 생성 방식이 바뀌지 않은
+`zwsp_inject`의 고정 실행은 564/602(93.69%) → 566/602(94.02%), 회피 variant 복원 19/19였다.
+순 차단율과 NRR의 방향이 다를 수 있는 이유와 상세 분모는
+[`NORMALIZER_POPULATION_RESULT.md`](../experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)에 기록한다.
 
 ## 테스트
 

@@ -2,6 +2,8 @@
 
 > 정규화 gateway의 E0/E1/E2/E3 평가는
 > [정규화 평가 문서](./NORMALIZER_EVALUATION.md)를 참고한다.
+> 공개 505개 시드의 실행 결과는
+> [자모분해·ZWSP 모집단 결과](./NORMALIZER_POPULATION_RESULT.md)에 고정했다.
 
 초성 후보를 Kanana 가드레일에 실제로 연결한 raw/direct/segmented/partial 비교는
 [초성 후보 view 영향 평가](./CHOSUNG_GUARDRAIL_IMPACT.md)에 기록한다. 실행기는 후보별 판정을
