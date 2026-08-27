@@ -2,3 +2,5 @@ include LICENSE
 include README.md
 include README.en.md
 include tools/release/verify_artifacts.py
+include tools/web/build_site.py
+recursive-include web *.css *.html *.js *.py

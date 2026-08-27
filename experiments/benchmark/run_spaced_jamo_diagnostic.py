@@ -10,7 +10,7 @@ from typing import Iterable
 
 from hf_repo.ko_obfuscator import jamo_decompose
 from k_safeguard import Gateway
-from k_safeguard.providers import SpacedJamoProvider
+from k_safeguard.providers.spaced_jamo import SpacedJamoProvider
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

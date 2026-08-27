@@ -1,4 +1,4 @@
-"""호출자가 제공한 lexicon을 사용하는 dependency-free 초성 provider."""
+"""과거 초성 다중 view 실험을 재현하기 위한 내부 provider."""
 
 from __future__ import annotations
 
@@ -96,4 +96,4 @@ class ChosungLexiconProvider:
             )
 
 
-__all__ = ["ChosungLexiconProvider"]
+__all__: list[str] = []

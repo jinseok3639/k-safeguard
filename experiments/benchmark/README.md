@@ -2,6 +2,8 @@
 
 > 정규화 gateway의 E0/E1/E2/E3 평가는
 > [정규화 평가 문서](./NORMALIZER_EVALUATION.md)를 참고한다.
+> 공개 505개 시드의 실행 결과는
+> [자모분해·ZWSP 모집단 결과](./NORMALIZER_POPULATION_RESULT.md)에 고정했다.
 
 초성 후보를 Kanana 가드레일에 실제로 연결한 raw/direct/segmented/partial 비교는
 [초성 후보 view 영향 평가](./CHOSUNG_GUARDRAIL_IMPACT.md)에 기록한다. 실행기는 후보별 판정을
@@ -50,6 +52,24 @@ A1/A2 전용 이진 분류기에서의 탐색 재현은
   -m experiments.benchmark.run_tensify_benign_dev_evaluation `
   --run-id <unique-run-id>
 ```
+
+후보를 나열하는 대신 자리마다 무엇으로 되돌릴지 판단하는 `MlRestoreProvider`의 문자열 수준
+진단은 [자모 슬롯 복원 후보 진단](./ML_RESTORE_CANDIDATES.md)에 기록한다. 후보가 하나뿐이라
+oracle recall이 아니라 **그 하나가 맞는가**를 재므로 된소리 역변형 후보 진단과 직접 비교하지
+않는다. `tensify` intensity 1.0에서 완전 복원은 0.67%지만 문자 오류율은 12.88%p 줄어든다 — 임계값이
+확신 있는 자리만 고치기 때문에 대부분 부분 복원이다. 세 모델을 함께 켜면 각 모델이 각자
+발동할 기회를 가져 정상 입력 후보 발생률이 benign 0.98%(2/204)가 된다.
+
+```powershell
+python -m experiments.benchmark.run_ml_restore_evaluation --weights <가중치 디렉터리>
+```
+
+같은 복원기를 실제 Kanana에 연결한 paired 평가는
+[자모 슬롯 복원 Kanana 평가](./ML_RESTORE_GUARDRAIL_IMPACT.md)에 기록한다. 탐지 복원 자체는
+확인됐지만(공격 TPR 94.02% → 13.95% → 복원 후 93.36%) 사전등록 5기준을 모두 통과하는 임계값이
+없어 `DO_NOT_PROMOTE`다. g1·g2·g3·g5는 임계값 0.999 이하에서 이미 통과하고 g4(clean benign
+Mutation Rate ≤1%)만 5.4~7.8%로 막는데, 임계값을 올려 g4를 통과시키면 NRR이 12.81%로 무너진다.
+이 실행은 GPU가 필요해 저장소 CI에서 재현할 수 없다.
 
 새 `Gateway.evaluate()` 런타임 경로의 종단 간 연결은 고정 A1/A2 회복 fixture로 별도 smoke
 검증한다. 이는 이미 완료된 505개 시드 E0–E3 평가를 대체하거나 성능을 추정하지 않는다.

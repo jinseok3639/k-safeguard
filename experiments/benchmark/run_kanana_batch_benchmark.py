@@ -43,7 +43,7 @@ from k_safeguard import (
     evaluate_gateway,
     evaluate_gateway_batch,
 )
-from k_safeguard.providers import ChosungLexiconProvider
+from k_safeguard.providers.chosung import ChosungLexiconProvider
 
 
 DEFAULT_OUTPUT_ROOT = Path(__file__).resolve().parent / "results"

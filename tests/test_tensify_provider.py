@@ -3,7 +3,7 @@ from itertools import combinations as itertools_combinations
 from unittest.mock import patch
 
 from k_safeguard import Gateway
-from k_safeguard.providers import (
+from k_safeguard.providers.tensify import (
     TENSIFY_CANDIDATE_VERSION,
     TensifyInverseProvider,
 )

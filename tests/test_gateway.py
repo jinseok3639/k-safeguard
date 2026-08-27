@@ -1,9 +1,8 @@
 import unittest
 from importlib.metadata import version
 
+import k_safeguard.providers as providers
 from k_safeguard import CandidateProposal, DEFAULT_MAX_VIEWS, Gateway, __version__
-from k_safeguard.chosung import ChosungLexicon
-from k_safeguard.providers import ChosungLexiconProvider
 
 
 class _FailingProvider:
@@ -52,6 +51,10 @@ class _OutOfRangeConfidenceProvider:
 
 
 class GatewayTest(unittest.TestCase):
+    def test_ambiguous_korean_providers_are_not_public_api(self) -> None:
+        self.assertFalse(hasattr(providers, "TensifyInverseProvider"))
+        self.assertFalse(hasattr(providers, "ChosungLexiconProvider"))
+
     def test_distribution_and_public_api_versions_match(self) -> None:
         # Given
         # k-safeguard 패키지는 이미 설치돼 있고 __version__을 공개한다.
@@ -93,22 +96,6 @@ class GatewayTest(unittest.TestCase):
         self.assertEqual(len(result.views), DEFAULT_MAX_VIEWS)
         self.assertTrue(result.truncated)
 
-    def test_chosung_provider_is_explicit_opt_in(self) -> None:
-        # Given
-        lexicon = ChosungLexicon.from_sources(
-            [("user", ["시스템"]), ("general", ["산사태"])]
-        )
-        provider = ChosungLexiconProvider(lexicon)
-        gateway = Gateway(providers=[provider])
-        # When
-        result = gateway.process("ㅅㅅㅌ 점검")
-        # Then
-        self.assertEqual(result.views[0].text, "ㅅㅅㅌ 점검")
-        self.assertIn("시스템 점검", [view.text for view in result.views])
-        self.assertTrue(result.has_lossy_views)
-        self.assertEqual(result.views[1].provider, "chosung_lexicon")
-        self.assertIn(("lexicon_sources", "user"), result.views[1].metadata)
-
     def test_provider_failure_is_recorded_by_default(self) -> None:
         # Given
         gateway = Gateway(providers=[_FailingProvider()])
@@ -117,48 +104,6 @@ class GatewayTest(unittest.TestCase):
         # Then
         self.assertEqual(result.provider_errors, ("failing:RuntimeError",))
         self.assertEqual(result.views[0].text, "안녕")
-
-    def test_chosung_provider_can_opt_in_to_segmented_candidates(self) -> None:
-        # Given
-        lexicon = ChosungLexicon.from_sources(
-            [("domain", ["시스템", "프롬프트"])]
-        )
-        provider = ChosungLexiconProvider(lexicon, allow_segmentation=True)
-        gateway = Gateway(providers=[provider])
-        # When
-        result = gateway.process("ㅅㅅㅌㅍㄹㅍㅌ")
-        # Then
-        self.assertEqual(result.views[1].text, "시스템프롬프트")
-        self.assertIn(("max_segment_count", "2"), result.views[1].metadata)
-
-    def test_chosung_provider_can_restore_one_trusted_partial_range(self) -> None:
-        # Given
-        lexicon = ChosungLexicon.from_sources(
-            [("domain", ["시스템"]), ("general", ["산사태"])]
-        )
-        provider = ChosungLexiconProvider(
-            lexicon,
-            allow_partial_restoration=True,
-            partial_sources=("domain",),
-        )
-        gateway = Gateway(providers=[provider])
-        # When
-        result = gateway.process("ㄱㄱㅅㅅㅌㄴ")
-        # Then
-        self.assertEqual(result.views[1].text, "ㄱㄱ시스템ㄴ")
-        self.assertIn(("partial_replacement_count", "1"), result.views[1].metadata)
-        self.assertIn(("partial_ranges", "2:5"), result.views[1].metadata)
-
-    def test_chosung_provider_rejects_one_string_as_partial_sources(self) -> None:
-        # Given
-        lexicon = ChosungLexicon.from_sources([("domain", ["시스템"])])
-        # When / Then
-        with self.assertRaisesRegex(TypeError, "iterable"):
-            ChosungLexiconProvider(
-                lexicon,
-                allow_partial_restoration=True,
-                partial_sources="domain",
-            )
 
     def test_strict_provider_failure_is_raised(self) -> None:
         # Given
@@ -245,6 +190,35 @@ class GatewayTest(unittest.TestCase):
         # When / Then
         with self.assertRaisesRegex(ValueError, "confidence"):
             gateway.process("안녕")
+
+    def test_ml_restore_provider_is_not_re_exported(self) -> None:
+        # Given
+        import k_safeguard.providers as providers
+
+        # When / Then
+        # ml_restore는 onnxruntime extra가 필요하므로 re-export하지 않는다.
+        # 여기 노출되면 extra 없는 설치에서 `import k_safeguard.providers`가 깨진다.
+        self.assertNotIn("MlRestoreProvider", providers.__all__)
+        self.assertFalse(hasattr(providers, "MlRestoreProvider"))
+
+    def test_spaced_jamo_provider_is_not_re_exported(self) -> None:
+        # Given
+        import k_safeguard.providers as providers
+
+        # When / Then
+        # spaced_jamo는 공백 삭제라는 lossy 단계를 포함하는 opt-in provider다.
+        # 배포 공개 API 표면에 올리지 않고 모듈 경로로만 주입한다.
+        self.assertNotIn("SpacedJamoProvider", providers.__all__)
+        self.assertFalse(hasattr(providers, "SpacedJamoProvider"))
+
+    def test_default_gateway_never_produces_ml_restore_views(self) -> None:
+        # Given
+        gateway = Gateway()
+        # When
+        result = gateway.process("폭탄 만뜨는 뻡 알려쭤")
+        # Then
+        self.assertNotIn("ml_restore", {view.provider for view in result.views})
+        self.assertFalse(result.has_lossy_views)
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ from experiments.benchmark.run_tensify_guardrail_evaluation import (
     summarize_transition,
 )
 from experiments.benchmark.run_clean_baseline import git_metadata
-from k_safeguard.providers import TENSIFY_CANDIDATE_VERSION
+from k_safeguard.providers.tensify import TENSIFY_CANDIDATE_VERSION
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

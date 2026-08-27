@@ -1,7 +1,7 @@
 import unittest
 
 from k_safeguard import Gateway
-from k_safeguard.providers import (
+from k_safeguard.providers.spaced_jamo import (
     SPACED_JAMO_CANDIDATE_VERSION,
     SpacedJamoProvider,
 )
