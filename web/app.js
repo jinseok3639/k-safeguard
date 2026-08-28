@@ -12,6 +12,7 @@ const elements = {
   inputInspector: document.querySelector("#input-inspector"),
   inputKindSummary: document.querySelector("#input-kind-summary"),
   inputVisual: document.querySelector("#input-visual"),
+  spacedJamo: document.querySelector("#spaced-jamo-toggle"),
   count: document.querySelector("#character-count"),
   submit: document.querySelector("#analyze-button"),
   status: document.querySelector("#runtime-status"),
@@ -23,6 +24,8 @@ const elements = {
   resultError: document.querySelector("#result-error"),
   original: document.querySelector("#original-output"),
   normalized: document.querySelector("#normalized-output"),
+  candidateSection: document.querySelector("#candidate-section"),
+  candidate: document.querySelector("#candidate-output"),
   changedBadge: document.querySelector("#changed-badge"),
   duration: document.querySelector("#metric-duration"),
   editCount: document.querySelector("#metric-edits"),
@@ -35,6 +38,7 @@ const ruleNames = {
   remove_hangul_zwsp: "한글 인접 ZWSP 제거",
   compose_modern_jamo: "현대 조합형 자모 결합",
   compose_compat_jamo: "호환 자모 결합",
+  normalize_halfwidth_hangul: "반각 한글 정규화",
 };
 
 function setStatus(message, mode = "loading") {
@@ -106,6 +110,7 @@ function showError(message) {
   elements.resultContent.hidden = true;
   elements.resultError.hidden = false;
   elements.resultError.querySelector("p").textContent = message;
+  elements.candidateSection.hidden = true;
 }
 
 function createText(tag, className, text) {
@@ -159,6 +164,8 @@ function renderResult(result, roundTripMs) {
   elements.resultContent.hidden = false;
   elements.original.textContent = result.original || "(빈 문자열)";
   elements.normalized.textContent = result.normalized || "(빈 문자열)";
+  elements.candidateSection.hidden = !result.candidate;
+  elements.candidate.textContent = result.candidate?.text || "";
   elements.changedBadge.textContent = result.changed ? "변경됨" : "변경 없음";
   elements.changedBadge.dataset.changed = String(result.changed);
   elements.duration.textContent = `${result.duration_ms.toFixed(3)} ms`;
@@ -224,7 +231,7 @@ elements.form.addEventListener("submit", (event) => {
   worker.postMessage({
     type: "analyze",
     requestId: state.requestId,
-    payload: { text },
+    payload: { text, spaced_jamo: elements.spacedJamo.checked },
   });
 });
 
@@ -233,6 +240,7 @@ elements.input.addEventListener("input", updateInputDetails);
 document.querySelectorAll("[data-example]").forEach((button) => {
   button.addEventListener("click", () => {
     elements.input.value = button.dataset.example;
+    elements.spacedJamo.checked = button.dataset.spacedJamo === "true";
     elements.input.focus();
     updateInputDetails();
   });
