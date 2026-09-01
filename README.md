@@ -131,16 +131,16 @@ emoji ZWJ, 결합문자, 한영 코드스위칭 입력을 임의로 훼손하지
 
 ### 모호한 변형 처리 정책
 
-된소리·초성체는 문맥 없이 원문을 하나로 확정할 수 없다. 다중 후보를 가드레일에 OR로 연결한
-실험에서 된소리는 오탐이 늘었고 초성체는 복원 이득이 작아, 두 변형의 후보 provider는 공개 API에서
-제거했다. 후보 생성 코드는 기존 실험 재현용 내부 모듈로만 보존한다.
-
-아래 두 opt-in provider는 정보 손실이 있어 **기본 Gateway에 자동 연결되지 않으며**, `providers`
-namespace에 re-export하지 않으므로 모듈 경로로 직접 import해 주입한다.
+문맥 없이는 원문을 확정할 수 없는 변형은 기본 Gateway에서 복원하지 않는다. 연음 provider는
+명시적 opt-in으로만 제공하고, 초성·된소리 후보 구현은 과거 실험 재현용 내부 모듈로만 남긴다.
+띄어 쓴 자모와 ML 복원도 정보 손실이 있어 기본 Gateway에는 자동 연결하지 않는다.
 
 | provider | 대상 | 추가 의존성 | 현재 상태 |
 |---|---|---|---|
+| `LiaisonInverseProvider` | `머글게` 같은 단순 연음 표기 | 없음 | 개발 NRR 56.52%, 평균 +8.08 view·ΔFPR 관찰로 기본 비활성 |
 | `SpacedJamoProvider` | `ㅇ ㅓ ㅂ ㅅ ㅇ ㅣ`처럼 공백으로 분리된 자모 | 없음 | 한 어절 개발 exact 504/504, 공백 삭제는 lossy라 기본 비활성 |
+| `TensifyInverseProvider` | 된소리·쌍자음화 | 없음 | 독립 locked-test ΔFPR-obf +14.29%p로 공개 API 제거, 연구 재현 전용 |
+| `ChosungLexiconProvider` | 초성체 | `wordfreq` extra | NRR 13.04%로 공개 API 제거, 연구 재현 전용 |
 | `MlRestoreProvider` | 된소리·연음·종성 크래밍 | `ml-restore` extra + 별도 가중치 | 실제 Kanana에서 탐지 복원 확인(TPR 94.0%→14.0%→복원 후 93.4%). 그러나 승격 5기준 중 clean benign Mutation Rate가 임계값 구간에서 5.4~7.8%(기준 ≤1%)라 **기본 비활성 유지** |
 
 #### 띄어 쓴 자모 복원 — SpacedJamoProvider
@@ -161,9 +161,24 @@ assert result.views[0].text == "ㅅ ㅣ ㅅ ㅡ ㅌ ㅔ ㅁ 점검"   # 원문 �
 assert "시스템 점검" in [v.text for v in result.views]      # 복원 후보 추가
 ```
 
+#### 연음 역복원 — LiaisonInverseProvider
+
+```python
+from k_safeguard import Gateway
+from k_safeguard.providers import LiaisonInverseProvider
+
+gateway = Gateway(providers=[LiaisonInverseProvider(max_candidates=9)])
+result = gateway.process("머글게")
+
+assert result.views[0].text == "머글게"                    # 원문 보존
+assert "먹을게" in [view.text for view in result.views]    # 복원 후보 추가
+```
+
+연음 역복원은 자연어에도 같은 표면 패턴이 많으므로 원문을 덮어쓰지 않고 lossy 후보로만 추가한다.
+
 #### 규칙 provider와 ML provider의 차이
 
-`TensifyInverseProvider`는 되돌릴 수 있는 **조합을 전부 나열**한다 — 된소리 자리가 n개면 최대 `2^n-1`개 후보를 `confidence=None`으로 낸다. 어느 것이 맞는지는 판단하지 않는다.
+`LiaisonInverseProvider`는 되돌릴 수 있는 **조합을 나열**한다. 어느 것이 맞는지는 판단하지 않으며 후보마다 `confidence=None`을 사용한다.
 
 `MlRestoreProvider`는 자모 슬롯 위치별 분류기로 **자리마다 무엇으로 되돌릴지 판단하고**, 확신이 임계값에 못 미치는 자리는 건드리지 않는다(abstention). 그래서 후보를 기법당 1개만 낸다.
 
