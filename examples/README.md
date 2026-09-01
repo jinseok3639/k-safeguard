@@ -26,6 +26,8 @@ python examples/01_normalize_basics.py
 | [06_custom_provider.py](./06_custom_provider.py) | 형태소 분석기·사내 복원기를 직접 붙이기, provider 오류 격리 | `CandidateProvider`, `CandidateProposal` |
 | [07_liaison_provider.py](./07_liaison_provider.py) | 단순 연음 역복원을 lossy 후보로 명시적으로 활성화 | `LiaisonInverseProvider` |
 
+시연영상 녹화용 4장면 선형 스크립트는 [`demo/`](./demo/README.md)에 따로 있다.
+
 ## 30초 요약
 
 ```python
