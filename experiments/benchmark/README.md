@@ -1,5 +1,8 @@
 # 벤치마크 실험 색인
 
+> 실험별 문서·runner·baseline과 최종 판정을 빠르게 찾으려면
+> [실험 산출물 인덱스](./ARTIFACT_INDEX.md)를 먼저 참고한다.
+
 > 정규화 gateway의 E0/E1/E2/E3 평가는
 > [정규화 평가 문서](./NORMALIZER_EVALUATION.md)를 참고한다.
 > 공개 505개 시드의 실행 결과는
