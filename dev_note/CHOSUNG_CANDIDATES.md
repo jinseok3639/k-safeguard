@@ -1,9 +1,11 @@
 # 초성체 다중 후보 복원
 
+> 상태: 연구 재현 전용. 2026-08-25 결정으로 초성체 다중 view provider는 공개 API에서 제거했다.
+> 아래 후보 생성 primitive와 평가 기록은 기존 실험을 재현하기 위해 보존한다.
+
 초성체는 음절의 중성·종성 정보를 버리므로 기존 `normalize_korean()`의 무손실 규칙처럼 원문을
 유일하게 복원할 수 없다. 예를 들어 같은 `ㅈㅎ`가 진행·전화·제한·전환 등 여러 단어가 될 수 있다.
-따라서 기본 정규화 함수는 초성체를 계속 보존하고, 별도 후보 생성기가 원문 view와 제한된 복원
-view를 함께 제공한다.
+따라서 기본 정규화 함수는 초성체를 계속 보존한다. 후보 생성기는 진단 결과를 재현할 때만 사용한다.
 
 ## 설계 경계
 
@@ -52,22 +54,13 @@ lexicon = ChosungLexicon.from_sources(
 ```
 
 조사 확장은 opt-in이며 명사형 사용자 사전에만 적용한다. 기본 `ChosungLexicon(words)`와 Gateway에는
-자동 적용되지 않는다. `k-safeguard[wordfreq]` 사용자는 `WordfreqChosungProvider`의
-`priority_words`와 `expand_priority_particles=True`로 같은 구성을 만들 수 있다.
+자동 적용되지 않는다.
 
 사전에 긴 복합어 전체가 없을 때는 완전 초성 span 분할을 별도로 활성화할 수 있다. 기본 분할 한도는
 2개 segment, segment당 후보 1개이며 기존 문장 후보 상한을 그대로 적용한다.
 
-```python
-from k_safeguard.providers import ChosungLexiconProvider
-
-provider = ChosungLexiconProvider(
-    lexicon,
-    allow_segmentation=True,
-    max_segments=2,
-    max_options_per_segment=1,
-)
-```
+`generate_chosung_candidates()`의 `allow_segmentation`, `max_segments`,
+`max_options_per_segment` 인자로 같은 진단을 재현할 수 있다.
 
 부분 초성·완성형 음절이 섞인 span은 분할하지 않으며 직접 일치만 사용한다. 분할된 replacement에는
 `segment_words`, `segment_sources`가 기록되고 provider metadata에는 최대 segment 수가 포함된다.
@@ -76,15 +69,8 @@ provider = ChosungLexiconProvider(
 일반 빈도 사전의 우연한 부분 일치를 막기 위해 `partial_sources`를 반드시 지정해야 하며, 기본 후보당
 부분 복원은 한 번으로 제한된다.
 
-```python
-provider = ChosungLexiconProvider(
-    lexicon,
-    allow_partial_restoration=True,
-    partial_sources=("user",),
-    min_partial_initials=3,
-    max_partial_replacements=1,
-)
-```
+`generate_chosung_candidates()`의 `allow_partial_restoration`, `partial_sources`,
+`min_partial_initials`, `max_partial_replacements` 인자로 같은 진단을 재현할 수 있다.
 
 이 기능은 현재 benchmark에서 복원률을 개선하지 못했으므로 기본 활성화하거나 방어 개선으로 해석하지
 않는다. 비교 결과는
@@ -115,7 +101,7 @@ candidate generator 0.5.0은 같은 설정에서 `direct ⊆ segmented ⊆ parti
 Kanana 가드레일에 후보 view를 직접 연결한 평가에서도 segmented 대비 partial의 판정 변화는 0건이었다.
 candidate generator 0.5.0 재평가 기준으로 segmented의 초성 공격 block rate는 raw 18.94%에서
 27.74%로 올랐지만 NRR은 12.86%에 그쳤고, 평균 추가 view 7.94개와 62.97%의 후보 상한 도달률이
-관찰됐다. 따라서 모든 lossy provider는 계속 기본 비활성화한다. 상세 결과는
+관찰됐다. 따라서 초성체 다중 view provider는 공개 API에서 제거했다. 상세 결과는
 [`experiments/benchmark/CHOSUNG_CANDIDATE_MONOTONICITY.md`](../experiments/benchmark/CHOSUNG_CANDIDATE_MONOTONICITY.md)에
 기록한다.
 

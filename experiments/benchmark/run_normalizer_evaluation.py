@@ -59,12 +59,15 @@ CATEGORY_MAP = {
 FAMILY_MAP = {
     "clean": "clean",
     "tensify": "phonetic",
+    "final_insertion": "orthographic",
+    "final_near_sound": "orthographic",
+    "liaison": "phonetic",
     "jamo_decompose": "visual",
     "chosung": "visual",
     "break_spacing": "visual",
     "zwsp_inject": "visual",
 }
-LOSSY_TECHNIQUES = {"chosung"}
+LOSSY_TECHNIQUES = {"chosung", "final_insertion", "final_near_sound", "liaison"}
 
 
 @dataclass(frozen=True)

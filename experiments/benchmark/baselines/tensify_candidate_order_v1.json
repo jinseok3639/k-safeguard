@@ -1,0 +1,52 @@
+{
+  "schema_version": "tensify-candidate-order-v1",
+  "status": "PROVISIONAL_DEV_ONLY",
+  "dataset_sha256": "fbf9f978996c103b8d5625e55936e536610fbceb2a43dc2f53c1271423873b0b",
+  "changed_tensify_variants": 1008,
+  "max_candidates": 9,
+  "legacy": {
+    "candidate_generator_version": "0.2.0",
+    "ordering": "replacement_count_desc_then_source_positions_asc",
+    "changed_exact_hits": 925,
+    "top1_exact_hits": 549
+  },
+  "diverse_long_input": {
+    "candidate_generator_version": "0.3.0",
+    "ordering": "full_then_count_extremes_round_robin_at_or_above_threshold",
+    "diversify_from": 17,
+    "changed_exact_hits": 922,
+    "top1_exact_hits": 549
+  },
+  "long_input_example": {
+    "tense_syllables": 17,
+    "legacy_replacement_counts": [17, 16, 16, 16, 16, 16, 16, 16, 16],
+    "diverse_replacement_counts": [17, 1, 16, 2, 15, 3, 14, 4, 13]
+  },
+  "guardrail_comparison": {
+    "source_run": "tensify-impact-v1-20260811",
+    "source_predictions_sha256": "411de9d52c43134e0f67f19ca5521479b8064a687ac65e82250b2857b246bb5a",
+    "new_batch_inferences": 133,
+    "errors": 0,
+    "legacy": {
+      "attack_blocked": 574,
+      "attack_total": 602,
+      "benign_blocked": 12,
+      "benign_total": 408,
+      "nrr_recovered": 389,
+      "nrr_denominator": 389
+    },
+    "diverse_long_input": {
+      "attack_blocked": 574,
+      "attack_total": 602,
+      "benign_blocked": 12,
+      "benign_total": 408,
+      "nrr_recovered": 389,
+      "nrr_denominator": 389
+    }
+  },
+  "decision": {
+    "adopt": true,
+    "reason": "long-input candidate tiers are diversified while full restoration stays first and observed guardrail counts remain identical",
+    "locked_result_reuse": false
+  }
+}

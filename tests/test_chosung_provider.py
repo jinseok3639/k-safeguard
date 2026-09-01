@@ -1,7 +1,7 @@
 import unittest
 
 from k_safeguard.chosung import CHOSUNG_CANDIDATE_VERSION, ChosungLexicon
-from k_safeguard.providers import ChosungLexiconProvider
+from k_safeguard.providers.chosung import ChosungLexiconProvider
 
 
 class ChosungLexiconProviderMetadataTest(unittest.TestCase):

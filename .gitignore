@@ -1,7 +1,9 @@
 .venv-experiment/
 .venv-report/
 .venv-package/
+.venv-demo/
 .venv-wheel-test/
+.ipynb_checkpoints/
 __pycache__/
 *.py[cod]
 experiments/guardrail/results/
@@ -13,6 +15,7 @@ experiments/benchmark/results/
 # Python package build artifacts
 /build/
 /dist/
+/_site/
 /src/*.egg-info/
 /src/**/*.egg-info/
 

@@ -34,7 +34,7 @@ from k_safeguard import (
     GatewayEvaluation,
     expand_korean_noun_particles,
 )
-from k_safeguard.providers import ChosungLexiconProvider
+from k_safeguard.providers.chosung import ChosungLexiconProvider
 
 
 DEFAULT_OUTPUT_ROOT = Path(__file__).resolve().parent / "results"

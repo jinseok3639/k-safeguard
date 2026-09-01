@@ -55,6 +55,25 @@ class NormalizeKoreanTest(unittest.TestCase):
         self.assertEqual(result.text, "abc\u200bdef")
         self.assertFalse(result.changed)
 
+    def test_preserves_non_zwsp_format_characters_between_jamo(self) -> None:
+        # Given
+        format_characters = {
+            "ZWNJ": "\u200c",
+            "ZWJ": "\u200d",
+            "WORD JOINER": "\u2060",
+            "BOM": "\ufeff",
+            "SOFT HYPHEN": "\u00ad",
+        }
+        for name, char in format_characters.items():
+            with self.subTest(name=name):
+                text = f"ㅇ{char}ㅏㄴ"
+                # When
+                result = normalize_korean(text)
+                # Then
+                self.assertEqual(result.text, text)
+                self.assertFalse(result.changed)
+                self.assertEqual(result.edits, ())
+
     def test_preserves_emoji_zwj_sequence(self) -> None:
         # Given
         text = "개발자 👩\u200d💻"
@@ -62,6 +81,111 @@ class NormalizeKoreanTest(unittest.TestCase):
         result = normalize_korean(text)
         # Then
         self.assertEqual(result.text, "개발자 👩\u200d💻")
+
+    def test_composes_halfwidth_hangul(self) -> None:
+        # Given
+        text = "\uffb7\uffc2\uffa4\uffa4\uffca\uffb7"  # 반각 ㅇㅏㄴㄴㅕㅇ
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "안녕")
+        self.assertEqual(
+            result.applied_rules,
+            ("normalize_halfwidth_hangul", "compose_compat_jamo"),
+        )
+        self.assertFalse(result.lossy)
+
+    def test_composes_halfwidth_hangul_next_to_punctuation(self) -> None:
+        # Given
+        text = "[\uffb7\uffc2\uffa4]!"  # [반각 ㅇㅏㄴ]!
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "[안]!")
+        self.assertEqual(
+            result.applied_rules,
+            ("normalize_halfwidth_hangul", "compose_compat_jamo"),
+        )
+
+    def test_composes_halfwidth_compound_final_and_next_syllable(self) -> None:
+        # Given
+        text = "\uffa1\uffc2\uffb4\uffb7\uffdc"  # 반각 ㄱㅏㅄㅇㅣ
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "값이")
+
+    def test_composes_halfwidth_after_removing_zwsp(self) -> None:
+        # Given
+        text = "\uffb7\u200b\uffc2\u200b\uffa4"  # 반각 ㅇ<ZWSP>ㅏ<ZWSP>ㄴ
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "안")
+        self.assertEqual(
+            result.applied_rules,
+            (
+                "remove_hangul_zwsp",
+                "normalize_halfwidth_hangul",
+                "compose_compat_jamo",
+            ),
+        )
+
+    def test_preserves_non_hangul_halfwidth_and_hangul_filler(self) -> None:
+        # Given
+        text = "\uffa0\uff71Ａ"  # 반각 한글 filler, 반각 가타카나, 전각 라틴
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, text)
+        self.assertFalse(result.changed)
+
+    def test_normalizes_every_modern_halfwidth_jamo(self) -> None:
+        # Given
+        halfwidth_consonants = "".join(
+            chr(codepoint) for codepoint in range(0xFFA1, 0xFFBF)
+        )
+        halfwidth_vowels = "".join(
+            chr(codepoint)
+            for start, end in (
+                (0xFFC2, 0xFFC8),
+                (0xFFCA, 0xFFD0),
+                (0xFFD2, 0xFFD8),
+                (0xFFDA, 0xFFDD),
+            )
+            for codepoint in range(start, end)
+        )
+        compat_consonants = "".join((
+            "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄸ", "ㄹ", "ㄺ",
+            "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅃ", "ㅄ",
+            "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ",
+        ))
+        cases = (
+            (halfwidth_consonants, compat_consonants),
+            (halfwidth_vowels, "".join(COMPAT_JUNG)),
+        )
+        for source, expected in cases:
+            with self.subTest(source=source):
+                # When
+                result = normalize_korean(source)
+                # Then
+                self.assertEqual(result.text, expected)
+                self.assertEqual(
+                    result.applied_rules,
+                    ("normalize_halfwidth_hangul",),
+                )
+
+    def test_halfwidth_edit_uses_original_offsets(self) -> None:
+        # Given
+        text = "A\uffb7\uffc2\uffa4B"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "A안B")
+        compose_edit = result.edits[-1]
+        self.assertEqual(compose_edit.rule_id, "compose_compat_jamo")
+        self.assertEqual((compose_edit.source_start, compose_edit.source_end), (1, 4))
+        self.assertEqual((compose_edit.before, compose_edit.after), ("ㅇㅏㄴ", "안"))
 
     def test_composes_modern_jamo(self) -> None:
         # Given
@@ -90,6 +214,52 @@ class NormalizeKoreanTest(unittest.TestCase):
         result = normalize_korean(text)
         # Then
         self.assertEqual(result.text, "가나")
+
+    def test_composes_every_decomposed_compound_final(self) -> None:
+        # Given
+        cases = {
+            "ㄱㅅ": "ㄳ",
+            "ㄴㅈ": "ㄵ",
+            "ㄴㅎ": "ㄶ",
+            "ㄹㄱ": "ㄺ",
+            "ㄹㅁ": "ㄻ",
+            "ㄹㅂ": "ㄼ",
+            "ㄹㅅ": "ㄽ",
+            "ㄹㅌ": "ㄾ",
+            "ㄹㅍ": "ㄿ",
+            "ㄹㅎ": "ㅀ",
+            "ㅂㅅ": "ㅄ",
+        }
+        for decomposed, compound in cases.items():
+            with self.subTest(compound=compound):
+                text = f"ㄱㅏ{decomposed}"
+                expected = chr(HANGUL_BASE + COMPAT_JONG.index(compound))
+                # When
+                result = normalize_korean(text)
+                # Then
+                self.assertEqual(result.text, expected)
+
+    def test_composes_decomposed_compound_finals_across_syllable_boundaries(self) -> None:
+        cases = {
+            "ㄱㅏㅂㅅㅇㅣ": "값이",
+            "ㅇㅓㅂㅅㄷㅏ": "없다",
+            "ㅇㅣㄹㄱㄱㅗ": "읽고",
+            "ㄱㅏㅂㅅ": "값",
+            "ㄱㅏㅄㅇㅣ": "값이",
+        }
+        for text, expected in cases.items():
+            with self.subTest(text=text):
+                self.assertEqual(normalize_korean(text).text, expected)
+
+    def test_keeps_second_final_as_next_initial_when_followed_by_vowel(self) -> None:
+        cases = {
+            "ㄱㅏㅂㅅㅏ": "갑사",
+            "ㄱㅏㅂㅅㅣ": "갑시",
+            "ㅇㅣㄹㄱㅗ": "일고",
+        }
+        for text, expected in cases.items():
+            with self.subTest(text=text):
+                self.assertEqual(normalize_korean(text).text, expected)
 
     def test_composes_modern_jamo_syllable_without_trailing_final_consonant(self) -> None:
         # Given
@@ -121,6 +291,86 @@ class NormalizeKoreanTest(unittest.TestCase):
             ("remove_hangul_zwsp", "compose_compat_jamo"),
         )
 
+    def test_repeated_zwsp_edits_keep_original_offsets(self) -> None:
+        # Given
+        text = "가\u200b나\u200b다"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "가나다")
+        self.assertEqual(
+            [
+                (edit.source_start, edit.source_end, edit.before, edit.after)
+                for edit in result.edits
+            ],
+            [(1, 2, "\u200b", ""), (3, 4, "\u200b", "")],
+        )
+
+    def test_preserves_non_hangul_zwsp_after_removed_neighbor(self) -> None:
+        # Given
+        text = "가\u200b\u200bA"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "가\u200bA")
+        self.assertEqual(len(result.edits), 1)
+        self.assertEqual(
+            (result.edits[0].source_start, result.edits[0].source_end),
+            (1, 2),
+        )
+
+    def test_consecutive_compositions_remain_one_edit(self) -> None:
+        # Given
+        text = "ㅇㅏㄴㄴㅕㅇ"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "안녕")
+        self.assertEqual(len(result.edits), 1)
+        self.assertEqual(
+            (
+                result.edits[0].source_start,
+                result.edits[0].source_end,
+                result.edits[0].before,
+                result.edits[0].after,
+            ),
+            (0, 6, text, "안녕"),
+        )
+
+    def test_composition_spans_include_consumed_repeated_final(self) -> None:
+        # Given
+        cases = (
+            ("ㅈㅏㅂㅂㅂㅎㅓ", "잡ㅂㅂ허"),
+            ("잡ᆸᆸ허", "잡ᆸᆸ허"),
+        )
+        for text, expected in cases:
+            with self.subTest(text=text):
+                # When
+                result = normalize_korean(text)
+                # Then
+                self.assertEqual(result.text, expected)
+                self.assertEqual(
+                    [
+                        (edit.source_start, edit.source_end)
+                        for edit in result.edits
+                    ],
+                    [(0, 3), (5, 7)],
+                )
+                self.assertEqual(result.edits[0].before, text[:3])
+                self.assertEqual(result.edits[1].before, text[5:7])
+
+    def test_long_repeated_zwsp_input_is_normalized(self) -> None:
+        # Given
+        syllable_count = 2_000
+        text = "가\u200b" * syllable_count
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "가" * syllable_count)
+        self.assertEqual(len(result.edits), syllable_count)
+        self.assertEqual(result.edits[0].source_start, 1)
+        self.assertEqual(result.edits[-1].source_end, len(text))
+
     def test_preserves_isolated_chosung(self) -> None:
         # Given
         text = "ㅇㅋ ㅋㅋ"
@@ -148,6 +398,19 @@ class NormalizeKoreanTest(unittest.TestCase):
         edit = result.edits[0]
         self.assertEqual((edit.source_start, edit.source_end), (1, 3))
         self.assertEqual((edit.before, edit.after), ("ㅇㅏ", "아"))
+
+    def test_compound_final_edit_span_uses_all_original_jamo_offsets(self) -> None:
+        # Given
+        text = "AㄱㅏㅂㅅB"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "A값B")
+        self.assertEqual(len(result.edits), 1)
+        edit = result.edits[0]
+        self.assertEqual((edit.source_start, edit.source_end), (1, 5))
+        self.assertEqual((edit.before, edit.after), ("ㄱㅏㅂㅅ", "값"))
+        self.assertFalse(edit.lossy)
 
     def test_empty_string_is_valid(self) -> None:
         # Given
