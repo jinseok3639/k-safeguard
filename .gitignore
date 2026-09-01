@@ -1,7 +1,9 @@
 .venv-experiment/
 .venv-report/
 .venv-package/
+.venv-demo/
 .venv-wheel-test/
+.ipynb_checkpoints/
 __pycache__/
 *.py[cod]
 experiments/guardrail/results/

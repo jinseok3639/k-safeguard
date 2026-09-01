@@ -114,6 +114,20 @@ textarea::placeholder { color: #909296; }
 }
 .examples button:hover { border-color: var(--line-strong); }
 
+.candidate-option {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin-top: 14px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+.candidate-option input { margin-top: 3px; }
+.candidate-option span { display: grid; gap: 2px; }
+.candidate-option strong { font-size: 12px; }
+.candidate-option small { color: var(--muted); font-size: 11px; }
+
 .primary-button {
   width: 100%;
   margin-top: 20px;
@@ -141,9 +155,9 @@ textarea::placeholder { color: #909296; }
 .metrics-grid strong { display: block; overflow: hidden; margin-top: 6px; font: 500 14px var(--mono); text-overflow: ellipsis; }
 .metrics-grid strong[data-warning="true"] { color: var(--warning); }
 
-.comparison-section, .detail-section { margin-top: 24px; }
+.comparison-section, .candidate-section, .detail-section { margin-top: 24px; }
 .section-title { display: flex; justify-content: space-between; align-items: center; }
-.comparison-section h3, .detail-section h3 { margin: 0 0 10px; font-size: 14px; }
+.comparison-section h3, .candidate-section h3, .detail-section h3 { margin: 0 0 10px; font-size: 14px; }
 .changed-badge { margin-bottom: 10px; padding: 3px 6px; border: 1px solid var(--line); color: var(--accent); font-size: 10px; }
 .changed-badge[data-changed="false"] { color: var(--muted); }
 .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -151,6 +165,8 @@ textarea::placeholder { color: #909296; }
 .comparison-grid article > span { display: block; padding: 7px 10px; border-bottom: 1px solid var(--line); background: #f7f7f5; color: var(--muted); font-size: 10px; }
 pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .comparison-grid pre { min-height: 86px; padding: 11px; font: 13px/1.6 var(--mono); }
+.candidate-section pre { padding: 11px; border: 1px solid var(--line); background: #fffaf2; font: 13px/1.6 var(--mono); }
+.lossy-badge { margin-bottom: 10px; padding: 3px 6px; border: 1px solid #d5bd94; color: var(--warning); font-size: 10px; }
 
 .rules-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .rule-chip { padding: 5px 7px; border: 1px solid var(--line); background: #f7f7f5; font-size: 11px; }
