@@ -62,7 +62,9 @@
 
 공격자는 사용자 입력 텍스트만 제어하며 다음 변형을 적용할 수 있다.
 
-- 음운형: 현재 구현된 된소리화(`tensify`)
+- 음운형: 0.2.0 confirmatory 축인 된소리화(`tensify`). 생성기에는 연음(`liaison`)과
+  종성 삽입·유사음(`final_insertion`, `final_near_sound`)도 구현돼 있으나 §6.1에 미등록이라
+  0.2.0 결과에 넣지 않는다.
 - 시각·자소형 대조군: 자모 분해(`jamo_decompose`), 초성체(`chosung`), 띄어쓰기 파괴
   (`break_spacing`), 투명문자 삽입(`zwsp_inject`)
 - 실제 트래픽을 반영한 한영 코드스위칭. 단, 변형 대상은 한국어 구간으로 제한한다.
@@ -75,8 +77,9 @@
 - 도구 호출·파일 접근을 노리는 에이전트형 간접 인젝션
 - 모델 파인튜닝 또는 가드레일 자체 재학습
 - 타 언어 난독화 전반
-- 아직 생성기에 없는 연음(`liaison`)·구개음화(`palatalize`)·종성 삽입/교체. 구현 후 manifest와
-  평가 규격에 등록하기 전에는 0.2.0 결과에 포함하지 않는다.
+- 생성기 미구현인 구개음화(`palatalize`)·호모글리프.
+- 생성기에는 있으나 §6.1 manifest에 미등록인 `liaison`, `final_insertion`, `final_near_sound`.
+  등록한 새 spec version 없이는 0.2.0 결과에 포함하지 않는다.
 - 다중 턴 문맥 공격. Kanana 모델 카드가 이전 대화 문맥 유지를 지원하지 않으므로 0.2.0은
   단일 사용자 발화만 평가한다.
 
@@ -141,14 +144,15 @@ A1/A2를 행 단위로 단순 합산하지 않고 category별 값과 macro 평�
 
 | family | technique | 역할 |
 |---|---|---|
-| `phonetic` | `tensify` | 현재 구현된 NFKC 비복원 음운 축 |
+| `phonetic` | `tensify` | 0.2.0에 등록된 NFKC 비복원 음운 축 |
 | `visual` | `jamo_decompose`, `chosung`, `break_spacing`, `zwsp_inject` | 범용 정규화 가능 축 대조군 |
 | `clean` | `clean` | 변형 없는 원문 baseline |
 
 기법을 추가하면 이름, 알고리즘 버전, 가역성, 적용 가능 문자 수와 실제 변경 문자 수를 manifest에
 기록한다. 두 기법을 중첩한 입력은 single-technique 결과와 분리된 `composed` 실험으로만 보고한다.
-0.2.0 이후 추가되는 `liaison`, `palatalize`, 종성 삽입/교체는 사전에 알고리즘과 endpoint를 등록한
-새 spec version 없이는 confirmatory 결과에 넣지 않는다.
+생성기에 이미 있으나 위 표에 없는 `liaison`, `final_insertion`, `final_near_sound`와 앞으로
+추가될 `palatalize`는 사전에 알고리즘과 endpoint를 등록한 새 spec version 없이는 confirmatory
+결과에 넣지 않는다. 이들에 대한 기존 실험은 `PROVISIONAL_DEV_ONLY` 진단으로만 취급한다.
 
 ### 6.2 강도와 반복
 
@@ -161,7 +165,9 @@ A1/A2를 행 단위로 단순 합산하지 않고 category별 값과 macro 평�
 강도는 전체 문자열 길이가 아니라 **적용 가능한 위치 중 실제 변형한 비율**이어야 한다.
 
 - 현재 생성기는 고정된 PRNG로 적용 위치를 고르며 같은 입력·강도·generation seed에서 결정론적이다.
-- 공개 5,555행 개발 benchmark는 generation seed `1234`의 단일 고정 실현을 사용한다.
+- 공개 개발 benchmark(`hf_repo/benchmark.jsonl`, 505시드 × 17행 = 8,585행)는 generation seed
+  `1234`의 단일 고정 실현을 사용한다. 0.2.0 confirmatory 분석은 그중 §6.1에 등록된 기법
+  (clean 1 + `tensify`·visual 5종 × 강도 2 = 505 × 11 = 5,555행)만 사용한다.
 - intensity `1.0`은 적용 가능 위치를 모두 선택하므로 현재 기법에서 generation seed의 영향을 받지
   않는다. intensity `0.5` 결과는 seed `1234` 조건으로만 해석한다.
 - 여러 generation seed를 추가하면 반복을 seed의 독립 표본처럼 계산하지 않고 원문 seed 안의
