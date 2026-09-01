@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import runpy
 import unittest
 from pathlib import Path
@@ -36,6 +37,25 @@ class ExampleScriptTest(unittest.TestCase):
                 with contextlib.redirect_stdout(stdout):
                     runpy.run_path(str(script), run_name="__main__")
                 self.assertTrue(stdout.getvalue().strip())
+
+    def test_demo_notebook_has_unique_cells_and_compilable_code(self) -> None:
+        notebook_path = _find_examples_dir() / "demo" / "k_safeguard_demo.ipynb"
+        notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(notebook["nbformat"], 4)
+        cells = notebook["cells"]
+        cell_ids = [cell["id"] for cell in cells]
+        self.assertEqual(len(cell_ids), len(set(cell_ids)))
+
+        code_cells = [cell for cell in cells if cell["cell_type"] == "code"]
+        self.assertTrue(code_cells)
+        for index, cell in enumerate(code_cells, start=1):
+            with self.subTest(cell=cell["id"]):
+                compile(
+                    "".join(cell["source"]),
+                    f"{notebook_path.name}:cell-{index}",
+                    "exec",
+                )
 
 
 if __name__ == "__main__":

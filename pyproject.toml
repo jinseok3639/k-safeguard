@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "k-safeguard"
-version = "0.1.0"
+version = "0.2.0"
 description = "Lightweight Korean text-normalization gateway for existing LLM guardrails"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -39,6 +39,7 @@ dependencies = []
 
 [project.optional-dependencies]
 wordfreq = ["wordfreq==3.1.1"]
+ml-restore = ["onnxruntime>=1.17", "numpy>=1.24"]
 dev = ["coverage>=7.4"]
 mutation = ["mutmut>=3.7"]
 
@@ -60,7 +61,7 @@ k_safeguard = ["py.typed"]
 [tool.coverage.run]
 branch = true
 source = ["src/k_safeguard"]
-omit = ["*/providers/wordfreq.py"]
+omit = ["*/providers/wordfreq.py", "*/providers/ml_restore.py"]
 
 [tool.coverage.report]
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
@@ -74,16 +75,19 @@ output = "coverage.xml"
 # 없지만, mutmut이 만드는 mutants/ 복사 패키지 트리에서 빠지면
 # `from k_safeguard.providers import ChosungLexiconProvider` 같은 re-export
 # import가 깨져 baseline 테스트 수집 단계에서 ImportError가 난다 — 그래서
-# 목록에 함께 포함한다. providers/wordfreq.py만 coverage omit과 동일한
-# 기준(실험적 opt-in 의존성)으로 제외한다.
+# 목록에 함께 포함한다. providers/wordfreq.py와 providers/ml_restore.py만
+# coverage omit과 동일한 기준(실험적 opt-in 의존성)으로 제외한다.
+# jamo_slots.py는 의존성이 없는 core라 목록에 포함한다.
 source_paths = [
   "src/k_safeguard/__init__.py",
   "src/k_safeguard/chosung.py",
   "src/k_safeguard/execution.py",
   "src/k_safeguard/gateway.py",
+  "src/k_safeguard/jamo_slots.py",
   "src/k_safeguard/normalization.py",
   "src/k_safeguard/providers/__init__.py",
   "src/k_safeguard/providers/chosung.py",
+  "src/k_safeguard/providers/spaced_jamo.py",
   "src/k_safeguard/providers/tensify.py",
 ]
 runner = "python -m unittest discover -s tests"

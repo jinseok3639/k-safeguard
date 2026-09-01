@@ -1,0 +1,31 @@
+{
+  "schema_version": "spaced-jamo-diagnostic-v1",
+  "result_status": "development_evidence",
+  "source": {
+    "git_commit": "4699d0d614389f87f567ea0e90633c8b64843944",
+    "dataset_sha256": "0d455020b3b6deac4e75a0a15120eee501f39f829cb818240d5c593f2df0955b",
+    "target_leakage": false
+  },
+  "transform": {
+    "name": "space_one_bounded_hangul_word",
+    "min_jamo": 4,
+    "max_jamo": 64
+  },
+  "population": {
+    "independent_seeds": 505,
+    "eligible_variants": 504
+  },
+  "metrics": {
+    "provider_activated": 504,
+    "exact_restored": 504,
+    "exact_restoration_rate": 1.0,
+    "default_gateway_changed": 0,
+    "clean_provider_activated": 0
+  },
+  "decision": "keep_opt_in_lossy_provider",
+  "limitations": [
+    "Only one bounded Hangul word per sentence was transformed, so word-boundary reconstruction was not measured.",
+    "The 505 public seeds are development evidence, not a locked independent test.",
+    "Guardrail NRR, obfuscated benign false positives, and downstream semantic fidelity were not measured."
+  ]
+}

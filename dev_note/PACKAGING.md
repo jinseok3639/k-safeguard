@@ -7,15 +7,42 @@ distribution 이름은 `k-safeguard`, Python import 이름은 `k_safeguard`다.
 
 | 설치 | 포함 | 기본 활성화 |
 |---|---|---|
-| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 primitive, `TensifyInverseProvider`(된소리 역변형, 무의존) | 무손실 core만 |
+| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, 초성 후보 primitive, `SpacedJamoProvider`(무의존 opt-in 후보) | 무손실 core만 |
 | `k-safeguard[wordfreq]` | `wordfreq` 기반 실험적 초성 provider | 아니요, 명시적 주입 필요 |
+| `k-safeguard[ml-restore]` | 자모 슬롯 복원 provider의 **추론 코드만** (`onnxruntime`, `numpy`). 모델 가중치는 미포함 | 아니요, 명시적 주입 필요 |
 | 외부 provider | 형태소 분석기, 로컬·원격 복원기, 사용자 사전 | 사용자 정책에 따름 |
 
-`TensifyInverseProvider`는 core wheel에 포함되지만 opt-in provider라 기본 Gateway에 자동 연결되지
-않는다. 추가 dependency 없이 `Gateway(providers=[TensifyInverseProvider(...)])`로 주입한다.
+초성·된소리 다중 view provider는 공개 API에서 제거했다. 구현 모듈은 기존 실험을 재현하기 위해
+wheel에 남아 있지만 배포 Gateway 구성으로 지원하지 않는다.
+
+`SpacedJamoProvider`(`providers/spaced_jamo.py`)는 추가 dependency 없는 opt-in 후보 provider로
+core wheel에 포함된다. 여러 복원 view를 만들지 않고, 공백을 걷어낸 자모열이 완성형 음절로 전부
+조합될 때만 후보 하나를 낸다. `providers` namespace에 re-export하지 않으므로
+`from k_safeguard.providers.spaced_jamo import SpacedJamoProvider`로 직접 import해
+`Gateway(providers=[...])`로 주입한다.
 
 기본 wheel은 외부 런타임 dependency가 0개다. `torch`, `transformers`, 가드레일 모델과 복원 모델은
 프로젝트 평가 환경 또는 사용자가 선택한 별도 provider에 속하며 패키지 dependency로 선언하지 않는다.
+
+`ml-restore` extra도 이 경계를 지킨다 — `onnxruntime`은 **추론 런타임**일 뿐이고 모델 가중치
+자체는 wheel에 들어가지 않는다(`verify_artifacts.py`의 `FORBIDDEN_SUFFIXES`가 `.onnx`·`.pt`를
+막는다). 자모 인코딩·후보 위치 규칙은 의존성이 없는 `k_safeguard.jamo_slots`에 있어 extra
+없이도 import·테스트된다.
+
+가중치는 두 경로 중 하나로 받는다.
+
+- `MlRestoreProvider.from_pretrained()` — GitHub Release(`v0.2.0-ml-restore` 태그)에서
+  받는다. `providers/ml_restore.py`의 `PRETRAINED_MANIFEST`에 파일마다 sha256·크기를
+  고정해 두고, 다운로드한 뒤 대조해 손상·변조를 막는다. OS 캐시 디렉터리에 저장하고
+  재사용하며, 새 의존성 없이 `urllib`(표준 라이브러리)만 쓴다 — `huggingface_hub` 같은
+  클라이언트 SDK는 이 저장소가 지키는 "필요한 만큼만 설치" 원칙에 비해 무겁다고 판단해
+  쓰지 않았다.
+- `MlRestoreProvider.from_directory(path)` — 호출자가 준비한 가중치 디렉터리의
+  `manifest.json`을 읽어 세션을 만든다. Release에 의존하고 싶지 않을 때 쓴다.
+
+캐시·다운로드 로직(`_download_file`·`_verify_file`·`_default_cache_dir`)은 onnxruntime 없이도
+테스트된다 — `tests/test_ml_restore_downloader.py`가 `urllib.request.urlopen`을 몽키패치해
+네트워크 없이 돈다.
 
 ## public API
 
@@ -27,18 +54,9 @@ result = Gateway().process("ㅇㅏㄴㄴㅕㅇ")
 ```
 
 `GatewayResult.views`의 첫 항목은 항상 원문이다. 무손실 정규화가 실제로 바뀐 경우 두 번째 view로
-추가된다. 후보 provider는 opt-in이며 모든 후보에는 provider, `lossy`, confidence와 metadata가 붙는다.
-기본 `max_views`는 10이며 원문·무손실 정규화문·모든 provider 후보를 합친 총 예산이다. 개발
-benchmark에서 16과 같은 방어 지표를 유지한 최소 관측 예산이며, 서비스 요구에 따라 명시적으로
-재정의할 수 있다.
-
-```python
-from k_safeguard import ChosungLexicon, Gateway
-from k_safeguard.providers import ChosungLexiconProvider
-
-provider = ChosungLexiconProvider(ChosungLexicon(["시스템", "산사태"]))
-result = Gateway(providers=[provider]).process("ㅅㅅㅌ 점검")
-```
+추가된다. 외부 candidate provider를 직접 구현하면 모든 후보에 provider, `lossy`, confidence와
+metadata가 붙는다. 기본 `max_views`는 10이며 원문·무손실 정규화문·외부 provider 후보를 합친
+총 예산이다. 초성·된소리 내장 provider는 이 공개 확장 경로에 포함되지 않는다.
 
 provider 오류는 기본적으로 `provider_errors`에 기록하고 원문·무손실 view를 반환한다. 배포 정책상
 오류를 즉시 전파해야 하면 `strict_providers=True`를 사용한다.
@@ -115,10 +133,13 @@ src/k_safeguard/
 ├── normalization.py
 ├── chosung.py
 ├── gateway.py
+├── jamo_slots.py
 ├── py.typed
 └── providers/
     ├── __init__.py
     ├── chosung.py
+    ├── ml_restore.py
+    ├── spaced_jamo.py
     ├── tensify.py
     └── wordfreq.py
 ```
@@ -131,7 +152,7 @@ src/k_safeguard/
 python -m pip install --upgrade build
 python -m build
 python tools/release/verify_artifacts.py
-python -m pip install --force-reinstall --no-deps dist/k_safeguard-0.1.0-py3-none-any.whl
+python -m pip install --force-reinstall --no-deps dist/k_safeguard-0.2.0-py3-none-any.whl
 python -m unittest discover -s tests -v
 ```
 
