@@ -183,6 +183,7 @@ python -m pip install ".[wordfreq]"
 - [x] 분기 커버리지 워크플로·배지 — PR 코멘트와 main 배지 자동 갱신
 - [x] 정식 PyPI 배포 워크플로 — 수동 승인형 `pypi.yml`, 첫 배포는 미실행
 - [x] 이슈 템플릿 3종 — 정규화 갭·버그·개선 제안, `config.yml`로 참고 문서 연결
+- [ ] GitHub Pages 브라우저 데모 — 정적 사이트·빌드·배포 워크플로 구성 완료, 저장소 Pages 설정(Source: GitHub Actions) 활성화 전까지 미배포 상태 ([절차](./RELEASING.md#7-github-pages-브라우저-데모-배포))
 - [ ] 번역 파이프라인 2종 실험 (고전 NMT 충실도 / LLM-번역기 하이재킹)
 - [ ] [정규화 하드닝 미들웨어](./NORMALIZER.md) — 자모·ZWSP 무손실 MVP 완료, 문맥형 복원·평가 연결 남음
 - [ ] 벤치마크·평가 하네스 코드화 (`kanana_test_suite.py`)

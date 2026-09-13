@@ -127,9 +127,45 @@ python -c "from k_safeguard import Gateway; assert Gateway().process('ㅇㅏㄴ'
 
 배포한 버전에 마일스톤 태그를 남기고 릴리스 노트에 평가 근거를 기록한다.
 
+## 7. GitHub Pages 브라우저 데모 배포
+
+`web/`의 정규화 playground는 `.github/workflows/pages.yml`이 빌드하고 GitHub Pages로 배포한다. PR에서는
+빌드만 검증하고, `main` push와 수동 실행(workflow_dispatch)에서만 배포한다. 배포 주소는
+<https://jinseok3639.github.io/k-safeguard/>이다.
+
+### 7.1 Pages 최초 설정 (저장소 관리자 1회)
+
+기본 `GITHUB_TOKEN`은 Pages 사이트를 새로 만들 권한이 없다. 저장소에 Pages가 꺼져 있으면 build job은
+성공해도 deploy job의 **Configure GitHub Pages** 단계가 실패하고 사이트는 404를 반환한다. 저장소
+관리자가 다음을 한 번 설정해야 한다.
+
+1. GitHub 저장소 **Settings > Pages**로 이동한다.
+2. **Build and deployment > Source**를 **GitHub Actions**로 선택한다. 브랜치 선택은 하지 않는다.
+3. **Actions > GitHub Pages demo** workflow에서 **Run workflow**로 `main`을 수동 실행한다.
+
+### 7.2 배포 확인
+
+```bash
+curl -sL https://jinseok3639.github.io/k-safeguard/assets/demo-manifest.json
+```
+
+manifest의 `commit`이 `main` HEAD와 같고 `package_version`이 `pyproject.toml`과 같으면 배포가 끝난
+것이다. 브라우저에서 예제 버튼을 눌러 "브라우저에서 실행 준비 완료" 상태와 정규화 결과가 나오는지 확인한다.
+
+### 7.3 로컬 재현
+
+```bash
+python -m build --wheel
+python tools/web/build_site.py --wheel dist/*.whl --output _site --commit "$(git rev-parse HEAD)"
+node --check _site/app.js && node --check _site/worker.js
+```
+
+`_site/`는 `.gitignore`에 포함돼 있으며 커밋하지 않는다.
+
 ## 공식 참고 문서
 
 - [PyPI Trusted Publishing 개요](https://docs.pypi.org/trusted-publishers/)
 - [pending publisher로 새 프로젝트 만들기](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/)
 - [GitHub Actions에서 Trusted Publisher 사용하기](https://docs.pypi.org/trusted-publishers/using-a-publisher/)
 - [Trusted Publishing 보안 고려사항](https://docs.pypi.org/trusted-publishers/security-model/)
+- [GitHub Actions로 GitHub Pages 배포하기](https://docs.github.com/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site#publishing-with-a-custom-github-actions-workflow)
