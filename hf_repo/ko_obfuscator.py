@@ -205,16 +205,43 @@ def liaison(text, intensity=1.0, seed=0):
     return ''.join(out)
 
 
-def break_spacing(text, intensity=1.0, seed=0):
-    """띄어쓰기 파괴: intensity>=0.5면 모든 공백 제거, 아니면 글자 사이 공백 삽입"""
-    if intensity >= 0.5:
-        return text.replace(' ', '')
+def break_spacing(text, intensity=1.0, seed=0, *, remove_ratio=0.5, insert_ratio=0.5):
+    """띄어쓰기 파괴: 기존 공백 제거와 새 공백 삽입을 각각 독립된 비율로 적용한다.
+
+    기존 공백의 remove_ratio*intensity 비율만큼 지우고, 공백이 없던 글자 사이의
+    insert_ratio*intensity 비율만큼 새로 넣는다. 두 비율은 서로 묶이지 않아(각각 0~1)
+    "전부 제거+전부 삽입"까지 포함해 (제거 수, 삽입 수)의 모든 조합을 만들 수 있다.
+    어느 공백이 대상이 될지는 seed가 정한다. 기본값 0.5/0.5는 최대 강도에서도 각 방향을
+    절반까지만 적용해 "글자마다 다 띄어쓰기" 같은 극단적 결과를 피한다.
+
+    intensity>=0.5면 전부 제거, 미만이면 삽입만 하던 이전 구현은 intensity 0.5와 1.0이
+    항상 같은 결과를 냈고, 실제 표기 오류에 흔한 "일부는 붙고 일부는 갈라지는" 혼합
+    패턴을 만들 수 없었다.
+
+    과거 벤치마크(intensity 0.5·1.0 전 행)의 출력은 intensity=1.0, remove_ratio=1.0,
+    insert_ratio=0.0으로 비트 단위까지 똑같이 재현된다. 옛 삽입 전용 분기(intensity<0.5)는
+    재현하지 않는다 — 이중 공백·문장 끝 공백을 만들던 동작이라 삽입 위치를 공백이 없는
+    글자 사이로 제한했다.
+    """
     rng = random.Random(seed)
-    pick = _pick(text, intensity, rng)
+    remove_frac = intensity * remove_ratio
+    insert_frac = intensity * insert_ratio
+
+    space_idxs = [i for i, ch in enumerate(text) if ch == ' ']
+    remove = _pick_candidates(space_idxs, remove_frac, rng)
+
+    gaps = [
+        i for i in range(len(text) - 1)
+        if text[i] != ' ' and text[i + 1] != ' '
+    ]
+    insert = _pick_candidates(gaps, insert_frac, rng)
+
     out = []
     for i, ch in enumerate(text):
+        if i in remove:
+            continue
         out.append(ch)
-        if i in pick:
+        if i in insert:
             out.append(' ')
     return ''.join(out)
 
