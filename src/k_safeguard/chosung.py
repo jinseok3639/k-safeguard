@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 
-CHOSUNG_CANDIDATE_VERSION = "0.5.0"
+CHOSUNG_CANDIDATE_VERSION = "0.6.0"
 HANGUL_BASE = 0xAC00
 COMPAT_CHO = (
     "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ",
@@ -363,6 +363,7 @@ def _lexicon_options(
     allow_partial_restoration: bool,
     partial_sources: tuple[str, ...],
     min_partial_initials: int,
+    direct_only: bool = False,
 ) -> tuple[tuple[_LexiconOption, ...], bool]:
     direct = lexicon.match(pattern, limit + 1)
     options = [
@@ -381,7 +382,7 @@ def _lexicon_options(
         )
         for entry in direct
     ]
-    if allow_segmentation:
+    if allow_segmentation and not direct_only:
         segmented = lexicon.match_segmented(
             pattern,
             limit + 1,
@@ -405,7 +406,7 @@ def _lexicon_options(
             for item in segmented
         )
 
-    if allow_partial_restoration:
+    if allow_partial_restoration and not direct_only:
         partial_matches = lexicon.match_partial(
             pattern,
             limit + 1,
@@ -530,7 +531,8 @@ def generate_chosung_candidates(
 
     direct 후보를 먼저 보존한 뒤 segmented, partial 후보가 남은 상한을 사용한다. 같은 계층에서는
     더 많은 초성을 복원한 문장, 사전 빈도 순위 합이 낮은 문장 순으로 정렬한다.
-    반복 초성만으로 된 통신체(`ㅋㅋ`, `ㅎㅎㅎ` 등)는 과잉 복원을 피하기 위해 건너뛴다.
+    반복 초성만으로 된 통신체(`ㅋㅋ`, `ㅎㅎㅎ` 등)는 trusted lexicon에 전체 span의 direct match가
+    있을 때만 복원한다. segmented·partial match만으로는 반복 통신체를 확장하지 않는다.
     """
     if not isinstance(text, str):
         raise TypeError("text는 str이어야 합니다.")
@@ -562,8 +564,9 @@ def generate_chosung_candidates(
     for start, end in _chosung_spans(text):
         pattern = text[start:end]
         initial_count = sum(char in _COMPAT_CHO_SET for char in pattern)
-        if initial_count < min_initials or _is_repeated_chat_initials(pattern):
+        if initial_count < min_initials:
             continue
+        repeated_initials = _is_repeated_chat_initials(pattern)
         options, options_truncated = _lexicon_options(
             pattern,
             lexicon,
@@ -574,6 +577,7 @@ def generate_chosung_candidates(
             allow_partial_restoration=allow_partial_restoration,
             partial_sources=partial_source_names,
             min_partial_initials=min_partial_initials,
+            direct_only=repeated_initials,
         )
         if not options:
             continue

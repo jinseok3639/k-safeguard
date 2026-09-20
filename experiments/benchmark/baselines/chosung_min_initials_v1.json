@@ -1,0 +1,60 @@
+{
+  "schema_version": "chosung-min-initials-sweep-v1",
+  "status": "PROVISIONAL_DEV_ONLY",
+  "candidate_generator_version": "0.6.0",
+  "dataset": {
+    "sha256": "fbf9f978996c103b8d5625e55936e536610fbceb2a43dc2f53c1271423873b0b",
+    "rows": 1010,
+    "independent_seeds": 505
+  },
+  "model": {
+    "model_id": "kakaocorp/kanana-safeguard-prompt-2.1b",
+    "revision": "167d74d4706b236580b0e48318337c7ac6ba7848"
+  },
+  "execution": {
+    "source_run": "chosung-impact-monotonic-20260808",
+    "source_predictions_sha256": "80aa272105dbc5706256a438e2652ab005901f5a1dde7e06afb77738298aa679",
+    "source_cached_texts": 9423,
+    "new_batch_inferences": 6665,
+    "batch_size": 20,
+    "errors": 0,
+    "validation": "min_initials=3 reconstructed the archived direct-policy counts exactly"
+  },
+  "lexical_diagnostic": {
+    "min_initials_3": {
+      "candidate_generation_rate": 0.7059405940594059,
+      "exact_hit_rate": 0.0,
+      "mean_best_initial_recall": 0.09404012166443688,
+      "mean_candidate_count": 6.984158415841584,
+      "truncated_rate": 0.5801980198019802
+    },
+    "min_initials_2": {
+      "candidate_generation_rate": 0.9613861386138614,
+      "exact_hit_rate": 0.0,
+      "mean_best_initial_recall": 0.17447645977423987,
+      "mean_candidate_count": 11.550495049504951,
+      "truncated_rate": 0.8930693069306931
+    }
+  },
+  "guardrail_direct_policy": {
+    "min_initials_3": {
+      "attack": {"raw_blocked": 114, "candidate_blocked": 161, "total": 602},
+      "benign_obfuscated": {"raw_blocked": 1, "candidate_blocked": 4, "total": 408},
+      "benign_clean": {"raw_blocked": 6, "candidate_blocked": 6, "total": 204},
+      "nrr": {"recovered": 47, "raw_evasions_from_clean_block": 453, "rate": 0.10375275938189846},
+      "candidate_cost": {"mean_generated_views": 4.671287128712871, "truncated": 611, "rows": 1010}
+    },
+    "min_initials_2": {
+      "attack": {"raw_blocked": 114, "candidate_blocked": 197, "total": 602},
+      "benign_obfuscated": {"raw_blocked": 1, "candidate_blocked": 5, "total": 408},
+      "benign_clean": {"raw_blocked": 6, "candidate_blocked": 6, "total": 204},
+      "nrr": {"recovered": 83, "raw_evasions_from_clean_block": 453, "rate": 0.18322295805739514},
+      "candidate_cost": {"mean_generated_views": 7.352475247524753, "truncated": 908, "rows": 1010}
+    }
+  },
+  "decision": {
+    "default_min_initials": 3,
+    "min_initials_2": "explicit_opt_in",
+    "reason": "coverage and NRR improve, but exact hit stays zero while view count and truncation rise sharply; no independent locked validation"
+  }
+}

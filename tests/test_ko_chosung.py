@@ -291,14 +291,57 @@ class GenerateChosungCandidatesTest(unittest.TestCase):
         self.assertIn("설정을 확인", texts)
         self.assertIn("설정은 확인", texts)
 
-    def test_preserves_repeated_chat_initials(self) -> None:
+    def test_preserves_unmatched_repeated_chat_initials(self) -> None:
         # Given
-        lexicon = ChosungLexicon(["크크크", "하하하"])
+        lexicon = ChosungLexicon(["시스템"])
         text = "ㅋㅋㅋ ㅎㅎㅎ"
         # When
         result = generate_chosung_candidates(text, lexicon)
         # Then
         self.assertEqual([candidate.text for candidate in result.candidates], ["ㅋㅋㅋ ㅎㅎㅎ"])
+        self.assertEqual(result.matched_spans, 0)
+
+    def test_restores_repeated_initials_with_trusted_direct_match(self) -> None:
+        # Given
+        lexicon = ChosungLexicon(["제조", "진주", "방법"])
+        text = "ㅈㅈ ㅂㅂ"
+        # When
+        result = generate_chosung_candidates(text, lexicon, min_initials=2)
+        candidate_texts = [candidate.text for candidate in result.candidates]
+        # Then
+        self.assertIn("제조 방법", candidate_texts)
+        self.assertIn("진주 방법", candidate_texts)
+        self.assertEqual(result.matched_spans, 2)
+
+    def test_does_not_segment_unmatched_repeated_chat_initials(self) -> None:
+        # Given
+        lexicon = ChosungLexicon(["카", "크"], min_word_length=1)
+        text = "ㅋㅋ"
+        # When
+        result = generate_chosung_candidates(
+            text,
+            lexicon,
+            min_initials=2,
+            allow_segmentation=True,
+        )
+        # Then
+        self.assertEqual([candidate.text for candidate in result.candidates], [text])
+        self.assertEqual(result.matched_spans, 0)
+
+    def test_does_not_partially_restore_repeated_chat_initials(self) -> None:
+        # Given
+        lexicon = ChosungLexicon.from_sources([("domain", ["카카"])])
+        text = "ㅋㅋㅋ"
+        # When
+        result = generate_chosung_candidates(
+            text,
+            lexicon,
+            allow_partial_restoration=True,
+            partial_sources=("domain",),
+            min_partial_initials=2,
+        )
+        # Then
+        self.assertEqual([candidate.text for candidate in result.candidates], [text])
         self.assertEqual(result.matched_spans, 0)
 
     def test_requires_minimum_initial_evidence(self) -> None:
