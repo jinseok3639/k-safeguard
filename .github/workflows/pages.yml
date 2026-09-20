@@ -61,10 +61,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      # 저장소 Settings > Pages > Source가 "GitHub Actions"로 한 번 설정돼 있어야 한다.
+      # 기본 GITHUB_TOKEN은 Pages 사이트를 새로 만들 권한이 없어 enablement 옵션이 동작하지 않는다.
+      # 최초 설정 절차는 dev_note/RELEASING.md 7절을 따른다.
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
