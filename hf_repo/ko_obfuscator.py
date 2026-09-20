@@ -205,24 +205,31 @@ def liaison(text, intensity=1.0, seed=0):
     return ''.join(out)
 
 
-def break_spacing(text, intensity=1.0, seed=0):
-    """띄어쓰기 파괴: 기존 공백 중 intensity 비율만큼 제거하면서, 동시에 공백이 없던
-    자리 중 intensity 비율만큼 새 공백을 끼워 넣는다.
+def break_spacing(text, intensity=1.0, seed=0, *, insert_ratio=0.5):
+    """띄어쓰기 파괴: 기존 공백 제거와 새 공백 삽입을 함께, 그러나 독립된 비율로 적용한다.
 
-    제거와 삽입을 intensity 임계값으로 배타적으로 나누던 이전 구현은 intensity>=0.5에서
-    전부 제거만 하고(0.5와 1.0이 같은 결과), intensity<0.5에서 삽입만 해서 실제 표기
-    오류에 흔한 "일부는 붙고 일부는 갈라지는" 혼합 패턴을 만들 수 없었다. 이제는 두
-    방향을 항상 함께 적용한다.
+    intensity는 전체 교란 강도(0~1), insert_ratio는 그중 삽입에 쓸 비중이다
+    (0=제거만, 1=삽입만, 기본 0.5=혼합). remove_frac = intensity*(1-insert_ratio),
+    insert_frac = intensity*insert_ratio로 나눠 각각 독립적으로 표본을 뽑는다.
+
+    intensity>=0.5면 전부 제거, 미만이면 삽입만 하던 이전 구현은 intensity 0.5와 1.0이
+    항상 같은 결과를 냈고, 실제 표기 오류에 흔한 "일부는 붙고 일부는 갈라지는" 혼합
+    패턴을 만들 수 없었다. insert_ratio=0.0/1.0으로 옛 두 모드를 그대로 재현할 수 있고,
+    기본값 0.5는 최대 강도에서도 제거·삽입 각각 최대 절반까지만 적용해 "글자마다 다
+    띄어쓰기" 같은 극단적 결과를 피한다.
     """
     rng = random.Random(seed)
+    remove_frac = intensity * (1 - insert_ratio)
+    insert_frac = intensity * insert_ratio
+
     space_idxs = [i for i, ch in enumerate(text) if ch == ' ']
-    remove = _pick_candidates(space_idxs, intensity, rng)
+    remove = _pick_candidates(space_idxs, remove_frac, rng)
 
     gaps = [
         i for i in range(len(text) - 1)
         if text[i] != ' ' and text[i + 1] != ' '
     ]
-    insert = _pick_candidates(gaps, intensity, rng)
+    insert = _pick_candidates(gaps, insert_frac, rng)
 
     out = []
     for i, ch in enumerate(text):
