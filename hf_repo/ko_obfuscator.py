@@ -206,15 +206,30 @@ def liaison(text, intensity=1.0, seed=0):
 
 
 def break_spacing(text, intensity=1.0, seed=0):
-    """띄어쓰기 파괴: intensity>=0.5면 모든 공백 제거, 아니면 글자 사이 공백 삽입"""
-    if intensity >= 0.5:
-        return text.replace(' ', '')
+    """띄어쓰기 파괴: 기존 공백 중 intensity 비율만큼 제거하면서, 동시에 공백이 없던
+    자리 중 intensity 비율만큼 새 공백을 끼워 넣는다.
+
+    제거와 삽입을 intensity 임계값으로 배타적으로 나누던 이전 구현은 intensity>=0.5에서
+    전부 제거만 하고(0.5와 1.0이 같은 결과), intensity<0.5에서 삽입만 해서 실제 표기
+    오류에 흔한 "일부는 붙고 일부는 갈라지는" 혼합 패턴을 만들 수 없었다. 이제는 두
+    방향을 항상 함께 적용한다.
+    """
     rng = random.Random(seed)
-    pick = _pick(text, intensity, rng)
+    space_idxs = [i for i, ch in enumerate(text) if ch == ' ']
+    remove = _pick_candidates(space_idxs, intensity, rng)
+
+    gaps = [
+        i for i in range(len(text) - 1)
+        if text[i] != ' ' and text[i + 1] != ' '
+    ]
+    insert = _pick_candidates(gaps, intensity, rng)
+
     out = []
     for i, ch in enumerate(text):
+        if i in remove:
+            continue
         out.append(ch)
-        if i in pick:
+        if i in insert:
             out.append(' ')
     return ''.join(out)
 
