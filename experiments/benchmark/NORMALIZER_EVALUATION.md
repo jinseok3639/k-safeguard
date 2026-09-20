@@ -1,7 +1,8 @@
 # 정규화 E0/E1/E2/E3 평가
 
 `run_normalizer_evaluation.py`는 `hf_repo/benchmark.jsonl`을 Kanana Safeguard-Prompt에 입력해
-정규화 gateway OFF/ON 효과를 동일 모델 설정으로 비교한다.
+정규화 gateway OFF/ON 효과를 동일 모델 설정으로 비교한다. 이 Prompt track은
+[`EVALUATION_SPEC.md`](../../dev_note/EVALUATION_SPEC.md) 0.2.0의 주 평가다.
 
 ## 조건
 
@@ -76,6 +77,11 @@ Git commit, dataset SHA-256, 모델 lock, tokenizer template hash, normalizer ve
 
 ## 해석 제한
 
-이 runner는 Prompt track의 가드레일 판정과 문자열 정확 복원을 측정한다. 하위 LLM
-intent-recognition과 semantic fidelity를 아직 측정하지 않으므로 결과 유효성은 `INCOMPLETE`, 프로젝트
-판정은 `NOT_EVALUATED`로 기록한다. Prompt track 결과만으로 GO/NO-GO를 선언하지 않는다.
+이 runner는 Prompt track의 가드레일 판정과 문자열 정확 복원을 측정한다. 실행·표본·모델 coverage가
+규격의 유효성 게이트를 통과하면 가드레일 결과는 `VALID_GUARDRAIL_ONLY`로 기록할 수 있다. 하위 LLM
+intent-recognition과 semantic fidelity를 아직 측정하지 않으므로 disparity·RBE·ASR 평가는
+`INCOMPLETE`다.
+
+공개 505개 시드는 이미 규칙 개발과 오류 분석에 사용된 `DEVELOPMENT_POPULATION`이므로 결과 지위는
+최대 `DEVELOPMENT_EVIDENCE`다. 일반화된 회복을 주장하려면 별도로 봉인하고 사전등록한 locked test가
+필요하다.
