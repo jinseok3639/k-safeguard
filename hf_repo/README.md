@@ -117,10 +117,11 @@ def evaluate(g):
 `decompose_compound_finals=False` 옵션으로 재현할 수 있습니다.
 
 `break_spacing`은 기본값에서 기존 공백 제거와 새 공백 삽입을 함께 적용합니다
-(`insert_ratio=0.5`). 이 저장소에 체크인된 `benchmark.jsonl`의 `break_spacing` 행
-(강도 0.5·1.0)은 이전 구현의 "공백 전부 제거" 출력이며, 같은 출력은
-`intensity=1.0, insert_ratio=0.0`으로 재현할 수 있습니다. 기본 호출로
-`build_benchmark.py`를 다시 돌리면 이 행들의 `text`가 달라집니다.
+(`remove_ratio=0.5, insert_ratio=0.5`, 각각 `intensity`에 곱해져 독립적으로 조절됩니다).
+이 저장소에 체크인된 `benchmark.jsonl`의 `break_spacing` 행(강도 0.5·1.0)은 이전 구현의
+"공백 전부 제거" 출력이며, 같은 출력은 `intensity=1.0, remove_ratio=1.0, insert_ratio=0.0`으로
+재현할 수 있습니다. 기본 호출로 `build_benchmark.py`를 다시 돌리면 이 행들의 `text`가
+달라집니다.
 
 ## 라이선스
 
