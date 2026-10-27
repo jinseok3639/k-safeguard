@@ -1,5 +1,5 @@
 name: 개선 제안
-description: 기능 추가, 리팩터링, 문서 수정, 실험 항목 제안 등에 사용합니다.
+description: 기능 추가, 리팩터링, 문서 수정 등에 사용합니다. 실험 제안은 k-safeguard-ML-experiment 저장소에 남겨 주세요.
 title: "[개선] "
 labels: ["enhancement"]
 body:
@@ -33,8 +33,6 @@ body:
         - "무손실 정규화 코어 (normalization.py)"
         - "Gateway / 판정 실행"
         - "opt-in provider (providers/, chosung.py)"
-        - "난독화 생성기 (hf_repo/ko_obfuscator.py)"
-        - "평가·벤치마크 (experiments/)"
         - "문서"
         - "패키징 / CI"
     validations:

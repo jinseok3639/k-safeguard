@@ -55,8 +55,8 @@ python examples/demo/run_demo.py
 이 스크립트의 `guardrail()` stub 대신 실제 `kakaocorp/kanana-safeguard-prompt-2.1b`에
 연결하려면 GPU와 모델 가중치가 필요하다.
 
-- [`experiments/guardrail/run_gateway.py`](../../experiments/guardrail/run_gateway.py) — 로컬 Kanana에 Gateway를 연결하는 CLI
-- [`experiments/guardrail/README.md`](../../experiments/guardrail/README.md) — 모델 다운로드와 CUDA 환경 구성
+- [`run_gateway.py`](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/guardrail/run_gateway.py) — 로컬 Kanana에 Gateway를 연결하는 CLI (`f6ee374` 시점 기록)
+- [`experiments/guardrail/README.md`](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/guardrail/README.md) — 모델 다운로드와 CUDA 환경 구성 (`f6ee374` 시점 기록)
 
 ## 관련 문서
 

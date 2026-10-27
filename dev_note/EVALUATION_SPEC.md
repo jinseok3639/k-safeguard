@@ -165,7 +165,7 @@ A1/A2를 행 단위로 단순 합산하지 않고 category별 값과 macro 평�
 강도는 전체 문자열 길이가 아니라 **적용 가능한 위치 중 실제 변형한 비율**이어야 한다.
 
 - 현재 생성기는 고정된 PRNG로 적용 위치를 고르며 같은 입력·강도·generation seed에서 결정론적이다.
-- 공개 개발 benchmark(`hf_repo/benchmark.jsonl`, 505시드 × 17행 = 8,585행)는 generation seed
+- 공개 개발 benchmark(k-safeguard-ML-experiment의 `hf_repo/benchmark.jsonl`, 505시드 × 17행 = 8,585행)는 generation seed
   `1234`의 단일 고정 실현을 사용한다. 0.2.0 confirmatory 분석은 그중 §6.1에 등록된 기법
   (clean 1 + `tensify`·visual 5종 × 강도 2 = 505 × 11 = 5,555행)만 사용한다.
 - intensity `1.0`은 적용 가능 위치를 모두 선택하므로 현재 기법에서 generation seed의 영향을 받지
@@ -520,8 +520,8 @@ endpoint, 데이터 선정 규칙, 모델 revision 또는 합격선을 바꾸면
 
 - Kanana Safeguard 8B 모델 카드: https://huggingface.co/kakaocorp/kanana-safeguard-8b
 - Kanana Safeguard-Prompt 2.1B 모델 카드: https://huggingface.co/kakaocorp/kanana-safeguard-prompt-2.1b
-- 외부 A1/A2 시드 조사: [`DATASET_CANDIDATES.md`](./DATASET_CANDIDATES.md)
-- 공개 benchmark와 생성 provenance: [`hf_repo/README.md`](../hf_repo/README.md)
-- E0/E1/E2/E3 실행 절차: [`NORMALIZER_EVALUATION.md`](../experiments/benchmark/NORMALIZER_EVALUATION.md)
-- 된소리 독립 평가 프로토콜: [`TENSIFY_LOCKED_PROTOCOL.md`](../experiments/benchmark/TENSIFY_LOCKED_PROTOCOL.md)
-- 고정 모델 목록: [`models.json`](../experiments/guardrail/models.json)
+- 외부 A1/A2 시드 조사: [`DATASET_CANDIDATES.md`](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/dev_note/DATASET_CANDIDATES.md) (`f6ee374` 시점 기록)
+- 공개 benchmark와 생성 provenance: [`hf_repo/README.md`](https://github.com/jinseok3639/k-safeguard-ML-experiment/blob/master/hf_repo/README.md) (k-safeguard-ML-experiment)
+- E0/E1/E2/E3 실행 절차: [`NORMALIZER_EVALUATION.md`](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/benchmark/NORMALIZER_EVALUATION.md) (`f6ee374` 시점 기록)
+- 된소리 독립 평가 프로토콜: [`TENSIFY_LOCKED_PROTOCOL.md`](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/benchmark/TENSIFY_LOCKED_PROTOCOL.md) (`f6ee374` 시점 기록)
+- 고정 모델 목록: [`models.json`](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/guardrail/models.json) (`f6ee374` 시점 기록)

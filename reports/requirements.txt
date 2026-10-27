@@ -1,2 +1,0 @@
-ipykernel>=6.29,<7
-nbconvert>=7.16,<8

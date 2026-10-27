@@ -1,5 +1,5 @@
 name: 버그 리포트
-description: 예외 발생, API 오동작, 평가 스크립트 실패 등을 보고합니다.
+description: 예외 발생, API가 문서와 다르게 동작하는 경우 등을 보고합니다.
 title: "[버그] "
 labels: ["bug"]
 body:
@@ -49,8 +49,6 @@ body:
         - "판정 실행 (execution.py)"
         - "초성 후보 생성 (chosung.py)"
         - "opt-in provider (providers/)"
-        - "난독화 생성기 (hf_repo/ko_obfuscator.py)"
-        - "평가·벤치마크 (experiments/)"
         - "패키징 / CI"
         - "모르겠음"
     validations:

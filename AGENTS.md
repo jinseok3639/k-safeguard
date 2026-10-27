@@ -16,11 +16,10 @@
 
 | 알고 싶은 것 | 확인 방법 |
 |---|---|
-| 진행 상황 (정본) | `dev_note/README.md`의 "진행 상황" 절 |
 | 최근 무슨 작업을 했나 | `git log --oneline -20` |
-| 무엇이 구현돼 있나 | `ls src/k_safeguard/`, `ls experiments/benchmark/run_*.py` |
+| 무엇이 구현돼 있나 | `ls src/k_safeguard/` |
 | 테스트가 통과하나 | `python -m unittest discover -s tests` |
-| 어떤 실험이 어떤 판정을 받았나 | `experiments/benchmark/*.md` 각 문서 상단의 상태 라벨 |
+| 어떤 실험이 어떤 판정을 받았나 | k-safeguard-ML-experiment 저장소의 `<트랙>/EXPERIMENTS.md` |
 | 미해결 이슈 | GitHub Issues |
 
 이 표와 실제 저장소가 다르면 **저장소가 맞다.** 그때는 이 표를 고친다.
@@ -40,8 +39,9 @@
 - 2026-08 구현 언어·패키징: Python + setuptools, `src/` 레이아웃, 모노레포. 런타임 의존성 0개 유지
 - 2026-08 시드 데이터셋: 505 시드(공격 301/정상 204) → 파생 5,555행, HF `kimchunsik03/KoreanGuardrail`, 데이터 CC-BY-4.0
 - 2026-08 SLM 파인튜닝 노선 폐기. 규칙 기반 무손실 정규화 + opt-in 후보 provider로 확정. "모델 재학습 없이"가 프로젝트의 핵심 주장이므로 재론하지 않는다
-- 2026-08 lossy provider(초성·된소리)는 기본 비활성 유지. 근거는 `experiments/benchmark/TENSIFY_LOCKED_RESULT.md`, `CHOSUNG_GUARDRAIL_IMPACT.md`
+- 2026-08 lossy provider(초성·된소리)는 기본 비활성 유지. 근거는 `f6ee374`의 `experiments/benchmark/TENSIFY_LOCKED_RESULT.md`, `CHOSUNG_GUARDRAIL_IMPACT.md`
 - 2026-08-25 초성·된소리 다중 view provider는 배포 공개 API에서 제거. 기존 후보 구현은 과거 실험 재현용 내부 모듈로만 보존하며 Gateway 권장 경로에 연결하지 않는다
+- 2026-10-27 저장소 정리: `experiments/`·`reports/`와 과거 데이터셋 기준 `dev_note` 기록을 삭제했다(기록은 `f6ee374`에 남아 있다). `hf_repo/`(시드·벤치마크·난독화 생성기)는 k-safeguard-ML-experiment로 옮겼고, 난독화 생성기는 당분간 이 저장소에서 배포하지 않는다
 - (미결) 평가 규격(`EVALUATION_SPEC.md`)의 주력 트랙 재정의 — GitHub Issue "EVALUATION_SPEC.md 0.2.0 개정 필요" 참고. 결정되면 여기에 한 줄 추가
 
 <!-- SLM 항목: "모델 재학습 없이"가 한 줄 요약의 핵심 주장이므로 파인튜닝 노선이 다시 거론되면 이 줄을 먼저 보여준다 -->
@@ -77,11 +77,13 @@
 ### 2. 벤치마크와 평가 하네스
 
 난독화 전후 탐지율·회피율을 재현 가능하게 측정한다. 통합 하네스는 가칭 `kanana_test_suite.py`
-(미구현, `experiments/benchmark/run_*.py`로 분산). 평가 대상은 세 갈래다: Kanana Safeguard-Prompt
+(미구현. 과거 러너는 `f6ee374`의 `experiments/benchmark/run_*.py`, 현재 실험은 k-safeguard-ML-experiment에 있다). 평가 대상은 세 갈래다: Kanana Safeguard-Prompt
 직접 입력, PromptGuard·LlamaGuard 등 다국어 가드레일 직접 입력, 번역 후 영어 가드레일 입력.
 번역 파이프라인은 고전 NMT 충실도 실험과 LLM 번역기 하이재킹 실험을 분리한다.
 
-### 3. 난독화 생성 라이브러리 (`hf_repo/ko_obfuscator.py`)
+### 3. 난독화 생성 라이브러리 (k-safeguard-ML-experiment의 `hf_repo/ko_obfuscator.py`)
+
+이 저장소에는 없고 당분간 배포하지 않는다.
 
 미들웨어에 종속되지 않는 독립 레드팀 도구. **구현 완료 5종**: 자모 분해(`jamo_decompose`),
 초성체(`chosung`), 된소리(`tensify`), 띄어쓰기 파괴(`break_spacing`), 투명문자 삽입(`zwsp_inject`).
@@ -99,7 +101,7 @@
 
 - locked-test는 사전등록 → seal → 단일 실행 순서를 지킨다. 결과를 본 뒤 threshold나 시드를 바꾸지 않는다.
 - 모든 실험 결과 문서에는 상태 라벨(`PROVISIONAL_DEV_ONLY`, `DO_NOT_PROMOTE` 등)과 "해석 제한" 절을 단다.
-- 모델 추론이 필요한 실험은 `experiments/guardrail/enter-env.ps1`로 격리 환경을 활성화한 뒤 실행한다.
+- 모델 추론이 필요한 실험은 k-safeguard-ML-experiment 저장소에서 그 저장소의 환경 규약대로 실행한다.
 - `results/`, `predictions.jsonl`은 공격 원문을 포함하므로 Git에 커밋하지 않는다.
 
 ## 구현 및 검증 원칙
@@ -128,7 +130,7 @@
 
 ## 안전·환경 경계
 
-- `experiments/benchmark/results/`와 `predictions.jsonl`은 공격 원문이 들어 있으므로 열지 않는다.
+- 실험 저장소의 `results/`와 `predictions.jsonl`은 공격 원문이 들어 있으므로 열지 않는다.
 - 실험 실행(모델 추론)은 GPU와 `D:\local llm\guardrails` 가중치가 필요하다. 환경이 없으면 실행했다고 보고하지 말고 미검증 범위를 명시한다.
 
 ## Git 워크플로
@@ -166,9 +168,4 @@ python -m build && python tools/release/verify_artifacts.py   # 배포 산출물
 mutmut run && mutmut results                               # 변이 테스트
 ```
 
-실험(모델 추론)은 별도 환경이 필요하다. PowerShell에서:
-
-```powershell
-. .\experiments\guardrail\enter-env.ps1
-python -m unittest discover -s experiments\benchmark\tests
-```
+실험(모델 추론)은 k-safeguard-ML-experiment 저장소에서 실행한다.

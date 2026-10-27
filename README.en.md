@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen.svg)](https://github.com/jinseok3639/k-safeguard/blob/main/pyproject.toml)
 
-[한국어](https://github.com/jinseok3639/k-safeguard/blob/main/README.md) · **English** &nbsp;|&nbsp; [Benchmark dataset](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) · [Development notes (Korean)](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/README.md)
+[한국어](https://github.com/jinseok3639/k-safeguard/blob/main/README.md) · **English** &nbsp;|&nbsp; [Benchmark dataset](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) · [Experiments repository](https://github.com/jinseok3639/k-safeguard-ML-experiment)
 
 [Try it in your browser](https://jinseok3639.github.io/k-safeguard/) — a normalization playground that never sends your input to a server
 
@@ -146,11 +146,11 @@ Every number below is reproducible against the 5,555-row benchmark derived from 
 
 > **Interpretation limits**: the end-to-end smoke test uses fixtures deliberately selected for known recovery, so it is a regression check and must not be read as a population-level performance estimate.
 > The full E0/E1/E2/E3 evaluation is still marked `INCOMPLETE` because downstream LLM intent recognition and semantic fidelity have not been measured yet.
-> The metric definitions live in [EVALUATION_SPEC](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/EVALUATION_SPEC.md) and the run procedure in the [normalization evaluation document](https://github.com/jinseok3639/k-safeguard/blob/main/experiments/benchmark/NORMALIZER_EVALUATION.md) (both Korean).
+> The metric definitions live in [EVALUATION_SPEC](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/EVALUATION_SPEC.md) and the run procedure in the [normalization evaluation document](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/benchmark/NORMALIZER_EVALUATION.md) (both Korean).
 
 ## Scope and limits
 
-**In scope** — Korean guardrail evasion via orthographic obfuscation (jamo decomposition, chosung abbreviation, tensification, resyllabification, coda cramming, spacing destruction, zero-width characters), and the normalization that reverses it. Of these, `hf_repo/ko_obfuscator.py` currently implements five: jamo decomposition, chosung abbreviation, tensification, spacing destruction, and zero-width character injection. Resyllabification and coda cramming are in scope but have no generator implementation yet.
+**In scope** — Korean guardrail evasion via orthographic obfuscation (jamo decomposition, chosung abbreviation, tensification, resyllabification, coda cramming, spacing destruction, zero-width characters), and the normalization that reverses it. Of these, `hf_repo/ko_obfuscator.py` in the [experiments repository](https://github.com/jinseok3639/k-safeguard-ML-experiment) currently implements five: jamo decomposition, chosung abbreviation, tensification, spacing destruction, and zero-width character injection. Resyllabification and coda cramming are in scope but have no generator implementation yet.
 
 **Out of scope**
 
@@ -165,10 +165,9 @@ The goal is to take a pattern already well established internationally — that 
 | Artifact | Location | Description |
 |---|---|---|
 | Runnable examples | [`examples/`](https://github.com/jinseok3639/k-safeguard/blob/main/examples/README.md) | Six-step sample code: normalization, guardrail wiring, async/batch, error policy, provider extension |
-| Obfuscation generator library | [`hf_repo/ko_obfuscator.py`](https://github.com/jinseok3639/k-safeguard/blob/main/hf_repo/ko_obfuscator.py) | Intensity-graded variant generator; usable as a standalone red-team tool, independent of the middleware |
+| Obfuscation generator library | [`hf_repo/ko_obfuscator.py`](https://github.com/jinseok3639/k-safeguard-ML-experiment/blob/master/hf_repo/ko_obfuscator.py) | Intensity-graded variant generator; lives in the experiments repository and is not released yet |
 | Benchmark dataset | [HF: KoreanGuardrail](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) | 505 seeds → 5,555 derived rows. Data under CC-BY-4.0 |
-| Evaluation scripts | [`experiments/benchmark/`](https://github.com/jinseok3639/k-safeguard/blob/main/experiments/benchmark/README.md) | Runners and recorded results for evasion rate, NRR, and ΔFPR |
-| Local experiment environment | [`experiments/guardrail/`](https://github.com/jinseok3639/k-safeguard/blob/main/experiments/guardrail/README.md) | Three pinned-revision models, isolated CUDA environment, offline smoke test |
+| Experiments | [k-safeguard-ML-experiment](https://github.com/jinseok3639/k-safeguard-ML-experiment) | Restoration and guardrail experiment runners with recorded results |
 
 ## Documentation
 
@@ -181,7 +180,6 @@ All documents are written in Korean.
 | [PACKAGING](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/PACKAGING.md) | Package layout, provider boundaries, release verification |
 | [EVALUATION_SPEC](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/EVALUATION_SPEC.md) | Metric definitions and reporting rules |
 | [KOREAN_OBFUSCATION_RESEARCH](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/KOREAN_OBFUSCATION_RESEARCH.md) | Taxonomy of Hangul obfuscation techniques and prior-art survey |
-| [dev_note/README](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/README.md) | Full project background, progress, and design rationale |
 
 ## Development
 

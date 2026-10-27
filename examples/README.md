@@ -45,8 +45,8 @@ decision.trigger_view_index  # 1   - 어떤 view가 근거였는지 남는다
 
 위 예제의 stub 대신 실제 가드레일 모델을 쓰려면 로컬 실험 환경이 필요하다.
 
-- [`experiments/guardrail/run_gateway.py`](../experiments/guardrail/run_gateway.py) — 로컬 Kanana Safeguard-Prompt에 Gateway를 연결하는 CLI
-- [`experiments/guardrail/README.md`](../experiments/guardrail/README.md) — 모델 다운로드와 CUDA 환경 구성
+- [`run_gateway.py`](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/guardrail/run_gateway.py) — 로컬 Kanana Safeguard-Prompt에 Gateway를 연결하는 CLI (`f6ee374` 시점 기록)
+- [`experiments/guardrail/README.md`](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/guardrail/README.md) — 모델 다운로드와 CUDA 환경 구성 (`f6ee374` 시점 기록)
 
 ## 더 읽을거리
 

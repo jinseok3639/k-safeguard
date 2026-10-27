@@ -55,7 +55,7 @@ print(result.edits)
 
 ## 벤치마크 검증
 
-2026-08-21에 겹받침 낱자형을 포함해 재생성한 `hf_repo/benchmark.jsonl`
+2026-08-21에 겹받침 낱자형을 포함해 재생성한 `hf_repo/benchmark.jsonl`(현재 k-safeguard-ML-experiment에 있음)
 5,555행 전체를 실행했다.
 
 | technique | intensity | n | 정확 복원 | 실제 변경 | 오류 |
@@ -83,7 +83,7 @@ intensity 합산 569/602(94.52%) → 566/602(94.02%)였다. exact restoration 1,
 clean에서 난독화 때문에 새로 생긴 회피 variant 15개를 모두 복원해 residual은 0개였다. 생성 방식이 바뀌지 않은
 `zwsp_inject`의 고정 실행은 564/602(93.69%) → 566/602(94.02%), 회피 variant 복원 19/19였다.
 순 차단율과 NRR의 방향이 다를 수 있는 이유와 상세 분모는
-[`NORMALIZER_POPULATION_RESULT.md`](../experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)에 기록한다.
+[`NORMALIZER_POPULATION_RESULT.md`](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)(`f6ee374` 시점 기록)에 기록한다.
 
 ## 테스트
 
