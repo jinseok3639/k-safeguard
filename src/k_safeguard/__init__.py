@@ -1,16 +1,5 @@
 """k-safeguard public API."""
 
-from .chosung import (
-    CHOSUNG_CANDIDATE_VERSION,
-    ChosungCandidate,
-    ChosungCandidateResult,
-    ChosungLexicon,
-    ChosungReplacement,
-    LexiconPartialMatch,
-    chosung_signature,
-    expand_korean_noun_particles,
-    generate_chosung_candidates,
-)
 from .gateway import (
     DEFAULT_MAX_VIEWS,
     CandidateProposal,
@@ -49,7 +38,6 @@ from .normalization import (
 __version__ = "0.2.0"
 
 __all__ = [
-    "CHOSUNG_CANDIDATE_VERSION",
     "DEFAULT_MAX_VIEWS",
     "NORMALIZER_VERSION",
     "CandidateProposal",
@@ -64,26 +52,18 @@ __all__ = [
     "ClassifierExecutionError",
     "ClassifierOutput",
     "ClassifierResult",
-    "ChosungCandidate",
-    "ChosungCandidateResult",
-    "ChosungLexicon",
-    "ChosungReplacement",
     "Gateway",
     "GatewayEvaluation",
     "GatewayResult",
-    "LexiconPartialMatch",
     "NormalizationEdit",
     "NormalizationResult",
     "TextView",
     "GuardrailClassifier",
     "ViewEvaluation",
     "__version__",
-    "chosung_signature",
-    "expand_korean_noun_particles",
     "evaluate_gateway",
     "evaluate_gateway_async",
     "evaluate_gateway_batch",
     "evaluate_gateway_batch_async",
-    "generate_chosung_candidates",
     "normalize_korean",
 ]

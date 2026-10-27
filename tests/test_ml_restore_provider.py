@@ -2,8 +2,7 @@
 
 결정론적인 가짜 복원기를 끼워 **계약만** 본다. `MlRestoreProvider`의 onnxruntime
 의존은 `from_directory()` 안의 지연 import뿐이라 계약 자체는 extra 없이 검증할 수
-있고, 그래서 `test_wordfreq_provider.py`와 달리 여기(`tests/`)에 둔다 —
-`WordfreqChosungProvider`는 생성자에서 `wordfreq`를 실제로 쓰지만 이쪽은 아니다.
+있어서 여기(`tests/`)에 둔다.
 
 실제 가중치로 수치를 재현하는 검증은 별도다. 샌드박스의 `exp/verify_port_parity.py`가
 ONNX 추론 경로를 기준 구현과 대조한다.

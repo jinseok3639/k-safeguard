@@ -7,8 +7,7 @@
 
 ## 가중치는 패키지에 들어 있지 않다
 
-`ChosungLexiconProvider`가 어휘 사전을 싣지 않고 호출자가 만든 사전을 받는 것과
-같은 구조다. 모델 가중치는 저장소 정책상 Git과 wheel에 넣지 않으므로
+모델 가중치는 저장소 정책상 Git과 wheel에 넣지 않으므로
 (`AGENTS.md` 대용량 파일 항목, `tools/release/verify_artifacts.py`의
 `FORBIDDEN_SUFFIXES`), 호출자가 가중치 디렉터리 경로를 준다.
 
