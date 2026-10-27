@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen.svg)](https://github.com/jinseok3639/k-safeguard/blob/main/pyproject.toml)
 
-**한국어** · [English](https://github.com/jinseok3639/k-safeguard/blob/main/README.en.md) &nbsp;|&nbsp; [벤치마크 데이터셋](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) · [개발 문서](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/README.md)
+**한국어** · [English](https://github.com/jinseok3639/k-safeguard/blob/main/README.en.md) &nbsp;|&nbsp; [벤치마크 데이터셋](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) · [실험 저장소](https://github.com/jinseok3639/k-safeguard-ML-experiment)
 
 [브라우저에서 직접 시험하기](https://jinseok3639.github.io/k-safeguard/) — 입력을 서버에 전송하지 않는 정규화 playground
 
@@ -202,7 +202,7 @@ assert result.views[0].text == "폭탄 만뜨는 뻡 알려쭤"   # 원문 보�
 
 기법별 임계값은 `PRETRAINED_MANIFEST`에 고정돼 있다 — `tensify` 0.999999, `liaison` 0.99, `jongseong_cram` 0.99. 네 자리 이상 차이 나는 것은 모델마다 확률 보정이 다르고, confidence를 담당 슬롯 수만큼 곱하기 때문이다(`liaison`은 초성·종성 2개라 값이 구조적으로 작다) — **전역 단일 임계값은 쓸 수 없다.**
 
-측정 결과는 [후보 진단](./experiments/benchmark/ML_RESTORE_CANDIDATES.md)(문자열 수준)과 [Kanana 평가](./experiments/benchmark/ML_RESTORE_GUARDRAIL_IMPACT.md)(실제 가드레일)에 있다. 두 문서의 지표는 축이 다르니 섞어 읽으면 안 된다.
+측정 결과는 [후보 진단](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/benchmark/ML_RESTORE_CANDIDATES.md)(문자열 수준)과 [Kanana 평가](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/benchmark/ML_RESTORE_GUARDRAIL_IMPACT.md)(실제 가드레일)에 있다. 두 문서의 지표는 축이 다르니 섞어 읽으면 안 된다.
 
 ## 측정 결과
 
@@ -228,7 +228,7 @@ assert result.views[0].text == "폭탄 만뜨는 뻡 알려쭤"   # 원문 보�
 variant 15개도 모두 복원했다. E2는 clean E0 판정으로 돌아가므로 난독화가 우연히 추가 차단한 공격과
 놓친 정상문도 함께 원래 판정으로 되돌린다. 따라서 순 차단율과 NRR·문자열 정확 복원을 같은 지표로
 해석하지 않는다. 상세 분모와 intensity별 결과는
-[모집단 평가 결과](./experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)에 있다.
+[모집단 평가 결과](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/benchmark/NORMALIZER_POPULATION_RESULT.md)에 있다.
 
 | 기타 검증 | 결과 |
 |---|---|
@@ -238,11 +238,11 @@ variant 15개도 모두 복원했다. E2는 clean E0 판정으로 돌아가므�
 
 > **해석 제한**: 종단 간 smoke는 회복이 확인된 fixture를 의도적으로 고른 회귀 검증이므로 모집단 성능 추정에 쓰지 않는다.
 > 전체 E0/E1/E2/E3 평가 중 Prompt 가드레일 판정만 유효하며, 하위 LLM의 intent-recognition·semantic fidelity와 실제 공격 성공률 평가는 `INCOMPLETE` 상태다.
-> 평가 규격은 [EVALUATION_SPEC](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/EVALUATION_SPEC.md), 실행 절차는 [정규화 평가 문서](https://github.com/jinseok3639/k-safeguard/blob/main/experiments/benchmark/NORMALIZER_EVALUATION.md)를 따른다.
+> 평가 규격은 [EVALUATION_SPEC](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/EVALUATION_SPEC.md), 실행 절차는 [정규화 평가 문서](https://github.com/jinseok3639/k-safeguard/blob/f6ee374/experiments/benchmark/NORMALIZER_EVALUATION.md)를 따른다.
 
 ## 스코프와 한계
 
-**다루는 것** — 한국어 표기 난독화(자모분해·초성체·된소리·연음·종성크래밍·띄어쓰기 파괴·투명문자)로 인한 한국어 가드레일 회피, 그리고 그 정규화. 이 중 현재 `hf_repo/ko_obfuscator.py`가 실제로 만드는 것은 자모분해·초성체·된소리·띄어쓰기 파괴·투명문자 5종이다. 연음·종성크래밍은 문제 스코프에는 포함되지만 생성기 구현은 아직 없다.
+**다루는 것** — 한국어 표기 난독화(자모분해·초성체·된소리·연음·종성크래밍·띄어쓰기 파괴·투명문자)로 인한 한국어 가드레일 회피, 그리고 그 정규화. 이 중 현재 [실험 저장소](https://github.com/jinseok3639/k-safeguard-ML-experiment)의 `hf_repo/ko_obfuscator.py`가 실제로 만드는 것은 자모분해·초성체·된소리·띄어쓰기 파괴·투명문자 5종이다. 연음·종성크래밍은 문제 스코프에는 포함되지만 생성기 구현은 아직 없다.
 
 **다루지 않는 것**
 
@@ -257,10 +257,9 @@ variant 15개도 모두 복원했다. E2는 clean E0 판정으로 돌아가므�
 | 산출물 | 위치 | 설명 |
 |---|---|---|
 | 실행 가능한 예제 | [`examples/`](https://github.com/jinseok3639/k-safeguard/blob/main/examples/README.md) | 정규화·가드레일 연결·비동기/배치·오류 정책·provider 확장까지 6단계 샘플 코드 |
-| 난독화 생성 라이브러리 | [`hf_repo/ko_obfuscator.py`](https://github.com/jinseok3639/k-safeguard/blob/main/hf_repo/ko_obfuscator.py) | 강도별 변형 생성기. 미들웨어와 독립적으로 쓸 수 있는 레드팀 도구 |
+| 난독화 생성 라이브러리 | [`hf_repo/ko_obfuscator.py`](https://github.com/jinseok3639/k-safeguard-ML-experiment/blob/master/hf_repo/ko_obfuscator.py) | 강도별 변형 생성기. 실험 저장소에 있으며 아직 배포하지 않는다 |
 | 벤치마크 데이터셋 | [HF: KoreanGuardrail](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) | 시드 505개 → 파생 5,555행. 데이터 CC-BY-4.0 |
-| 평가 스크립트 | [`experiments/benchmark/`](https://github.com/jinseok3639/k-safeguard/blob/main/experiments/benchmark/README.md) | 가드레일 회피율·NRR·ΔFPR 측정 러너와 결과 기록 |
-| 로컬 실험 환경 | [`experiments/guardrail/`](https://github.com/jinseok3639/k-safeguard/blob/main/experiments/guardrail/README.md) | 고정 revision 모델 3종, CUDA 격리 환경, 오프라인 smoke test |
+| 실험 | [k-safeguard-ML-experiment](https://github.com/jinseok3639/k-safeguard-ML-experiment) | 복원기·가드레일 실험 러너와 결과 기록 |
 
 ## 문서
 
@@ -271,7 +270,6 @@ variant 15개도 모두 복원했다. E2는 clean E0 판정으로 돌아가므�
 | [PACKAGING](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/PACKAGING.md) | 패키지 구조, provider 경계, 배포 검증 |
 | [EVALUATION_SPEC](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/EVALUATION_SPEC.md) | 지표 정의와 보고 규칙 |
 | [KOREAN_OBFUSCATION_RESEARCH](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/KOREAN_OBFUSCATION_RESEARCH.md) | 한글 난독화 기법 taxonomy와 선행 조사 |
-| [dev_note/README](https://github.com/jinseok3639/k-safeguard/blob/main/dev_note/README.md) | 프로젝트 배경, 진행 상황, 설계 근거 전문 |
 
 ## 개발
 

@@ -1,9 +1,7 @@
 import unicodedata
 import unittest
 
-from hf_repo.ko_obfuscator import BASE, CHO, JONG, JUNG
 from k_safeguard.normalization import (
-    COMPAT_CHO,
     COMPAT_JONG,
     COMPAT_JUNG,
     HANGUL_BASE,
@@ -13,17 +11,6 @@ from k_safeguard.normalization import (
 
 
 class NormalizeKoreanTest(unittest.TestCase):
-    def test_jamo_tables_match_benchmark_generator(self) -> None:
-        # Given
-        # COMPAT_CHO/COMPAT_JUNG/COMPAT_JONG/HANGUL_BASE(k_safeguard)와
-        # CHO/JUNG/JONG/BASE(hf_repo)는 import 시점에 이미 정의돼 있다.
-        # When / Then
-        # 별도 동작 없이 두 모듈의 상수 정의가 일치하는지 바로 검증한다.
-        self.assertEqual(COMPAT_CHO, tuple(CHO))
-        self.assertEqual(COMPAT_JUNG, tuple(JUNG))
-        self.assertEqual(COMPAT_JONG, tuple(JONG))
-        self.assertEqual(HANGUL_BASE, BASE)
-
     def test_clean_hangul_is_unchanged(self) -> None:
         # Given
         text = "안녕하세요. Guardrail 테스트입니다."

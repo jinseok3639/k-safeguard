@@ -146,7 +146,8 @@ src/k_safeguard/
     └── wordfreq.py
 ```
 
-`experiments/`의 Kanana·Qwen adapter와 모델 requirements는 wheel에 포함되지 않는다.
+Kanana·Qwen adapter와 모델 requirements 같은 실험 코드는 wheel에 포함되지 않는다. 실험은
+[k-safeguard-ML-experiment](https://github.com/jinseok3639/k-safeguard-ML-experiment)에서 관리한다.
 
 ## 로컬 빌드 검증
 

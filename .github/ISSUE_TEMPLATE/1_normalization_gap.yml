@@ -92,7 +92,7 @@ body:
       label: 벤치마크 확인
       description: |
         **중요**: 난독화 생성기가 이 형태를 만들지 못하면 정규화기를 고쳐도 벤치마크가 검증해 주지 못합니다.
-        `hf_repo/ko_obfuscator.py`의 `TRANSFORMS`를 확인해 주세요.
+        [k-safeguard-ML-experiment의 `hf_repo/ko_obfuscator.py`](https://github.com/jinseok3639/k-safeguard-ML-experiment/blob/master/hf_repo/ko_obfuscator.py)에서 `TRANSFORMS`를 확인해 주세요.
       options:
         - "생성한다 — 정규화기 수정만으로 검증 가능"
         - "생성하지 못한다 — 생성기 수정도 함께 필요하다"

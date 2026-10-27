@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from k_safeguard import Gateway
 from k_safeguard.providers.tensify import (
+    DEFAULT_TENSIFY_DIVERSIFY_FROM,
     TENSIFY_CANDIDATE_VERSION,
     TensifyInverseProvider,
 )
@@ -86,6 +87,19 @@ class TensifyInverseProviderTest(unittest.TestCase):
 
         self.assertEqual(len(proposals), 9)
         self.assertEqual(mocked_combinations.call_count, 8)
+
+    def test_default_long_input_keeps_recorded_replacement_order(self) -> None:
+        # 0.3.0 순서 정책을 채택할 때 기록한 17음절 입력의 교체 수 순서다.
+        # 순서가 바뀌면 후보 생성기 버전도 함께 올려야 한다.
+        proposals = list(TensifyInverseProvider().generate("까" * 17))
+        replacement_counts = [
+            int(dict(proposal.metadata)["replacement_count"])
+            for proposal in proposals
+        ]
+
+        self.assertEqual(TENSIFY_CANDIDATE_VERSION, "0.3.0")
+        self.assertEqual(DEFAULT_TENSIFY_DIVERSIFY_FROM, 17)
+        self.assertEqual(replacement_counts, [17, 1, 16, 2, 15, 3, 14, 4, 13])
 
     def test_diverse_branch_stops_after_exhausting_all_combinations(self) -> None:
         provider = TensifyInverseProvider(max_candidates=9, diversify_from=2)
