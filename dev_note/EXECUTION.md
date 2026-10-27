@@ -20,7 +20,7 @@ if result.block:
     raise PermissionError("guardrail blocked")
 ```
 
-기본값은 첫 block에서 평가를 중단한다. 초성 provider처럼 여러 view를 사용하는 경우 뒤쪽 모델 호출을
+기본값은 첫 block에서 평가를 중단한다. provider가 여러 view를 추가하는 경우 뒤쪽 모델 호출을
 생략할 수 있다. 모든 view의 관측 결과가 필요하면 `stop_on_block=False`를 지정한다.
 
 ## 비동기 classifier

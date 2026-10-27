@@ -47,7 +47,6 @@ body:
         - "무손실 정규화 코어 (normalization.py)"
         - "Gateway / view 조립 (gateway.py)"
         - "판정 실행 (execution.py)"
-        - "초성 후보 생성 (chosung.py)"
         - "opt-in provider (providers/)"
         - "패키징 / CI"
         - "모르겠음"

@@ -32,7 +32,7 @@ body:
       options:
         - "무손실 정규화 코어 (normalization.py)"
         - "Gateway / 판정 실행"
-        - "opt-in provider (providers/, chosung.py)"
+        - "opt-in provider (providers/)"
         - "문서"
         - "패키징 / CI"
     validations:

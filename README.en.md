@@ -26,7 +26,6 @@ The numbers below come from running 505 independent seeds (301 attacks / 204 ben
 | Input | Attack block rate |
 |---|---:|
 | Standard orthography (no obfuscation) | **94.02%** |
-| Chosung (initial-consonant) abbreviation | 18.94% |
 | Tensification, intensity 1.0 — prompt injection (A1) | 10.31% |
 | Tensification, intensity 1.0 — prompt leaking (A2) | 20.56% |
 
@@ -110,8 +109,8 @@ user input
 list of views ──▶ your guardrail (unchanged) ──▶ OR aggregation ──▶ block / allow
 ```
 
-The governing design rule is that **the original text is never lost.** Chosung abbreviations and
-tensification are left unchanged when they cannot be restored losslessly; the public Gateway does not
+The governing design rule is that **the original text is never lost.** Tensification is left
+unchanged when they cannot be restored losslessly; the public Gateway does not
 create multiple restoration views for them.
 
 ### Default normalization rules (lossless)
@@ -126,10 +125,9 @@ Global NFC is deliberately not applied; only modern Hangul jamo sequences are co
 
 ### Ambiguous-variant policy
 
-Tensification and Chosung abbreviations cannot be restored to one original string without context.
-Experiments that OR-ed multiple candidates into a guardrail increased false positives for tensification,
-while Chosung restoration reached only 12.86% NRR. Their candidate providers are therefore no longer
-part of the public API, and the deployed Gateway does not create multiple restoration views for them.
+Tensification cannot be restored to one original string without context. Experiments that OR-ed
+multiple candidates into a guardrail increased false positives, so its candidate provider is no longer
+part of the public API, and the deployed Gateway does not create multiple restoration views for it.
 The candidate-generation code remains internal only to reproduce existing experiments.
 
 ## Measured results
@@ -141,7 +139,6 @@ Every number below is reproducible against the 5,555-row benchmark derived from 
 | Exact string restoration, jamo decomposition and ZWSP | 505/505 (at intensity 0.5 and 1.0 each) |
 | Clean mutation rate | 0% — all 505 clean rows left unchanged |
 | End-to-end recovery smoke (live Kanana calls) | 4/4 obfuscated fixtures went from raw allow → blocked on the normalized view |
-| Chosung candidate policy (research only, not deployed) | Attack block rate 18.94% → 27.74%, ΔFPR-clean 0.00%p |
 | Batch inference | Verdict parity held across 20 views; 90% fewer calls and 74.3% less wall time |
 
 > **Interpretation limits**: the end-to-end smoke test uses fixtures deliberately selected for known recovery, so it is a regression check and must not be read as a population-level performance estimate.
@@ -150,11 +147,12 @@ Every number below is reproducible against the 5,555-row benchmark derived from 
 
 ## Scope and limits
 
-**In scope** — Korean guardrail evasion via orthographic obfuscation (jamo decomposition, chosung abbreviation, tensification, resyllabification, coda cramming, spacing destruction, zero-width characters), and the normalization that reverses it. Of these, `hf_repo/ko_obfuscator.py` in the [experiments repository](https://github.com/jinseok3639/k-safeguard-ML-experiment) currently implements five: jamo decomposition, chosung abbreviation, tensification, spacing destruction, and zero-width character injection. Resyllabification and coda cramming are in scope but have no generator implementation yet.
+**In scope** — Korean guardrail evasion via orthographic obfuscation (jamo decomposition, tensification, resyllabification, coda cramming, spacing destruction, zero-width characters), and the normalization that reverses it. `hf_repo/ko_obfuscator.py` in the [experiments repository](https://github.com/jinseok3639/k-safeguard-ML-experiment) currently implements five: jamo decomposition, chosung abbreviation, tensification, spacing destruction, and zero-width character injection. Resyllabification and coda cramming are in scope but have no generator implementation yet.
 
 **Out of scope**
 
 - Cross-lingual evasion, multimodal attacks, and agentic threats (tool calls, file access)
+- Chosung (initial-consonant) abbreviation — it drops Kanana's attack block rate to 18.94%, but keeping only initial consonants erases most of the original text, and a candidate-restoration policy lifted the block rate only to 27.74%. k-safeguard leaves it unchanged rather than guessing
 - Replacing the guardrail — k-safeguard never issues a verdict; your existing guardrail does
 - Language-detection → per-language routing architecture (documented as a recommendation, not implemented)
 

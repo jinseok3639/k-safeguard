@@ -3,8 +3,8 @@
 완성형 음절을 초성·중성·종성 세 슬롯으로 나누고, 기법별로 "복원 후보가 될 수 있는
 위치"를 고르고, 그 위치 주변의 문자 창을 모델 입력 배열로 인코딩한다.
 
-`chosung.py`와 같은 위치에 두는 이유도 같다 — provider와 무관한 순수 계산이라
-따로 테스트할 수 있어야 하고, 표준 라이브러리만 쓰므로 extra 없이도 import된다.
+`providers/` 밖에 두는 이유는 provider와 무관한 순수 계산이라 따로 테스트할 수
+있어야 하고, 표준 라이브러리만 쓰므로 extra 없이도 import된다.
 실제 순전파(onnxruntime)만 `providers/ml_restore.py`에서 다룬다.
 
 자모 상수는 :mod:`k_safeguard.normalization`의 것을 그대로 재사용한다. 값을 복제하면
