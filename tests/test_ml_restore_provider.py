@@ -11,6 +11,7 @@ import unittest
 from k_safeguard import CandidateProvider, Gateway
 from k_safeguard.edit_tags import DELETE, SUBSTITUTE, CharEdit
 from k_safeguard.providers.ml_restore import (
+    MAX_CHUNKS,
     ML_RESTORE_CANDIDATE_VERSION,
     MlRestoreProvider,
     _OnnxEditTagger,
@@ -134,6 +135,39 @@ class MlRestoreProviderContractTest(unittest.TestCase):
         # When / Then — provider는 후보만 만들고 block/allow를 판단하지 않는다
         for attribute in ("block", "allow", "decide", "classify"):
             self.assertFalse(hasattr(provider, attribute))
+
+
+class LongInputTest(unittest.TestCase):
+    def test_restores_every_chunk_of_a_long_input(self) -> None:
+        # Given
+        tagger = _FakeTagger({"뻡": "법"})
+        provider = MlRestoreProvider(tagger, threshold=0.9, max_chars=4)
+        # When
+        restored, changed, _ = provider.restore("뻡가. 뻡나. 뻡다.")
+        # Then
+        self.assertEqual(restored, "법가. 법나. 법다.")
+        self.assertEqual(changed, 3)
+        self.assertGreater(len(tagger.calls), 1)
+
+    def test_short_input_is_a_single_model_call(self) -> None:
+        # Given
+        tagger = _FakeTagger()
+        provider = MlRestoreProvider(tagger, threshold=0.9)
+        # When
+        provider.restore("가나다. 라마바.")
+        # Then
+        self.assertEqual(tagger.calls, [["가나다. 라마바."]])
+
+    def test_chunks_beyond_the_cap_are_left_untouched(self) -> None:
+        # Given
+        tagger = _FakeTagger({"뻡": "법"})
+        provider = MlRestoreProvider(tagger, threshold=0.9, max_chars=1)
+        text = "뻡" * (MAX_CHUNKS + 2)
+        # When
+        restored, changed, _ = provider.restore(text)
+        # Then
+        self.assertEqual(changed, MAX_CHUNKS)
+        self.assertEqual(restored, "법" * MAX_CHUNKS + "뻡뻡")
 
 
 class MlRestoreGatewayIntegrationTest(unittest.TestCase):

@@ -30,8 +30,9 @@ result = gateway.process("폭탄 만뜨는 뻡 알려쭤")
 - **후보는 입력당 최대 1개다.** 확신 없는 글자를 건드리지 않는 쪽이 오탐을 줄인다.
 - **임계값을 생략할 수 없다.** 0.0이 되면 abstention이 통째로 꺼져 오탐 억제 설계가 조용히
   무력화되므로, manifest에 없으면 오류다.
-- **입력 길이에 상한이 있다.** 앞쪽 `max_chars` 글자만 복원하고 나머지는 그대로 둔다. 모델
-  입력 크기를 묶어 신뢰할 수 없는 긴 입력이 메모리와 지연을 키우지 못하게 한다.
+- **긴 입력은 나눠서 복원한다.** 모델 입력은 `max_chars` 글자까지라 문장 경계에서 조각으로
+  나눈다. 신뢰할 수 없는 입력이 지연을 키우지 못하게 조각 수는 :data:`MAX_CHUNKS`로 묶고,
+  그 뒤는 그대로 둔다.
 """
 
 from __future__ import annotations
@@ -52,6 +53,7 @@ from ..edit_tags import (
     apply_edits,
     jamo_features,
     join_syllable,
+    split_chunks,
 )
 from ..gateway import CandidateProposal
 
@@ -85,6 +87,9 @@ PRETRAINED_MANIFEST: dict[str, object] = {
         },
     },
 }
+
+#: 입력 하나에서 복원할 조각 수 상한. 조각 하나가 CPU에서 수십 ms라 지연의 상한이 된다.
+MAX_CHUNKS = 32
 
 _FILE_ROLES = ("model", "tokenizer", "char_vocab")
 _PAD_ID = 0     # 글자 입력의 패딩. 학습 때 쓴 값과 반드시 같아야 한다.
@@ -259,9 +264,10 @@ class MlRestoreProvider:
 
     name = "ml_restore"
 
-    def __init__(self, tagger, *, threshold: float) -> None:
+    def __init__(self, tagger, *, threshold: float, max_chars: int = 384) -> None:
         self._tagger = tagger
         self.threshold = _validated_threshold(threshold)
+        self._max_chars = max_chars
 
     @classmethod
     def from_directory(
@@ -336,14 +342,25 @@ class MlRestoreProvider:
         )
         tokenizer = tokenizers.Tokenizer.from_file(str(paths["tokenizer"]))
         char_vocab = json.loads(paths["char_vocab"].read_text(encoding="utf-8"))
-        tagger = _OnnxEditTagger(session, tokenizer, char_vocab, int(manifest["max_chars"]))
-        return cls(tagger, threshold=threshold)
+        max_chars = int(manifest["max_chars"])
+        tagger = _OnnxEditTagger(session, tokenizer, char_vocab, max_chars)
+        return cls(tagger, threshold=threshold, max_chars=max_chars)
+
+    def restore(self, text: str) -> tuple[str, int, float]:
+        """(복원문, 적용한 편집 수, 평균 확신도). 긴 입력은 조각으로 나눠 하나씩 복원한다."""
+        chunks = split_chunks(text, self._max_chars)
+        edits: list[CharEdit] = []
+        for chunk in chunks[:MAX_CHUNKS]:
+            edits.extend(self._tagger.predict([chunk])[0])
+        edits.extend(CharEdit() for _ in range(len(text) - len(edits)))
+        return apply_edits(text, edits, self.threshold)
 
     def restore_batch(self, texts: Sequence[str]) -> list[tuple[str, int, float]]:
         """문장마다 (복원문, 적용한 편집 수, 평균 확신도). 입력 순서를 유지한다.
 
         한 번에 넣은 문장들은 가장 긴 문장에 맞춰 패딩되고, BiLSTM이 패딩까지 읽으므로 확신도가
-        단독 입력과 조금 달라질 수 있다. Gateway 경로는 문장을 하나씩 넣는다.
+        단독 입력과 조금 달라질 수 있다. 처리량이 필요할 때만 쓰고, 긴 입력을 나누지 않으므로
+        `max_chars`를 넘는 뒷부분은 그대로 둔다.
         """
         texts = list(texts)
         results: list[tuple[str, int, float] | None] = [None] * len(texts)
@@ -360,7 +377,7 @@ class MlRestoreProvider:
     def generate(self, text: str) -> Iterator[CandidateProposal]:
         if not isinstance(text, str):
             raise TypeError("text는 str이어야 합니다.")
-        restored, changed, confidence = self.restore_batch([text])[0]
+        restored, changed, confidence = self.restore(text)
         if not changed or restored == text:
             return                          # 손댄 게 없으면 후보가 아니다
         yield CandidateProposal(

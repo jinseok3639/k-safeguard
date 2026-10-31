@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Sequence
 
@@ -28,6 +29,7 @@ _SYLLABLES_PER_INITIAL = _JUNG_COUNT * _JONG_COUNT
 _CHO_INDEX = {char: index for index, char in enumerate(COMPAT_CHO)}
 _JUNG_INDEX = {char: index for index, char in enumerate(COMPAT_JUNG)}
 _JONG_INDEX = {char: index for index, char in enumerate(COMPAT_JONG) if char}
+_SENTENCE_END = re.compile(r"[^.!?。\n]*(?:[.!?。\n]+\s*|$)")
 
 
 def is_syllable(char: str) -> bool:
@@ -61,6 +63,32 @@ def jamo_features(char: str) -> tuple[int, int, int]:
     if char in _JONG_INDEX:
         return 0, 0, _JONG_INDEX[char] + 1
     return 0, 0, 0
+
+
+def split_chunks(text: str, max_chars: int) -> list[str]:
+    """`text`를 `max_chars` 이하 조각으로 나눈다. 이어 붙이면 항상 원문과 같다.
+
+    문장 끝에서 나누고, 한 문장이 너무 길면 공백에서, 공백도 없으면 글자 수로 자른다.
+    """
+    if max_chars < 1:
+        raise ValueError("max_chars는 1 이상이어야 합니다.")
+    chunks: list[str] = []
+    current = ""
+    for sentence in _SENTENCE_END.findall(text):
+        if len(current) + len(sentence) <= max_chars:
+            current += sentence
+            continue
+        if current:
+            chunks.append(current)
+        current = ""
+        while len(sentence) > max_chars:
+            cut = sentence.rfind(" ", 1, max_chars) + 1 or max_chars
+            chunks.append(sentence[:cut])
+            sentence = sentence[cut:]
+        current = sentence
+    if current:
+        chunks.append(current)
+    return chunks
 
 
 @dataclass(frozen=True)
@@ -111,4 +139,5 @@ __all__ = [
     "is_syllable",
     "jamo_features",
     "join_syllable",
+    "split_chunks",
 ]

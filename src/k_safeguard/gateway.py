@@ -10,12 +10,12 @@ from .normalization import NormalizationResult, normalize_korean
 
 if TYPE_CHECKING:
     from .execution import (
-        AsyncBatchGuardrailClassifier,
-        AsyncGuardrailClassifier,
-        BatchGuardrailClassifier,
+        AsyncBatchTextClassifier,
+        AsyncTextClassifier,
+        BatchTextClassifier,
         ClassifierErrorMode,
         GatewayEvaluation,
-        GuardrailClassifier,
+        TextClassifier,
     )
 
 
@@ -45,7 +45,7 @@ class CandidateProvider(Protocol):
 
 @dataclass(frozen=True)
 class TextView:
-    """하위 가드레일에 전달할 수 있는 원문·정규화문·후보문 view."""
+    """하위 시스템에 전달할 수 있는 원문·정규화문·후보문 view."""
 
     text: str
     kind: str
@@ -156,10 +156,27 @@ class Gateway:
             truncated=truncated,
         )
 
+    def normalize(self, text: str) -> str:
+        """정규화된 문장 하나를 돌려준다.
+
+        확신도를 낸 provider 후보 중 가장 높은 것을 고르고, 없으면 무손실 정규화 결과를 준다.
+        확신도가 없는 후보(연음 나열 등)는 어느 것이 맞는지 알 수 없어 고르지 않는다. 후보를
+        직접 비교하거나 원문까지 함께 검사하려면 :meth:`process`를 쓴다.
+        """
+        result = self.process(text)
+        candidates = [
+            view
+            for view in result.views
+            if view.kind == "candidate" and view.confidence is not None
+        ]
+        if not candidates:
+            return result.normalized
+        return max(candidates, key=lambda view: view.confidence).text
+
     def evaluate(
         self,
         text: str,
-        classifier: GuardrailClassifier,
+        classifier: TextClassifier,
         *,
         error_mode: ClassifierErrorMode = "raise",
         stop_on_block: bool = True,
@@ -177,7 +194,7 @@ class Gateway:
     async def evaluate_async(
         self,
         text: str,
-        classifier: AsyncGuardrailClassifier,
+        classifier: AsyncTextClassifier,
         *,
         error_mode: ClassifierErrorMode = "raise",
         stop_on_block: bool = True,
@@ -195,7 +212,7 @@ class Gateway:
     def evaluate_batch(
         self,
         text: str,
-        classifier: BatchGuardrailClassifier,
+        classifier: BatchTextClassifier,
         *,
         error_mode: ClassifierErrorMode = "raise",
         stop_on_block: bool = True,
@@ -215,7 +232,7 @@ class Gateway:
     async def evaluate_batch_async(
         self,
         text: str,
-        classifier: AsyncBatchGuardrailClassifier,
+        classifier: AsyncBatchTextClassifier,
         *,
         error_mode: ClassifierErrorMode = "raise",
         stop_on_block: bool = True,

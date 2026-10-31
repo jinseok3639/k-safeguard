@@ -11,6 +11,7 @@ from k_safeguard.edit_tags import (
     is_syllable,
     jamo_features,
     join_syllable,
+    split_chunks,
 )
 from k_safeguard.normalization import COMPAT_CHO, COMPAT_JONG, COMPAT_JUNG
 
@@ -63,6 +64,44 @@ class JoinSyllableTest(unittest.TestCase):
         self.assertTrue(is_syllable("힣"))
         self.assertFalse(is_syllable("ㄱ"))
         self.assertFalse(is_syllable("가나"))
+
+
+class SplitChunksTest(unittest.TestCase):
+    def test_short_text_stays_whole(self) -> None:
+        # Given / When / Then
+        self.assertEqual(split_chunks("가나. 다라.", 100), ["가나. 다라."])
+
+    def test_empty_text_has_no_chunks(self) -> None:
+        # Given / When / Then
+        self.assertEqual(split_chunks("", 10), [])
+
+    def test_prefers_sentence_boundaries(self) -> None:
+        # Given / When / Then
+        self.assertEqual(split_chunks("가나다. 라마바. 사아", 6), ["가나다. ", "라마바. ", "사아"])
+
+    def test_falls_back_to_spaces(self) -> None:
+        # Given / When / Then
+        self.assertEqual(split_chunks("가나 다라 마바", 4), ["가나 ", "다라 ", "마바"])
+
+    def test_hard_cuts_without_any_boundary(self) -> None:
+        # Given / When / Then
+        self.assertEqual(split_chunks("가나다라마", 2), ["가나", "다라", "마"])
+
+    def test_joining_restores_the_input_and_respects_the_limit(self) -> None:
+        # Given
+        texts = ("가나다. 라마!\n\n바사 아자차카타파하 ", "   ", "...!!!", "가" * 50, " 가 나 ")
+        for text in texts:
+            for limit in (1, 2, 3, 7):
+                # When
+                chunks = split_chunks(text, limit)
+                # Then
+                self.assertEqual("".join(chunks), text)
+                self.assertTrue(all(0 < len(chunk) <= limit for chunk in chunks))
+
+    def test_rejects_non_positive_limit(self) -> None:
+        # Given / When / Then
+        with self.assertRaises(ValueError):
+            split_chunks("가", 0)
 
 
 class ApplyEditsTest(unittest.TestCase):

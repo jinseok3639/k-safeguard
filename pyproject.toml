@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "k-safeguard"
-version = "0.2.0"
-description = "Lightweight Korean text-normalization gateway for existing LLM guardrails"
+version = "1.0.0"
+description = "Normalizer that turns obfuscated Korean back into the original text"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
@@ -19,6 +19,7 @@ keywords = [
   "llm",
   "guardrail",
   "normalization",
+  "obfuscation",
   "prompt-injection",
 ]
 classifiers = [

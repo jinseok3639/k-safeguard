@@ -1,4 +1,4 @@
-"""Gateway view를 외부 가드레일 classifier로 판정하는 무의존 실행 레이어."""
+"""Gateway view를 외부 classifier로 판정하는 무의존 실행 레이어."""
 
 from __future__ import annotations
 
@@ -35,11 +35,11 @@ class ClassifierResult:
 
 
 ClassifierOutput: TypeAlias = bool | ClassifierResult
-GuardrailClassifier: TypeAlias = Callable[[str], ClassifierOutput]
-AsyncGuardrailClassifier: TypeAlias = Callable[[str], Awaitable[ClassifierOutput]]
+TextClassifier: TypeAlias = Callable[[str], ClassifierOutput]
+AsyncTextClassifier: TypeAlias = Callable[[str], Awaitable[ClassifierOutput]]
 BatchClassifierOutput: TypeAlias = Iterable[ClassifierOutput]
-BatchGuardrailClassifier: TypeAlias = Callable[[tuple[str, ...]], BatchClassifierOutput]
-AsyncBatchGuardrailClassifier: TypeAlias = Callable[
+BatchTextClassifier: TypeAlias = Callable[[tuple[str, ...]], BatchClassifierOutput]
+AsyncBatchTextClassifier: TypeAlias = Callable[
     [tuple[str, ...]], Awaitable[BatchClassifierOutput]
 ]
 
@@ -264,7 +264,7 @@ def _record_batch(
 
 def evaluate_gateway(
     gateway_result: GatewayResult,
-    classifier: GuardrailClassifier,
+    classifier: TextClassifier,
     *,
     error_mode: ClassifierErrorMode = "raise",
     stop_on_block: bool = True,
@@ -294,7 +294,7 @@ def evaluate_gateway(
 
 async def evaluate_gateway_async(
     gateway_result: GatewayResult,
-    classifier: AsyncGuardrailClassifier,
+    classifier: AsyncTextClassifier,
     *,
     error_mode: ClassifierErrorMode = "raise",
     stop_on_block: bool = True,
@@ -324,7 +324,7 @@ async def evaluate_gateway_async(
 
 def evaluate_gateway_batch(
     gateway_result: GatewayResult,
-    classifier: BatchGuardrailClassifier,
+    classifier: BatchTextClassifier,
     *,
     error_mode: ClassifierErrorMode = "raise",
     stop_on_block: bool = True,
@@ -353,7 +353,7 @@ def evaluate_gateway_batch(
 
 async def evaluate_gateway_batch_async(
     gateway_result: GatewayResult,
-    classifier: AsyncBatchGuardrailClassifier,
+    classifier: AsyncBatchTextClassifier,
     *,
     error_mode: ClassifierErrorMode = "raise",
     stop_on_block: bool = True,
@@ -382,18 +382,18 @@ async def evaluate_gateway_batch_async(
 
 
 __all__ = [
-    "AsyncBatchGuardrailClassifier",
-    "AsyncGuardrailClassifier",
+    "AsyncBatchTextClassifier",
+    "AsyncTextClassifier",
     "BatchClassifierOutput",
     "BatchClassifierOutputError",
-    "BatchGuardrailClassifier",
+    "BatchTextClassifier",
     "ClassifierErrorMode",
     "ClassifierExecutionError",
     "ClassifierOutput",
     "ClassifierResult",
     "ClassifierCallTrace",
     "GatewayEvaluation",
-    "GuardrailClassifier",
+    "TextClassifier",
     "ViewEvaluation",
     "evaluate_gateway",
     "evaluate_gateway_async",
