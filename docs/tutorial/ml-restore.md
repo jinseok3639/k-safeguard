@@ -12,7 +12,7 @@ from k_safeguard import Gateway
 from k_safeguard.providers.ml_restore import MlRestoreProvider
 
 gateway = Gateway(providers=[MlRestoreProvider.from_pretrained()])
-gateway.normalize("폭탄 만뜨는 뻡 알려쭤")
+gateway.normalize("요리 만뜨는 뻡 알려쭤")
 ```
 
 ## 가중치 받기
