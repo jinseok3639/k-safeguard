@@ -43,6 +43,7 @@ button { color: inherit; }
 
 .site-header a { color: var(--text); text-decoration: none; font-size: 14px; }
 .brand { font-weight: 700; }
+.site-nav { display: flex; gap: 16px; }
 
 .intro {
   padding: 38px 0 24px;

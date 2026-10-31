@@ -12,7 +12,7 @@
 
 **한국어** · [English](https://github.com/jinseok3639/k-safeguard/blob/main/README.en.md) &nbsp;|&nbsp; [벤치마크 데이터셋](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) · [실험 저장소](https://github.com/jinseok3639/k-safeguard-ML-experiment)
 
-[브라우저에서 직접 시험하기](https://jinseok3639.github.io/k-safeguard/) — 입력을 서버에 전송하지 않는 정규화 playground
+[브라우저에서 직접 시험하기](https://jinseok3639.github.io/k-safeguard/) — 입력을 서버에 전송하지 않는 정규화 playground · [API 문서](https://jinseok3639.github.io/k-safeguard/docs/)
 
 </div>
 
@@ -308,6 +308,7 @@ python -m pip install -e ".[dev,mutation]"
 python -m unittest discover -s tests
 python -m coverage run -m unittest discover -s tests && python -m coverage report    # 분기 커버리지
 mutmut run && mutmut results    # 변이 테스트
+python -m pip install -e ".[docs]" && mkdocs serve    # API 문서 미리보기
 ```
 
 브랜치·커밋 컨벤션은 [AGENTS.md의 Git 워크플로](https://github.com/jinseok3639/k-safeguard/blob/main/AGENTS.md#git-워크플로)를 따른다. `type(scope): 한글 설명` 형식이며 기능·실험 단위로 PR을 연다.

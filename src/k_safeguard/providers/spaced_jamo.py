@@ -21,6 +21,14 @@ class SpacedJamoProvider:
     공백 삭제는 의미를 바꿀 수 있으므로 기본 Gateway에는 연결되지 않는다. 한
     자모열이 완성형 음절로 전부 조합될 때만 후보를 만들며, 원문 view는 Gateway가
     별도로 보존한다.
+
+    Args:
+        min_jamo: 복원 대상으로 볼 구간의 최소 자모 수.
+        max_jamo_per_span: 구간 하나의 최대 자모 수. 넘으면 건너뛴다.
+        max_spans: 입력 하나에서 복원할 최대 구간 수.
+
+    Raises:
+        ValueError: 인자 범위가 맞지 않을 때.
     """
 
     name = "spaced_jamo"
@@ -48,6 +56,7 @@ class SpacedJamoProvider:
         )
 
     def generate(self, text: str) -> Iterator[CandidateProposal]:
+        """복원한 구간이 있으면 후보 하나를 낸다. `confidence`는 항상 `None`이다."""
         if not isinstance(text, str):
             raise TypeError("text는 str이어야 합니다.")
 

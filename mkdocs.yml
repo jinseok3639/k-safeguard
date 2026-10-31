@@ -1,0 +1,93 @@
+site_name: k-safeguard
+site_description: 난독화된 한국어를 원래 문장으로 되돌리는 정규화기
+site_url: https://jinseok3639.github.io/k-safeguard/docs/
+repo_url: https://github.com/jinseok3639/k-safeguard
+repo_name: jinseok3639/k-safeguard
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: ko
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: 어두운 테마로 전환
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: 밝은 테마로 전환
+  features:
+    - content.code.copy
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+
+nav:
+  - 홈: index.md
+  - 튜토리얼:
+      - 문장 정규화: tutorial/normalize.md
+      - 후보와 변경 내역 보기: tutorial/process.md
+      - 가드레일 연결: tutorial/guardrail.md
+      - 오류 정책: tutorial/error-policy.md
+      - 비동기와 배치: tutorial/async-batch.md
+      - 규칙 provider: tutorial/rule-providers.md
+      - 모델로 복원: tutorial/ml-restore.md
+      - provider 직접 만들기: tutorial/custom-provider.md
+      - 난독화 문장 만들기: tutorial/obfuscate.md
+  - 가이드:
+      - API 선택: guide/choosing-api.md
+      - 동작과 주의점: guide/behavior-notes.md
+  - API 레퍼런스:
+      - reference/index.md
+      - 정규화: reference/normalization.md
+      - Gateway: reference/gateway.md
+      - 판정 실행: reference/execution.md
+      - Provider: reference/providers.md
+      - 난독화 생성기: reference/obfuscate.md
+      - 편집 태거 도구: reference/edit-tags.md
+  - 데모: https://jinseok3639.github.io/k-safeguard/
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search:
+      lang: en
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            docstring_section_style: table
+            filters: ["!^_"]
+            heading_level: 2
+            members_order: source
+            merge_init_into_class: true
+            separate_signature: true
+            show_root_full_path: false
+            show_root_heading: true
+            show_signature_annotations: true
+            show_source: false
+            show_symbol_type_heading: true
+            signature_crossrefs: true

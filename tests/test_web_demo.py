@@ -93,6 +93,7 @@ class WebDemoBuildTest(unittest.TestCase):
                 self.assertIn(f'#{element_id}', javascript)
         self.assertIn('<script src="./app.js" defer></script>', html)
         self.assertIn('new Worker("./worker.js")', javascript)
+        self.assertIn('<a href="./docs/">', html)
 
     def test_static_ui_examples_use_real_special_characters(self) -> None:
         root = Path(__file__).resolve().parents[1] / "web"

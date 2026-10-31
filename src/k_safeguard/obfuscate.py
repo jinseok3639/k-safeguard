@@ -654,6 +654,7 @@ TRANSFORMS = {
     "lookalike_foreign": lookalike_foreign,
     "lookalike_hangul": lookalike_hangul,
 }
+"""기법 이름 -> 변환 함수. 지원 기법 목록의 원본이다."""
 
 # 'phonetic' = 음운·철자를 바꾸는 변형, 'visual' = 글자 모양이나 배치를 바꾸는 변형.
 FAMILY = {
@@ -682,6 +683,7 @@ FAMILY = {
     "lookalike_foreign": "visual",
     "lookalike_hangul": "visual",
 }
+"""기법 이름 -> 계열. `phonetic`은 음운·철자, `visual`은 글자 모양이나 배치를 바꾼다."""
 
 # 입력과 출력의 문자 수가 항상 같은 변환.
 LENGTH_PRESERVING = frozenset(
@@ -692,6 +694,7 @@ LENGTH_PRESERVING = frozenset(
         "tensify_rule", "semivowel_insert", "initial_insert",
     }
 )
+"""입력과 출력의 문자 수가 항상 같은 기법."""
 
 # 표준발음법 조항 근거가 있는 기법 -> 조항 번호. 보고서에서 근거를 밝히는 데 쓴다.
 # vowel_confuse는 조항이 아니라 표기 혼동이므로 여기 없다.
@@ -707,10 +710,24 @@ STANDARD_PRONUNCIATION_CLAUSE = {
     "lateralize": "제20항",
     "tensify_rule": "제23~28항",
 }
+"""표준발음법 조항 근거가 있는 기법 -> 조항 번호."""
 
 
-def obfuscate(text, technique, intensity=1.0, seed=0):
-    """`technique` 이름으로 변환 하나를 건다."""
+def obfuscate(text: str, technique: str, intensity: float = 1.0, seed: int = 0) -> str:
+    """`technique` 이름으로 변환 하나를 건다.
+
+    Args:
+        text: 입력 문장.
+        technique: `TRANSFORMS`의 기법 이름.
+        intensity: 후보 자리 중 바꿀 비율.
+        seed: 난수 시드. 같은 입력이면 항상 같은 결과가 나온다.
+
+    Returns:
+        변환한 문장.
+
+    Raises:
+        ValueError: 지원하지 않는 기법일 때.
+    """
     try:
         transform = TRANSFORMS[technique]
     except KeyError:

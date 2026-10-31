@@ -262,7 +262,18 @@ def _validated_threshold(value: object) -> float:
 
 
 class MlRestoreProvider:
-    """글자 편집 태거를 묶은 opt-in candidate provider."""
+    """글자 편집 태거를 묶은 opt-in candidate provider.
+
+    보통 `from_pretrained` 또는 `from_directory`로 만든다.
+
+    Args:
+        tagger (object): `predict(texts)`로 글자별 `CharEdit`를 돌려주는 객체.
+        threshold: 편집을 적용할 최소 확신도. 0~1.
+        max_chars: 조각 하나의 최대 글자 수.
+
+    Raises:
+        ValueError: `threshold`가 숫자가 아니거나 0~1 밖일 때.
+    """
 
     name = "ml_restore"
 
@@ -377,6 +388,7 @@ class MlRestoreProvider:
         return results
 
     def generate(self, text: str) -> Iterator[CandidateProposal]:
+        """바뀐 글자가 있으면 복원 후보 하나를 낸다. `confidence`는 적용 편집의 평균 확신도다."""
         if not isinstance(text, str):
             raise TypeError("text는 str이어야 합니다.")
         restored, changed, confidence = self.restore(text)
