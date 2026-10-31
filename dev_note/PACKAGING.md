@@ -1,18 +1,16 @@
 # k-safeguard 패키징과 런타임 경계
 
-`k-safeguard`는 특정 LLM이나 GPU 환경에 종속되지 않는 전처리 gateway 라이브러리다. 배포
+`k-safeguard`는 특정 모델이나 GPU 환경에 종속되지 않는 난독화된 한국어 정규화 라이브러리다. 배포
 distribution 이름은 `k-safeguard`, Python import 이름은 `k_safeguard`다.
 
 ## 설치 계층
 
 | 설치 | 포함 | 기본 활성화 |
 |---|---|---|
-| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, `LiaisonInverseProvider`·`SpacedJamoProvider`(무의존 opt-in 후보) | 무손실 core만 |
-| `k-safeguard[ml-restore]` | 자모 슬롯 복원 provider의 **추론 코드만** (`onnxruntime`, `numpy`). 모델 가중치는 미포함 | 아니요, 명시적 주입 필요 |
+| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, `LiaisonInverseProvider`·`SpacedJamoProvider`(무의존 opt-in 후보), 난독화 생성기 `k_safeguard.obfuscate` | 무손실 core만 |
+| `k-safeguard[ml-restore]` | 글자 편집 태거 provider의 **추론 런타임만** (`onnxruntime`, `numpy`, `tokenizers`). 모델 가중치는 미포함 | 아니요, 명시적 주입 필요 |
 | 외부 provider | 형태소 분석기, 로컬·원격 복원기, 사용자 사전 | 사용자 정책에 따름 |
 
-된소리 다중 view provider는 공개 API에서 제거했다. 구현 모듈은 기존 실험을 재현하기 위해
-wheel에 남아 있지만 배포 Gateway 구성으로 지원하지 않는다.
 `LiaisonInverseProvider`는 core wheel에 포함되는 별도 opt-in provider이며 기본 Gateway에는 자동
 연결되지 않는다. 추가 dependency 없이 `Gateway(providers=[...])`로 명시적으로 주입한다.
 
@@ -25,15 +23,15 @@ core wheel에 포함된다. 여러 복원 view를 만들지 않고, 공백을 �
 기본 wheel은 외부 런타임 dependency가 0개다. `torch`, `transformers`, 가드레일 모델과 복원 모델은
 프로젝트 평가 환경 또는 사용자가 선택한 별도 provider에 속하며 패키지 dependency로 선언하지 않는다.
 
-`ml-restore` extra도 이 경계를 지킨다 — `onnxruntime`은 **추론 런타임**일 뿐이고 모델 가중치
-자체는 wheel에 들어가지 않는다(`verify_artifacts.py`의 `FORBIDDEN_SUFFIXES`가 `.onnx`·`.pt`를
-막는다). 자모 인코딩·후보 위치 규칙은 의존성이 없는 `k_safeguard.jamo_slots`에 있어 extra
-없이도 import·테스트된다.
+`ml-restore` extra도 이 경계를 지킨다 — `onnxruntime`과 `tokenizers`는 **추론 런타임**일 뿐이고
+모델 가중치 자체는 wheel에 들어가지 않는다(`verify_artifacts.py`의 `FORBIDDEN_SUFFIXES`가
+`.onnx`·`.pt`를 막는다). 자모 특징·편집 적용 규칙은 의존성이 없는 `k_safeguard.edit_tags`에 있어
+extra 없이도 import·테스트된다.
 
 가중치는 두 경로 중 하나로 받는다.
 
-- `MlRestoreProvider.from_pretrained()` — GitHub Release(`v0.2.0-ml-restore` 태그)에서
-  받는다. `providers/ml_restore.py`의 `PRETRAINED_MANIFEST`에 파일마다 sha256·크기를
+- `MlRestoreProvider.from_pretrained()` — GitHub Release에서 약 500MB를 받는다.
+  `providers/ml_restore.py`의 `PRETRAINED_MANIFEST`에 파일마다 sha256·크기를
   고정해 두고, 다운로드한 뒤 대조해 손상·변조를 막는다. OS 캐시 디렉터리에 저장하고
   재사용하며, 새 의존성 없이 `urllib`(표준 라이브러리)만 쓴다 — `huggingface_hub` 같은
   클라이언트 SDK는 이 저장소가 지키는 "필요한 만큼만 설치" 원칙에 비해 무겁다고 판단해
@@ -51,18 +49,22 @@ core wheel에 포함된다. 여러 복원 view를 만들지 않고, 공백을 �
 from k_safeguard import Gateway, normalize_korean
 
 normalized = normalize_korean("ㅇㅏㄴㄴㅕㅇ")
+normalized = Gateway().normalize("ㅇㅏㄴㄴㅕㅇ")
 result = Gateway().process("ㅇㅏㄴㄴㅕㅇ")
 ```
+
+`normalize()`는 문장 하나를 돌려준다. 확신도를 낸 provider 후보 중 가장 높은 것을 고르고, 없으면 무손실
+정규화 결과를 준다.
 
 `GatewayResult.views`의 첫 항목은 항상 원문이다. 무손실 정규화가 실제로 바뀐 경우 두 번째 view로
 추가된다. 외부 candidate provider를 직접 구현하면 모든 후보에 provider, `lossy`, confidence와
 metadata가 붙는다. 기본 `max_views`는 10이며 원문·무손실 정규화문·외부 provider 후보를 합친
-총 예산이다. 된소리 내장 provider는 이 공개 확장 경로에 포함되지 않는다.
+총 예산이다.
 
 provider 오류는 기본적으로 `provider_errors`에 기록하고 원문·무손실 view를 반환한다. 배포 정책상
 오류를 즉시 전파해야 하면 `strict_providers=True`를 사용한다.
 
-## 가드레일 실행
+## 분류기 실행
 
 후보 view 생성뿐 아니라 외부 가드레일 호출과 OR 집계까지 맡길 수 있다. callable은 `bool` 또는
 `ClassifierResult`를 반환하며, 첫 block에서 기본적으로 조기 종료한다.
@@ -130,17 +132,19 @@ CPU-only 환경은 core만 설치하고, GPU 사용자는 자신에게 맞는 pr
 ```text
 src/k_safeguard/
 ├── __init__.py
+├── _phonology.py
+├── data/               # KOTOX(MIT) 닮은 글자 사전과 라이선스
 ├── execution.py
 ├── normalization.py
+├── edit_tags.py
 ├── gateway.py
-├── jamo_slots.py
+├── obfuscate.py
 ├── py.typed
 └── providers/
     ├── __init__.py
     ├── liaison.py
     ├── ml_restore.py
-    ├── spaced_jamo.py
-    └── tensify.py
+    └── spaced_jamo.py
 ```
 
 Kanana·Qwen adapter와 모델 requirements 같은 실험 코드는 wheel에 포함되지 않는다. 실험은
@@ -152,7 +156,7 @@ Kanana·Qwen adapter와 모델 requirements 같은 실험 코드는 wheel에 포
 python -m pip install --upgrade build
 python -m build
 python tools/release/verify_artifacts.py
-python -m pip install --force-reinstall --no-deps dist/k_safeguard-0.2.0-py3-none-any.whl
+python -m pip install --force-reinstall --no-deps dist/k_safeguard-1.0.0-py3-none-any.whl
 python -m unittest discover -s tests -v
 ```
 

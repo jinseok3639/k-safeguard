@@ -9,23 +9,19 @@ from .gateway import (
     TextView,
 )
 from .execution import (
-    AsyncBatchGuardrailClassifier,
-    AsyncGuardrailClassifier,
+    AsyncBatchTextClassifier,
+    AsyncTextClassifier,
     BatchClassifierOutput,
     BatchClassifierOutputError,
-    BatchGuardrailClassifier,
+    BatchTextClassifier,
     ClassifierCallTrace,
     ClassifierErrorMode,
     ClassifierExecutionError,
     ClassifierOutput,
     ClassifierResult,
     GatewayEvaluation,
-    GuardrailClassifier,
+    TextClassifier,
     ViewEvaluation,
-    evaluate_gateway,
-    evaluate_gateway_async,
-    evaluate_gateway_batch,
-    evaluate_gateway_batch_async,
 )
 from .normalization import (
     NORMALIZER_VERSION,
@@ -35,18 +31,18 @@ from .normalization import (
 )
 
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 
 __all__ = [
     "DEFAULT_MAX_VIEWS",
     "NORMALIZER_VERSION",
     "CandidateProposal",
     "CandidateProvider",
-    "AsyncBatchGuardrailClassifier",
-    "AsyncGuardrailClassifier",
+    "AsyncBatchTextClassifier",
+    "AsyncTextClassifier",
     "BatchClassifierOutput",
     "BatchClassifierOutputError",
-    "BatchGuardrailClassifier",
+    "BatchTextClassifier",
     "ClassifierCallTrace",
     "ClassifierErrorMode",
     "ClassifierExecutionError",
@@ -58,12 +54,8 @@ __all__ = [
     "NormalizationEdit",
     "NormalizationResult",
     "TextView",
-    "GuardrailClassifier",
+    "TextClassifier",
     "ViewEvaluation",
     "__version__",
-    "evaluate_gateway",
-    "evaluate_gateway_async",
-    "evaluate_gateway_batch",
-    "evaluate_gateway_batch_async",
     "normalize_korean",
 ]

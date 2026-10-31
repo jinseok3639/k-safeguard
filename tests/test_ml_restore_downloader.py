@@ -1,10 +1,9 @@
 """`MlRestoreProvider.from_pretrained()`가 쓰는 다운로드·캐시·검증 로직 테스트.
 
 `urllib.request.urlopen`을 몽키패치해 실제 네트워크 없이 돈다. onnxruntime 세션을
-실제로 만들지 않으므로 extra 없이도 통과한다 — `from_pretrained()` 전체(진짜 가중치를
-받아 provider를 완성하는 것)의 종단 간 검증은 `from_directory()`와 같은 이유로 여기
-없다: 실제 가중치가 저장소에 없다. 그건 ML 샌드박스의 `exp/verify_port_parity.py`가
-로컬 HTTP 서버로 재현해서 확인한다.
+실제로 만들지 않으므로 extra 없이도 통과한다. 진짜 가중치로 하는 검증은 실제 가중치가
+저장소에 없어 여기 두지 않는다. 실험 저장소의 `restoration/exp/run_p05_2_serving_parity.py`가
+맡는다.
 """
 
 import hashlib
@@ -167,21 +166,21 @@ class DefaultCacheDirTest(unittest.TestCase):
 
 
 class PretrainedManifestTest(unittest.TestCase):
-    def test_every_entry_has_the_fields_from_entries_needs(self) -> None:
-        # Given / When / Then
-        for technique, entry in module.PRETRAINED_MANIFEST.items():
-            for key in (
-                "threshold", "window", "onnx_file", "onnx_sha256", "onnx_bytes",
-                "vocab_file", "vocab_sha256", "vocab_bytes",
-            ):
-                self.assertIn(key, entry, f"{technique}에 {key} 없음")
-            self.assertEqual(len(entry["onnx_sha256"]), 64)
-            self.assertEqual(len(entry["vocab_sha256"]), 64)
-            self.assertTrue(0.0 <= entry["threshold"] <= 1.0)
+    def test_has_the_fields_loading_needs(self) -> None:
+        # Given
+        manifest = module.PRETRAINED_MANIFEST
+        # When / Then
+        self.assertTrue(0.0 <= manifest["threshold"] <= 1.0)
+        self.assertGreater(manifest["max_chars"], 0)
+        self.assertEqual(set(manifest["files"]), set(module._FILE_ROLES))
 
-    def test_matches_the_techniques_the_provider_ships(self) -> None:
+    def test_every_file_is_pinned_by_hash_and_size(self) -> None:
         # Given / When / Then
-        self.assertEqual(set(module.PRETRAINED_MANIFEST), set(module.DEFAULT_ORDER))
+        for role, entry in module.PRETRAINED_MANIFEST["files"].items():
+            self.assertRegex(entry["sha256"], r"^[0-9a-f]{64}$", role)
+            self.assertNotEqual(entry["sha256"], "0" * 64, role)
+            self.assertGreater(entry["bytes"], 1, role)
+            self.assertTrue(entry["file"], role)
 
 
 if __name__ == "__main__":

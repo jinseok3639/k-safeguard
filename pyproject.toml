@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "k-safeguard"
-version = "0.2.0"
-description = "Lightweight Korean text-normalization gateway for existing LLM guardrails"
+version = "1.0.0"
+description = "Normalizer that turns obfuscated Korean back into the original text"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
@@ -19,6 +19,7 @@ keywords = [
   "llm",
   "guardrail",
   "normalization",
+  "obfuscation",
   "prompt-injection",
 ]
 classifiers = [
@@ -38,8 +39,9 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-ml-restore = ["onnxruntime>=1.17", "numpy>=1.24"]
+ml-restore = ["onnxruntime>=1.17", "numpy>=1.24", "tokenizers>=0.15"]
 dev = ["coverage>=7.4"]
+docs = ["mkdocs>=1.6", "mkdocs-material>=9.5", "mkdocstrings[python]>=0.26", "ruff>=0.4"]
 mutation = ["mutmut>=3.7"]
 
 [project.urls]
@@ -55,7 +57,7 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-k_safeguard = ["py.typed"]
+k_safeguard = ["py.typed", "data/*"]
 
 [tool.coverage.run]
 branch = true
@@ -76,16 +78,17 @@ output = "coverage.xml"
 # import가 깨져 baseline 테스트 수집 단계에서 ImportError가 난다 — 그래서
 # 목록에 함께 포함한다. providers/ml_restore.py만 coverage omit과 동일한
 # 기준(실험적 opt-in 의존성)으로 제외한다.
-# jamo_slots.py는 의존성이 없는 core라 목록에 포함한다.
+# edit_tags.py는 의존성이 없는 core라 목록에 포함한다.
 source_paths = [
   "src/k_safeguard/__init__.py",
+  "src/k_safeguard/_phonology.py",
+  "src/k_safeguard/edit_tags.py",
   "src/k_safeguard/execution.py",
   "src/k_safeguard/gateway.py",
-  "src/k_safeguard/jamo_slots.py",
   "src/k_safeguard/normalization.py",
+  "src/k_safeguard/obfuscate.py",
   "src/k_safeguard/providers/__init__.py",
   "src/k_safeguard/providers/liaison.py",
   "src/k_safeguard/providers/spaced_jamo.py",
-  "src/k_safeguard/providers/tensify.py",
 ]
 runner = "python -m unittest discover -s tests"

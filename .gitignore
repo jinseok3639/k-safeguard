@@ -14,6 +14,7 @@ __pycache__/
 /build/
 /dist/
 /_site/
+/site/
 /src/*.egg-info/
 /src/**/*.egg-info/
 

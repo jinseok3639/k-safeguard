@@ -6,6 +6,9 @@ on:
       - "src/**"
       - "web/**"
       - "tools/web/**"
+      - "docs/**"
+      - "examples/**"
+      - "mkdocs.yml"
       - "tests/test_web_demo.py"
       - "pyproject.toml"
       - "MANIFEST.in"
@@ -16,6 +19,9 @@ on:
       - "src/**"
       - "web/**"
       - "tools/web/**"
+      - "docs/**"
+      - "examples/**"
+      - "mkdocs.yml"
       - "pyproject.toml"
       - "MANIFEST.in"
       - ".github/workflows/pages.yml"
@@ -46,6 +52,11 @@ jobs:
           python tools/web/build_site.py --wheel "$wheel" --output _site --commit "$GITHUB_SHA"
           node --check _site/app.js
           node --check _site/worker.js
+      # build_site.py가 _site를 새로 만들므로 문서는 그 뒤에 넣는다.
+      - name: Build docs
+        run: |
+          python -m pip install ".[docs]"
+          mkdocs build --strict --site-dir _site/docs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

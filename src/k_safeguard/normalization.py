@@ -9,7 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-NORMALIZER_VERSION = "0.1.0"
+NORMALIZER_VERSION = "0.1.1"
+"""정규화 규칙 버전. 패키지 버전과 별개다."""
 HANGUL_BASE = 0xAC00
 ZWSP = "\u200b"
 
@@ -78,7 +79,17 @@ _HALFWIDTH_TO_COMPAT = {
 
 @dataclass(frozen=True)
 class NormalizationEdit:
-    """한 규칙이 바꾼 구간과 원문 기준 위치."""
+    """한 규칙이 바꾼 구간과 원문 기준 위치.
+
+    Attributes:
+        rule_id: 규칙 ID.
+        source_start: 원문 기준 시작 위치.
+        source_end: 원문 기준 끝 위치.
+        before: 바꾸기 전 문자열.
+        after: 바꾼 뒤 문자열.
+        confidence: 편집 확신도.
+        lossy: 손실 변환인지.
+    """
 
     rule_id: str
     source_start: int
@@ -91,7 +102,19 @@ class NormalizationEdit:
 
 @dataclass(frozen=True)
 class NormalizationResult:
-    """정규화 문자열과 변경 추적 정보."""
+    """정규화 문자열과 변경 추적 정보.
+
+    Attributes:
+        original: 입력 원문.
+        text: 정규화문.
+        changed: 원문과 다른지.
+        lossy: 손실 변환을 포함하는지.
+        confidence: 편집 확신도의 최솟값.
+        applied_rules: 적용한 규칙 ID. 중복을 제거한다.
+        edits: 변경 구간. 규칙 적용 순서대로 나오며 위치순이 아니다.
+        errors: 정규화 오류 목록.
+        version: 규칙 버전.
+    """
 
     original: str
     text: str
@@ -142,27 +165,34 @@ def _remove_hangul_zwsp(
     """한글·자모에 인접한 U+200B만 제거하고 다른 format 문자는 보존한다."""
     output: list[_Unit] = []
     edits: list[NormalizationEdit] = []
-    removed_run: list[_Unit] = []
+    index = 0
 
-    for index, unit in enumerate(units):
-        if unit.char != ZWSP:
-            if removed_run:
-                edits.append(_make_edit("remove_hangul_zwsp", removed_run, ""))
-                removed_run = []
-            output.append(unit)
+    while index < len(units):
+        if units[index].char != ZWSP:
+            output.append(units[index])
+            index += 1
             continue
-        left = units[index - 1].char if index > 0 else ""
-        right = units[index + 1].char if index + 1 < len(units) else ""
-        if (left and _is_hangul_related(left)) or (right and _is_hangul_related(right)):
-            removed_run.append(unit)
-            continue
-        if removed_run:
-            edits.append(_make_edit("remove_hangul_zwsp", removed_run, ""))
-            removed_run = []
-        output.append(unit)
+        end = index
+        while end < len(units) and units[end].char == ZWSP:
+            end += 1
+        run = units[index:end]
+        left_hangul = index > 0 and _is_hangul_related(units[index - 1].char)
+        right_hangul = end < len(units) and _is_hangul_related(units[end].char)
+        # 양쪽이 한글이면 구간 전체가 한글을 끊으므로 다 지운다. 한쪽만 한글이면 그쪽에 붙은 것만 지운다.
+        if left_hangul and right_hangul:
+            removed, kept_before, kept_after = run, [], []
+        elif left_hangul:
+            removed, kept_before, kept_after = run[:1], [], run[1:]
+        elif right_hangul:
+            removed, kept_before, kept_after = run[-1:], run[:-1], []
+        else:
+            removed, kept_before, kept_after = [], run, []
+        output.extend(kept_before)
+        if removed:
+            edits.append(_make_edit("remove_hangul_zwsp", removed, ""))
+        output.extend(kept_after)
+        index = end
 
-    if removed_run:
-        edits.append(_make_edit("remove_hangul_zwsp", removed_run, ""))
     return output, edits
 
 
@@ -363,7 +393,17 @@ def _compose_compat_jamo(
 
 
 def normalize_korean(text: str) -> NormalizationResult:
-    """안전하게 확정할 수 있는 한국어 표기 변형만 정규화한다."""
+    """안전하게 확정할 수 있는 한국어 표기 변형만 정규화한다.
+
+    Args:
+        text: 입력 문장.
+
+    Returns:
+        정규화문과 변경 내역.
+
+    Raises:
+        TypeError: `text`가 `str`이 아닐 때.
+    """
     if not isinstance(text, str):
         raise TypeError("text는 str이어야 합니다.")
 

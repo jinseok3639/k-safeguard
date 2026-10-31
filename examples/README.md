@@ -6,13 +6,13 @@ k-safeguard를 처음 쓰는 사람이 순서대로 읽고 바로 돌려볼 수 
 ## 실행
 
 ```bash
-python -m pip install .        # 저장소 checkout에서 설치 (PyPI 배포 전)
+python -m pip install .        # 저장소 checkout에서 설치
 python examples/01_normalize_basics.py
 ```
 
 모든 예제는 **추가 의존성 없이** 돌아간다. 모델 가중치나 GPU, 네트워크가 필요 없다.
-가드레일 자리에는 키워드 매칭 stub을 넣어 두었으니, 그 자리에 실제로 쓰는 가드레일 호출을
-바꿔 끼우면 그대로 서비스 코드가 된다.
+02~04는 정규화기를 가드레일에 연결하는 활용 예제다. 가드레일 자리에는 키워드 매칭 stub을 넣어
+두었으니, 그 자리에 실제로 쓰는 호출을 바꿔 끼우면 된다.
 
 ## 예제 목록
 
@@ -26,7 +26,7 @@ python examples/01_normalize_basics.py
 | [06_custom_provider.py](./06_custom_provider.py) | 형태소 분석기·사내 복원기를 직접 붙이기, provider 오류 격리 | `CandidateProvider`, `CandidateProposal` |
 | [07_liaison_provider.py](./07_liaison_provider.py) | 단순 연음 역복원을 lossy 후보로 명시적으로 활성화 | `LiaisonInverseProvider` |
 
-시연영상 녹화용 4장면 선형 스크립트는 [`demo/`](./demo/README.md)에 따로 있다.
+가드레일 활용을 보여주는 4장면 시연 스크립트는 [`demo/`](./demo/README.md)에 따로 있다.
 
 ## 30초 요약
 

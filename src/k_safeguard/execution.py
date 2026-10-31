@@ -1,4 +1,4 @@
-"""Gateway view를 외부 가드레일 classifier로 판정하는 무의존 실행 레이어."""
+"""Gateway view를 외부 classifier로 판정하는 무의존 실행 레이어."""
 
 from __future__ import annotations
 
@@ -10,11 +10,23 @@ from .gateway import GatewayResult, Metadata, TextView
 
 
 ClassifierErrorMode: TypeAlias = Literal["raise", "block", "allow"]
+"""분류기 오류 정책. `raise`는 예외, `block`은 차단(fail-closed), `allow`는 기록 후 계속(fail-open)."""
 
 
 @dataclass(frozen=True)
 class ClassifierResult:
-    """외부 classifier의 정규화된 단일 view 판정."""
+    """외부 classifier의 정규화된 단일 view 판정.
+
+    Attributes:
+        block: 차단 여부. 판정하지 못했으면 `None`이고 `error`가 필요하다.
+        category: 차단 사유 분류.
+        error: 오류를 값으로 전달할 때의 문자열. trace에 그대로 남는다.
+        metadata: 모델 정보 등의 `(키, 값)` 목록.
+
+    Raises:
+        ValueError: `block=None`인데 `error`가 없거나, 판정과 `error`를 함께 줄 때.
+        TypeError: 필드 타입이 맞지 않을 때.
+    """
 
     block: bool | None
     category: str | None = None
@@ -35,18 +47,31 @@ class ClassifierResult:
 
 
 ClassifierOutput: TypeAlias = bool | ClassifierResult
-GuardrailClassifier: TypeAlias = Callable[[str], ClassifierOutput]
-AsyncGuardrailClassifier: TypeAlias = Callable[[str], Awaitable[ClassifierOutput]]
+"""분류기 하나의 판정. `True`가 차단이다."""
+TextClassifier: TypeAlias = Callable[[str], ClassifierOutput]
+"""문자열 하나를 판정하는 동기 분류기."""
+AsyncTextClassifier: TypeAlias = Callable[[str], Awaitable[ClassifierOutput]]
+"""문자열 하나를 판정하는 async 분류기."""
 BatchClassifierOutput: TypeAlias = Iterable[ClassifierOutput]
-BatchGuardrailClassifier: TypeAlias = Callable[[tuple[str, ...]], BatchClassifierOutput]
-AsyncBatchGuardrailClassifier: TypeAlias = Callable[
+"""입력과 같은 개수의 판정."""
+BatchTextClassifier: TypeAlias = Callable[[tuple[str, ...]], BatchClassifierOutput]
+"""문자열 묶음을 판정하는 동기 분류기."""
+AsyncBatchTextClassifier: TypeAlias = Callable[
     [tuple[str, ...]], Awaitable[BatchClassifierOutput]
 ]
+"""문자열 묶음을 판정하는 async 분류기."""
 
 
 @dataclass(frozen=True)
 class ViewEvaluation:
-    """한 text view와 classifier 결과의 추적 정보."""
+    """한 text view와 classifier 결과의 추적 정보.
+
+    Attributes:
+        index: `views` 안의 위치.
+        view: 판정한 view.
+        result: 판정 결과.
+        latency_ms: 호출 지연. batch에서는 호출 전체의 지연이라 합치면 중복된다.
+    """
 
     index: int
     view: TextView
@@ -56,7 +81,13 @@ class ViewEvaluation:
 
 @dataclass(frozen=True)
 class ClassifierCallTrace:
-    """한 classifier 호출에 포함된 view 위치와 전체 지연 시간."""
+    """한 classifier 호출에 포함된 view 위치와 전체 지연 시간.
+
+    Attributes:
+        index: 호출 순번.
+        view_indices: 이 호출에 넘긴 view 위치.
+        latency_ms: 호출 전체의 지연.
+    """
 
     index: int
     view_indices: tuple[int, ...]
@@ -65,7 +96,19 @@ class ClassifierCallTrace:
 
 @dataclass(frozen=True)
 class GatewayEvaluation:
-    """Gateway 전처리와 모든 실행된 view 판정을 묶은 최종 결과."""
+    """Gateway 전처리와 모든 실행된 view 판정을 묶은 최종 결과.
+
+    Attributes:
+        gateway: 판정에 쓴 view 묶음.
+        block: 최종 판정. view별 판정의 OR이다.
+        category: 분류기가 처음 차단한 view의 category.
+        evaluations: 실행된 view별 판정.
+        classifier_errors: `view[i]:오류타입` 목록.
+        decision_source: 처음 판정을 결정한 근거. `classifier`, `error_policy`, `no_block` 중 하나.
+        trigger_view_index: 판정을 결정한 view 위치. 차단이 없으면 `None`.
+        stopped_early: 평가한 view가 전체보다 적은지.
+        classifier_calls: 호출 단위 trace.
+    """
 
     gateway: GatewayResult
     block: bool
@@ -79,15 +122,24 @@ class GatewayEvaluation:
 
     @property
     def evaluated_view_count(self) -> int:
+        """평가한 view 수."""
         return len(self.evaluations)
 
     @property
     def classifier_call_count(self) -> int:
+        """분류기 호출 수."""
         return len(self.classifier_calls)
 
 
 class ClassifierExecutionError(RuntimeError):
-    """classifier 호출이나 반환값 검증 실패를 view 위치와 함께 전달한다."""
+    """classifier 호출이나 반환값 검증 실패를 view 위치와 함께 전달한다.
+
+    메시지에 입력 원문을 싣지 않는다. 분류기가 낸 예외는 `__cause__`에 있다.
+
+    Attributes:
+        view_index: 실패한 view 위치.
+        error_type: 오류 타입 이름.
+    """
 
     def __init__(self, view_index: int, error_type: str) -> None:
         self.view_index = view_index
@@ -98,7 +150,14 @@ class ClassifierExecutionError(RuntimeError):
 
 
 class BatchClassifierOutputError(ValueError):
-    """batch classifier가 입력 view 수와 다른 개수의 결과를 반환했다."""
+    """batch classifier가 입력 view 수와 다른 개수의 결과를 반환했다.
+
+    `error_mode="raise"`에서는 `ClassifierExecutionError`의 `__cause__`로 전달된다.
+
+    Attributes:
+        expected_count: 입력 view 수.
+        actual_count: 돌려받은 판정 수.
+    """
 
     def __init__(self, expected_count: int, actual_count: int) -> None:
         self.expected_count = expected_count
@@ -264,12 +323,15 @@ def _record_batch(
 
 def evaluate_gateway(
     gateway_result: GatewayResult,
-    classifier: GuardrailClassifier,
+    classifier: TextClassifier,
     *,
     error_mode: ClassifierErrorMode = "raise",
     stop_on_block: bool = True,
 ) -> GatewayEvaluation:
-    """정렬된 Gateway view를 판정하고 OR 정책으로 최종 block을 계산한다."""
+    """정렬된 Gateway view를 판정하고 OR 정책으로 최종 block을 계산한다.
+
+    이미 만든 `GatewayResult`를 재사용한다. 옵션은 `Gateway.evaluate`와 같다.
+    """
     _validate_execution_options(classifier, error_mode, stop_on_block)
     accumulator = _EvaluationAccumulator(gateway_result, error_mode, stop_on_block)
 
@@ -294,7 +356,7 @@ def evaluate_gateway(
 
 async def evaluate_gateway_async(
     gateway_result: GatewayResult,
-    classifier: AsyncGuardrailClassifier,
+    classifier: AsyncTextClassifier,
     *,
     error_mode: ClassifierErrorMode = "raise",
     stop_on_block: bool = True,
@@ -324,7 +386,7 @@ async def evaluate_gateway_async(
 
 def evaluate_gateway_batch(
     gateway_result: GatewayResult,
-    classifier: BatchGuardrailClassifier,
+    classifier: BatchTextClassifier,
     *,
     error_mode: ClassifierErrorMode = "raise",
     stop_on_block: bool = True,
@@ -353,7 +415,7 @@ def evaluate_gateway_batch(
 
 async def evaluate_gateway_batch_async(
     gateway_result: GatewayResult,
-    classifier: AsyncBatchGuardrailClassifier,
+    classifier: AsyncBatchTextClassifier,
     *,
     error_mode: ClassifierErrorMode = "raise",
     stop_on_block: bool = True,
@@ -382,18 +444,18 @@ async def evaluate_gateway_batch_async(
 
 
 __all__ = [
-    "AsyncBatchGuardrailClassifier",
-    "AsyncGuardrailClassifier",
+    "AsyncBatchTextClassifier",
+    "AsyncTextClassifier",
     "BatchClassifierOutput",
     "BatchClassifierOutputError",
-    "BatchGuardrailClassifier",
+    "BatchTextClassifier",
     "ClassifierErrorMode",
     "ClassifierExecutionError",
     "ClassifierOutput",
     "ClassifierResult",
     "ClassifierCallTrace",
     "GatewayEvaluation",
-    "GuardrailClassifier",
+    "TextClassifier",
     "ViewEvaluation",
     "evaluate_gateway",
     "evaluate_gateway_async",

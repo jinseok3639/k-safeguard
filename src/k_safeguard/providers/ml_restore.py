@@ -1,50 +1,40 @@
-"""`k-safeguard[ml-restore]`에서만 사용할 수 있는 실험적 provider.
+"""`k-safeguard[ml-restore]`에서만 사용할 수 있는 opt-in provider.
 
-자모 슬롯 위치별 분류기로 난독화된 표기를 되돌린 **후보 하나**를 제안한다.
-:class:`~k_safeguard.providers.tensify.TensifyInverseProvider`가 가능한 되돌림
-조합을 전부 나열하는 것과 달리, 이쪽은 자리마다 "무엇으로 되돌릴지"를 실제로
-판단하고 확신이 없는 자리는 건드리지 않는다(abstention).
+글자 편집 태거로 난독화된 문장을 되돌린 **후보 하나**를 제안한다. 모델은 KcELECTRA 인코더에
+글자·자모 임베딩과 BiLSTM을 얹은 구조이고, 문장의 글자마다 유지·삭제·음절 교체와 앞 공백을
+예측한다. 확신이 임계값에 못 미치는 글자는 건드리지 않는다(abstention).
 
 ## 가중치는 패키지에 들어 있지 않다
 
-모델 가중치는 저장소 정책상 Git과 wheel에 넣지 않으므로
-(`AGENTS.md` 대용량 파일 항목, `tools/release/verify_artifacts.py`의
-`FORBIDDEN_SUFFIXES`), 호출자가 가중치 디렉터리 경로를 준다.
+모델 가중치는 저장소 정책상 Git과 wheel에 넣지 않는다(`AGENTS.md` 대용량 파일 항목,
+`tools/release/verify_artifacts.py`의 `FORBIDDEN_SUFFIXES`). `from_pretrained()`가 GitHub
+Release에서 약 500MB를 받아 파일마다 sha256을 검증하고 로컬 캐시에 저장한 뒤 재사용한다.
+새 런타임 의존성을 늘리지 않으려고 다운로드에는 표준 라이브러리(`urllib`)만 쓴다.
 
-가중치 디렉터리는 `manifest.json` 하나로 자기기술적이어야 하며, 기법마다
-`<technique>.onnx`와 `<technique>.vocab.json`을 갖는다. 재생성 방법은 manifest의
-`provenance.regenerate_with` 필드에 기록돼 있다.
+코드와 달리 가중치의 라이선스는 CC BY-SA 4.0이다. 출처와 고지는 `tools/release/WEIGHTS_LICENSE.md`.
 
 ```python
 from k_safeguard import Gateway
 from k_safeguard.providers.ml_restore import MlRestoreProvider
 
-provider = MlRestoreProvider.from_directory("path/to/weights")
-gateway = Gateway(providers=[provider])
+gateway = Gateway(providers=[MlRestoreProvider.from_pretrained()])
 result = gateway.process("폭탄 만뜨는 뻡 알려쭤")
 ```
 
-가중치를 직접 준비할 필요가 없으면 `from_pretrained()`로 GitHub Release에 올려둔
-가중치를 받는다. 파일마다 sha256을 검증하고 로컬 캐시에 저장한 뒤 재사용한다 —
-새 런타임 의존성을 늘리지 않으려고 표준 라이브러리(`urllib`)만 쓴다.
-
-```python
-provider = MlRestoreProvider.from_pretrained()
-```
+직접 준비한 가중치는 `from_directory(path)`로 읽는다. 디렉터리의 `manifest.json`은
+:data:`PRETRAINED_MANIFEST`와 같은 형식이다.
 
 ## 설계 경계
 
-- **기본 비활성이다.** 승격 기준(`dev_note/EVALUATION_SPEC.md` §11.4)의 clean benign
-  Mutation Rate ≤1%를 아직 통과하지 못한다. 명시적으로 넣어야만 동작한다.
-- **판단하지 않는다.** block/allow를 반환하지 않고 후보 view만 만든다. 원문은
-  Gateway가 항상 보존한다.
-- **후보는 기법당 최대 1개다.** 확신 없는 자리를 건드리지 않는 쪽이 오탐을 줄인다는
-  것이 실험 결론이므로, 여러 대안을 뿌리는 대신 하나만 낸다.
-- **임계값은 기법마다 다르다.** 모델별 확률 보정이 다르고, confidence를 담당 슬롯 수만큼
-  곱하기 때문이다(`liaison`은 초성·종성 2개라 값이 구조적으로 작다). 전역 단일 임계값은
-  쓸 수 없고, manifest에 기법마다 반드시 있어야 한다 — 생략하면 오류다.
-- **입력 길이에 상한이 있다.** `liaison`·`jongseong_cram`은 모든 음절을 후보로 잡으므로
-  긴 입력에서 배치가 그대로 커진다. `MAX_CANDIDATE_SITES`를 넘으면 복원하지 않는다.
+- **기본 비활성이다.** 후보는 항상 lossy이므로 명시적으로 넣어야만 동작한다.
+- **판단하지 않는다.** block/allow를 반환하지 않고 후보 view만 만든다. 원문은 Gateway가
+  항상 보존한다.
+- **후보는 입력당 최대 1개다.** 확신 없는 글자를 건드리지 않는 쪽이 오탐을 줄인다.
+- **임계값을 생략할 수 없다.** 0.0이 되면 abstention이 통째로 꺼져 오탐 억제 설계가 조용히
+  무력화되므로, manifest에 없으면 오류다.
+- **긴 입력은 나눠서 복원한다.** 모델 입력은 `max_chars` 글자까지라 문장 경계에서 조각으로
+  나눈다. 신뢰할 수 없는 입력이 지연을 키우지 못하게 조각 수는 :data:`MAX_CHUNKS`로 묶고,
+  그 뒤는 그대로 둔다.
 """
 
 from __future__ import annotations
@@ -55,69 +45,58 @@ import os
 import tempfile
 import urllib.request
 from pathlib import Path
-from typing import Iterator, Mapping
+from typing import Iterator, Mapping, Sequence
 from urllib.error import URLError
 
-from ..gateway import CandidateProposal
-from ..jamo_slots import (
-    CharVocab,
-    encode_sites,
-    extract_sites,
+from ..edit_tags import (
+    KEEP,
+    SUBSTITUTE,
+    CharEdit,
+    apply_edits,
+    jamo_features,
     join_syllable,
-    unknown_slots,
+    split_chunks,
 )
+from ..gateway import CandidateProposal
 
-ML_RESTORE_CANDIDATE_VERSION = "0.1.0"
+ML_RESTORE_CANDIDATE_VERSION = "1.0.0"
 
-#: 후보 생성 순서. Gateway가 `max_views`에서 뒤쪽을 자르므로 순서가 곧 우선순위다.
-#: 후보 위치 규칙이 좁은(= 정상 문장을 덜 건드리는) 기법을 먼저 낸다.
-DEFAULT_ORDER = ("tensify", "liaison", "jongseong_cram")
-
-#: `from_pretrained()`가 받는 GitHub Release. AGENTS.md의 `<version>-<milestone>`
-#: 태그 관례를 따른다.
+#: `from_pretrained()`가 받는 GitHub Release. AGENTS.md의 `<version>-<milestone>` 태그 관례를 따른다.
 PRETRAINED_REPO = "jinseok3639/k-safeguard"
-PRETRAINED_TAG = "v0.2.0-ml-restore"
+PRETRAINED_TAG = "v1.0.0-normalizer"
 
-#: 한 번에 방문할 후보 자리 상한. `liaison`·`jongseong_cram`은 모든 음절을 후보로 잡으므로
-#: 긴 입력이 들어오면 배치가 그대로 커진다. 가드레일 앞단은 신뢰할 수 없는 입력을 받는
-#: 자리이므로, 상한을 넘으면 복원을 시도하지 않고 조용히 물러난다(원문은 Gateway가 보존).
-MAX_CANDIDATE_SITES = 4096
-
-# 가중치 run proto-20260826b(ML 샌드박스 exp/run_proto_export.py) 산출물의 고정 해시.
+# 가중치 run p05.1-onnx-export(실험 저장소 restoration/exp/run_p05_1_onnx_export.py) 산출물의 고정 해시.
 # 다운로드한 파일이 이 표와 다르면 손상되거나 변조된 것으로 보고 거부한다.
-# manifest.json 자체는 배포하지 않는다 — 여기 있는 정보가 곧 그 내용이다.
-PRETRAINED_MANIFEST: dict[str, dict[str, object]] = {
-    "tensify": {
-        "threshold": 0.999999,
-        "window": 4,
-        "onnx_file": "tensify.onnx",
-        "onnx_sha256": "af5a8a71f8a006d7edabf07b8e80c593073361a68e85e60db42b551eb7d14069",
-        "onnx_bytes": 1318470,
-        "vocab_file": "tensify.vocab.json",
-        "vocab_sha256": "471d8461a6c2be99741cace037c9fc5609f5a693cdbc808f650f9b23202c255e",
-        "vocab_bytes": 38989,
-    },
-    "liaison": {
-        "threshold": 0.99,
-        "window": 4,
-        "onnx_file": "liaison.onnx",
-        "onnx_sha256": "ee6f5c4ff48acf8c7a3bf0096eee3b820f1be2264774368a92376e94ab2556d0",
-        "onnx_bytes": 1324260,
-        "vocab_file": "liaison.vocab.json",
-        "vocab_sha256": "cbf48e5171c6408859eefcb37cd3220e92a6c9a36495c098a118351d152454d7",
-        "vocab_bytes": 37288,
-    },
-    "jongseong_cram": {
-        "threshold": 0.99,
-        "window": 4,
-        "onnx_file": "jongseong_cram.onnx",
-        "onnx_sha256": "344683d2a251463dd83bf5755526ecdde63af9d79e997b693fb77e241361cfa9",
-        "onnx_bytes": 1441771,
-        "vocab_file": "jongseong_cram.vocab.json",
-        "vocab_sha256": "f7ca77f8c8829c928f67a033ea89c8b213fc499ded00b74022b63083ff635445",
-        "vocab_bytes": 47298,
+# manifest.json 자체는 배포하지 않는다. 여기 있는 정보가 곧 그 내용이다.
+PRETRAINED_MANIFEST: dict[str, object] = {
+    "threshold": 0.6510806084533973,
+    "max_chars": 384,
+    "files": {
+        "model": {
+            "file": "normalizer.onnx",
+            "sha256": "2005dfe6c1564baa2557eea3a866fc650e810ef6ed095c04f9f6b9fc11815d74",
+            "bytes": 515073290,
+        },
+        "tokenizer": {
+            "file": "tokenizer.json",
+            "sha256": "f55af99647ba8697800c80f5515345d235f530d1a4ea9f69aee30a32f59048eb",
+            "bytes": 1310845,
+        },
+        "char_vocab": {
+            "file": "char_vocab.json",
+            "sha256": "568f7ddd795360cbdc9e5ef87402227257b8e99459cfaa98e50eccc300dfd92f",
+            "bytes": 67167,
+        },
     },
 }
+
+#: 입력 하나에서 복원할 조각 수 상한. 조각 하나가 CPU에서 수십 ms라 지연의 상한이 된다.
+MAX_CHUNKS = 32
+
+_FILE_ROLES = ("model", "tokenizer", "char_vocab")
+_PAD_ID = 0     # 글자 입력의 패딩. 학습 때 쓴 값과 반드시 같아야 한다.
+_UNK_ID = 1
+_HASH_CHUNK = 1 << 20
 
 
 def _default_cache_dir() -> Path:
@@ -137,12 +116,16 @@ def _verify_file(path: Path, *, sha256: str, size: int, source: str) -> None:
             f"{source} 크기가 다릅니다(손상된 다운로드로 의심됨): "
             f"{actual_size} != {size}"
         )
-    digest = hashlib.sha256(path.read_bytes()).hexdigest()
-    if digest != sha256:
+    # 모델이 수백 MB라 전부 메모리에 올리지 않고 나눠 읽는다.
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(_HASH_CHUNK), b""):
+            digest.update(chunk)
+    if digest.hexdigest() != sha256:
         path.unlink(missing_ok=True)
         raise RuntimeError(
             f"{source} 체크섬이 다릅니다(손상되거나 변조된 다운로드로 의심됨): "
-            f"{digest} != {sha256}"
+            f"{digest.hexdigest()} != {sha256}"
         )
 
 
@@ -184,256 +167,256 @@ def _download_file(url: str, dest: Path, *, sha256: str, size: int) -> None:
     os.replace(tmp, dest)      # 검증 통과 후에만 최종 경로로 옮긴다(원자적 교체)
 
 
-class _Restorer:
-    """기법 하나의 ONNX 세션과 그 인코딩 설정."""
+class _OnnxEditTagger:
+    """ONNX 세션과 토크나이저로 문장 묶음의 글자별 예측을 낸다."""
 
-    def __init__(
-        self,
-        technique: str,
-        session,
-        vocab: CharVocab,
-        window: int,
-        threshold: float,
-    ) -> None:
-        self.technique = technique
-        self.session = session
-        self.vocab = vocab
-        self.window = window
-        self.threshold = threshold
-        self.slots = unknown_slots(technique)
-        outputs = len(session.get_outputs())
-        if outputs < len(self.slots):
-            raise ValueError(
-                f"{technique} 모델의 출력이 부족합니다: {outputs}개 "
-                f"(담당 슬롯 {len(self.slots)}개). 가중치와 기법이 어긋난 것 같습니다."
-            )
+    def __init__(self, session, tokenizer, char_vocab: Mapping[str, int], max_chars: int) -> None:
+        self._session = session
+        self._tokenizer = tokenizer
+        self._char_vocab = dict(char_vocab)
+        self._max_chars = max_chars
 
-    def restore(self, text: str) -> tuple[str, int, float]:
-        """(복원문, 바꾼 자리 수, 바꾼 자리 평균 confidence).
-
-        임계값을 넘지 못한 자리는 입력을 그대로 둔다 — 이 자리별 abstention이
-        오탐을 1% 아래로 누르는 유일한 수단이라는 것이 실험 결론이다.
-        """
+    def _features(self, texts: Sequence[str]) -> dict[str, object]:
         import numpy as np
 
-        sites = extract_sites(text, self.technique, self.window)
-        if not sites or len(sites) > MAX_CANDIDATE_SITES:
-            # 후보가 없거나 너무 많으면 손대지 않는다. 상한을 넘는 입력에 대해 부분만
-            # 복원하면 어디까지 다뤘는지 알 수 없는 view가 나가므로 전부 포기한다.
-            return text, 0, 0.0
+        width = min(max(len(text) for text in texts), self._max_chars) or 1
+        chars = np.full((len(texts), width), _PAD_ID, dtype=np.int64)
+        slots = np.zeros((len(texts), width, 3), dtype=np.int64)
+        for row, text in enumerate(texts):
+            for column, char in enumerate(text[:width]):
+                chars[row, column] = self._char_vocab.get(char, _UNK_ID)
+                slots[row, column] = jamo_features(char)
 
-        chars, positions, slots = encode_sites(sites, self.vocab)
-        logits = self.session.run(
-            None, {"chars": chars, "pos": positions, "slots": slots}
-        )
+        encodings = self._tokenizer.encode_batch(list(texts))
+        input_ids = np.array([item.ids for item in encodings], dtype=np.int64)
+        attention_mask = np.array([item.attention_mask for item in encodings], dtype=np.int64)
+        # 토큰 벡터를 그 토큰에 속한 글자들에 나눠 준다. 공백·길이 상한 밖 글자는 covered가 0이다.
+        char_to_token = np.zeros((len(texts), width), dtype=np.int64)
+        covered = np.zeros((len(texts), width), dtype=np.int64)
+        for row, item in enumerate(encodings):
+            for token, (start, end) in enumerate(item.offsets):
+                if end > start:             # 특수 토큰·패딩은 (0, 0)
+                    char_to_token[row, start:min(end, width)] = token
+                    covered[row, start:min(end, width)] = 1
+        return {
+            "chars": chars,
+            "slots": slots,
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "char_to_token": char_to_token,
+            "covered": covered,
+        }
 
-        # 슬롯별 softmax -> argmax와 그 확률. 출력 순서는 export 때 고정한 슬롯 순서다.
-        predicted: dict[int, "np.ndarray"] = {}
-        probability: dict[int, "np.ndarray"] = {}
-        for index, slot in enumerate(self.slots):
-            values = logits[index]
-            values = values - values.max(axis=1, keepdims=True)
-            exponent = np.exp(values)
-            probabilities = exponent / exponent.sum(axis=1, keepdims=True)
-            choice = probabilities.argmax(axis=1)
-            predicted[slot] = choice
-            probability[slot] = probabilities[np.arange(len(choice)), choice]
+    def predict(self, texts: Sequence[str]) -> list[list[CharEdit]]:
+        import numpy as np
 
-        output = list(text)
-        confidences: list[float] = []
-        for row, site in enumerate(sites):
-            confidence = 1.0
-            for slot in self.slots:
-                confidence *= float(probability[slot][row])
-            if confidence < self.threshold:
-                continue                    # abstention — 이 자리는 원문 그대로 둔다
-            cho, jung, jong = site.input_slots
-            if 0 in self.slots:
-                cho = int(predicted[0][row])
-            if 1 in self.slots:
-                jung = int(predicted[1][row])
-            if 2 in self.slots:
-                jong = int(predicted[2][row])
-            if min(cho, jung, jong) < 0:
-                continue                    # 슬롯을 다 못 채우면 손대지 않는다
-            output[site.char_index] = join_syllable(cho, jung, jong)
-            confidences.append(confidence)
+        op_logits, space_logits, *slot_logits = self._session.run(None, self._features(texts))
+        op_probs = _softmax(op_logits)
+        space_probs = _softmax(space_logits)[..., 1]
+        slot_probs = [_softmax(values) for values in slot_logits]
+        ops = op_probs.argmax(axis=-1)
+        slot_choices = [values.argmax(axis=-1) for values in slot_probs]
 
-        restored = "".join(output)
-        if restored == text or not confidences:
-            return text, 0, 0.0
-        return restored, len(confidences), sum(confidences) / len(confidences)
+        results: list[list[CharEdit]] = []
+        width = op_probs.shape[1]
+        for row, text in enumerate(texts):
+            edits: list[CharEdit] = []
+            for column, char in enumerate(text[:width]):
+                op = int(ops[row, column])
+                confidence = float(op_probs[row, column, op])
+                replacement = ""
+                if op == SUBSTITUTE:
+                    choice = [int(values[row, column]) for values in slot_choices]
+                    confidence *= float(
+                        np.prod(
+                            [slot_probs[k][row, column, choice[k]] for k in range(3)]
+                        )
+                    )
+                    replacement = join_syllable(*choice)
+                    if replacement == char:
+                        op, replacement = KEEP, ""
+                edits.append(
+                    CharEdit(op, replacement, confidence, float(space_probs[row, column]))
+                )
+            edits.extend(CharEdit() for _ in range(len(text) - len(edits)))
+            results.append(edits)
+        return results
+
+
+def _softmax(values):
+    import numpy as np
+
+    shifted = values - values.max(axis=-1, keepdims=True)
+    exponent = np.exp(shifted)
+    return exponent / exponent.sum(axis=-1, keepdims=True)
+
+
+def _validated_threshold(value: object) -> float:
+    try:
+        threshold = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"임계값이 숫자가 아닙니다: {value!r}") from None
+    if not 0.0 <= threshold <= 1.0:
+        raise ValueError(f"임계값은 0~1이어야 합니다: {threshold}")
+    return threshold
 
 
 class MlRestoreProvider:
-    """자모 슬롯 복원 모델을 묶은 opt-in candidate provider."""
+    """글자 편집 태거를 묶은 opt-in candidate provider.
+
+    보통 `from_pretrained` 또는 `from_directory`로 만든다.
+
+    Args:
+        tagger (object): `predict(texts)`로 글자별 `CharEdit`를 돌려주는 객체.
+        threshold: 편집을 적용할 최소 확신도. 0~1.
+        max_chars: 조각 하나의 최대 글자 수.
+
+    Raises:
+        ValueError: `threshold`가 숫자가 아니거나 0~1 밖일 때.
+    """
 
     name = "ml_restore"
 
-    def __init__(
-        self,
-        restorers: Mapping[str, object],
-        *,
-        order: tuple[str, ...] = DEFAULT_ORDER,
-    ) -> None:
-        if not restorers:
-            raise ValueError("복원기가 최소 하나는 있어야 합니다.")
-        self._restorers = dict(restorers)
-        known = [technique for technique in order if technique in self._restorers]
-        self._order = tuple(known) + tuple(sorted(set(self._restorers) - set(known)))
+    def __init__(self, tagger, *, threshold: float, max_chars: int = 384) -> None:
+        self._tagger = tagger
+        self.threshold = _validated_threshold(threshold)
+        self._max_chars = max_chars
 
     @classmethod
     def from_directory(
-        cls,
-        directory: str | Path,
-        *,
-        techniques: tuple[str, ...] | None = None,
-        thresholds: Mapping[str, float] | None = None,
+        cls, directory: str | Path, *, threshold: float | None = None
     ) -> "MlRestoreProvider":
         """가중치 디렉터리에서 provider를 만든다.
 
-        `directory`에는 `manifest.json`과 기법별 `.onnx`·`.vocab.json`이 있어야 한다.
-        `thresholds`를 주면 manifest의 권장 임계값을 덮어쓴다. 가중치를 직접
-        준비하지 않았다면 `from_pretrained()`를 쓴다.
+        `directory`에는 `manifest.json`과 거기서 가리키는 파일들이 있어야 한다.
+        `threshold`를 주면 manifest의 권장 임계값을 덮어쓴다.
         """
         root = Path(directory)
         manifest_path = root / "manifest.json"
         if not manifest_path.is_file():
             raise FileNotFoundError(f"가중치 manifest를 찾을 수 없습니다: {manifest_path}")
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        entries = manifest.get("techniques") or {}
-        if not entries:
-            raise ValueError(f"manifest에 기법이 없습니다: {manifest_path}")
-        return cls._from_entries(
-            root, entries, techniques=techniques, thresholds=thresholds
-        )
+        return cls._from_manifest(root, manifest, threshold=threshold)
 
     @classmethod
     def from_pretrained(
         cls,
         *,
-        techniques: tuple[str, ...] | None = None,
-        thresholds: Mapping[str, float] | None = None,
+        threshold: float | None = None,
         cache_dir: str | Path | None = None,
         force_download: bool = False,
     ) -> "MlRestoreProvider":
-        """GitHub Release(`{PRETRAINED_REPO}` `{PRETRAINED_TAG}`)에서 가중치를 받는다.
+        """GitHub Release에서 가중치를 받는다.
 
-        파일마다 sha256과 크기를 :data:`PRETRAINED_MANIFEST`와 대조해 검증하고,
-        `cache_dir`(기본값은 OS 캐시 디렉터리)에 저장해 다음 호출부터 재사용한다.
-        이미 같은 크기의 파일이 있으면 다시 받지 않는다 — 매 호출마다 몇 MB를
-        해싱하는 비용을 피하려는 것이다. 다시 검증하려면 `force_download=True`.
+        파일마다 sha256과 크기를 :data:`PRETRAINED_MANIFEST`와 대조해 검증하고, `cache_dir`
+        (기본값은 OS 캐시 디렉터리)에 저장해 다음 호출부터 재사용한다. 이미 같은 크기의 파일이
+        있으면 다시 받지 않는다. 호출마다 수백 MB를 해싱하는 비용을 피하려는 것이다. 다시
+        검증하려면 `force_download=True`.
         """
-        try:
-            import onnxruntime  # noqa: F401 — from_directory와 같은 에러 메시지로 조기 실패
-        except ImportError as exc:
-            raise ImportError(
-                "MlRestoreProvider에는 'k-safeguard[ml-restore]' 설치가 필요합니다."
-            ) from exc
-
+        _import_runtime()      # 다운로드 전에 실패한다
         root = Path(cache_dir) if cache_dir else _default_cache_dir()
-        selected = tuple(techniques) if techniques else tuple(PRETRAINED_MANIFEST)
-        for technique in selected:
-            entry = PRETRAINED_MANIFEST.get(technique)
-            if entry is None:
-                raise ValueError(
-                    f"사전 배포된 가중치가 없는 기법입니다: {technique!r} "
-                    f"(사용 가능: {', '.join(sorted(PRETRAINED_MANIFEST))})"
+        for role in _FILE_ROLES:
+            entry = PRETRAINED_MANIFEST["files"][role]
+            dest = root / entry["file"]
+            if force_download or not dest.is_file() or dest.stat().st_size != entry["bytes"]:
+                url = (
+                    f"https://github.com/{PRETRAINED_REPO}/releases/download/"
+                    f"{PRETRAINED_TAG}/{entry['file']}"
                 )
-            for kind in ("onnx", "vocab"):
-                filename = entry[f"{kind}_file"]
-                dest = root / filename
-                size = entry[f"{kind}_bytes"]
-                if force_download or not dest.is_file() or dest.stat().st_size != size:
-                    url = f"https://github.com/{PRETRAINED_REPO}/releases/download/{PRETRAINED_TAG}/{filename}"
-                    _download_file(url, dest, sha256=entry[f"{kind}_sha256"], size=size)
-        return cls._from_entries(
-            root, PRETRAINED_MANIFEST, techniques=techniques, thresholds=thresholds
-        )
+                _download_file(url, dest, sha256=entry["sha256"], size=entry["bytes"])
+        return cls._from_manifest(root, PRETRAINED_MANIFEST, threshold=threshold)
 
     @classmethod
-    def _from_entries(
-        cls,
-        root: Path,
-        entries: Mapping[str, Mapping[str, object]],
-        *,
-        techniques: tuple[str, ...] | None,
-        thresholds: Mapping[str, float] | None,
+    def _from_manifest(
+        cls, root: Path, manifest: Mapping[str, object], *, threshold: float | None
     ) -> "MlRestoreProvider":
-        try:
-            import onnxruntime
-        except ImportError as exc:
-            raise ImportError(
-                "MlRestoreProvider에는 'k-safeguard[ml-restore]' 설치가 필요합니다."
-            ) from exc
-
-        selected = tuple(techniques) if techniques else tuple(entries)
-        if not selected:
-            raise ValueError("기법이 없습니다.")
-
-        restorers: dict[str, _Restorer] = {}
-        for technique in selected:
-            entry = entries.get(technique)
-            if entry is None:
+        onnxruntime, tokenizers = _import_runtime()
+        if threshold is None:
+            if "threshold" not in manifest:
                 raise ValueError(
-                    f"가중치에 없는 기법입니다: {technique!r} "
-                    f"(사용 가능: {', '.join(sorted(entries))})"
+                    "manifest에 threshold가 없습니다. abstention 임계값은 생략할 수 없습니다"
+                    "(0.0이면 모든 예측을 그대로 받아들입니다)."
                 )
-            override = (thresholds or {}).get(technique)
-            if override is None:
-                # 기본값을 두지 않는다. 키가 빠지면 threshold 0.0이 되어 abstention이
-                # 통째로 꺼지는데, 그건 이 provider의 오탐 억제 설계 전부를 조용히
-                # 무력화한다 — 조용히 넘어가는 대신 여기서 멈춘다.
-                if "threshold" not in entry:
-                    raise ValueError(
-                        f"{technique}에 threshold가 없습니다. abstention 임계값은 "
-                        f"생략할 수 없습니다(0.0이면 모든 예측을 그대로 받아들입니다)."
-                    )
-                override = entry["threshold"]
-            try:
-                threshold = float(override)
-            except (TypeError, ValueError):
-                raise ValueError(
-                    f"{technique}의 임계값이 숫자가 아닙니다: {override!r}"
-                ) from None
-            if not 0.0 <= threshold <= 1.0:
-                raise ValueError(f"{technique}의 임계값은 0~1이어야 합니다: {threshold}")
+            threshold = manifest["threshold"]
+        threshold = _validated_threshold(threshold)
+        if "max_chars" not in manifest:
+            raise ValueError("manifest에 max_chars가 없습니다.")
+        files = manifest.get("files") or {}
+        paths: dict[str, Path] = {}
+        for role in _FILE_ROLES:
+            if role not in files:
+                raise ValueError(f"manifest의 files에 {role}이 없습니다.")
+            paths[role] = root / files[role]["file"]
+            if not paths[role].is_file():
+                raise FileNotFoundError(f"가중치 파일이 없습니다: {paths[role]}")
 
-            onnx_path = root / entry["onnx_file"]
-            vocab_path = root / entry["vocab_file"]
-            for path in (onnx_path, vocab_path):
-                if not path.is_file():
-                    raise FileNotFoundError(f"가중치 파일이 없습니다: {path}")
+        session = onnxruntime.InferenceSession(
+            str(paths["model"]), providers=["CPUExecutionProvider"]
+        )
+        tokenizer = tokenizers.Tokenizer.from_file(str(paths["tokenizer"]))
+        char_vocab = json.loads(paths["char_vocab"].read_text(encoding="utf-8"))
+        max_chars = int(manifest["max_chars"])
+        tagger = _OnnxEditTagger(session, tokenizer, char_vocab, max_chars)
+        return cls(tagger, threshold=threshold, max_chars=max_chars)
 
-            session = onnxruntime.InferenceSession(
-                str(onnx_path), providers=["CPUExecutionProvider"]
-            )
-            vocab = CharVocab(json.loads(vocab_path.read_text(encoding="utf-8")))
-            restorers[technique] = _Restorer(
-                technique, session, vocab, int(entry["window"]), threshold
-            )
-        return cls(restorers)
+    def restore(self, text: str) -> tuple[str, int, float]:
+        """(복원문, 적용한 편집 수, 평균 확신도). 긴 입력은 조각으로 나눠 하나씩 복원한다."""
+        chunks = split_chunks(text, self._max_chars)
+        edits: list[CharEdit] = []
+        for chunk in chunks[:MAX_CHUNKS]:
+            edits.extend(self._tagger.predict([chunk])[0])
+        edits.extend(CharEdit() for _ in range(len(text) - len(edits)))
+        return apply_edits(text, edits, self.threshold)
+
+    def restore_batch(self, texts: Sequence[str]) -> list[tuple[str, int, float]]:
+        """문장마다 (복원문, 적용한 편집 수, 평균 확신도). 입력 순서를 유지한다.
+
+        한 번에 넣은 문장들은 가장 긴 문장에 맞춰 패딩되고, BiLSTM이 패딩까지 읽으므로 확신도가
+        단독 입력과 조금 달라질 수 있다. 처리량이 필요할 때만 쓰고, 긴 입력을 나누지 않으므로
+        `max_chars`를 넘는 뒷부분은 그대로 둔다.
+        """
+        texts = list(texts)
+        results: list[tuple[str, int, float] | None] = [None] * len(texts)
+        present = [index for index, text in enumerate(texts) if text]
+        for index, text in enumerate(texts):
+            if not text:
+                results[index] = (text, 0, 0.0)
+        if present:
+            batches = self._tagger.predict([texts[index] for index in present])
+            for index, edits in zip(present, batches):
+                results[index] = apply_edits(texts[index], edits, self.threshold)
+        return results
 
     def generate(self, text: str) -> Iterator[CandidateProposal]:
+        """바뀐 글자가 있으면 복원 후보 하나를 낸다. `confidence`는 적용 편집의 평균 확신도다."""
         if not isinstance(text, str):
             raise TypeError("text는 str이어야 합니다.")
-        for technique in self._order:
-            restorer = self._restorers[technique]
-            restored, changed, confidence = restorer.restore(text)
-            if not changed or restored == text:
-                continue                    # 손댄 게 없으면 후보가 아니다
-            yield CandidateProposal(
-                text=restored,
-                lossy=True,
-                # Gateway가 0~1을 검증하므로 방어적으로 자른다.
-                confidence=min(1.0, max(0.0, confidence)),
-                metadata=(
-                    ("technique", technique),
-                    ("slots_changed", str(changed)),
-                    ("threshold", f"{restorer.threshold:.7f}"),
-                    ("generator_version", ML_RESTORE_CANDIDATE_VERSION),
-                ),
-            )
+        restored, changed, confidence = self.restore(text)
+        if not changed or restored == text:
+            return                          # 손댄 게 없으면 후보가 아니다
+        yield CandidateProposal(
+            text=restored,
+            lossy=True,
+            # Gateway가 0~1을 검증하므로 방어적으로 자른다.
+            confidence=min(1.0, max(0.0, confidence)),
+            metadata=(
+                ("edits_applied", str(changed)),
+                ("threshold", f"{self.threshold:.7f}"),
+                ("generator_version", ML_RESTORE_CANDIDATE_VERSION),
+            ),
+        )
+
+
+def _import_runtime():
+    try:
+        import numpy  # noqa: F401 — 추론 경로가 지연 import한다. 여기서 먼저 실패시킨다.
+        import onnxruntime
+        import tokenizers
+    except ImportError as exc:
+        raise ImportError(
+            "MlRestoreProvider에는 'k-safeguard[ml-restore]' 설치가 필요합니다."
+        ) from exc
+    return onnxruntime, tokenizers
 
 
 __all__ = ["ML_RESTORE_CANDIDATE_VERSION", "MlRestoreProvider"]

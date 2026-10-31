@@ -7,9 +7,8 @@ from k_safeguard import (
     ClassifierExecutionError,
     ClassifierResult,
     Gateway,
-    evaluate_gateway_async,
-    evaluate_gateway_batch,
 )
+from k_safeguard.execution import evaluate_gateway_async, evaluate_gateway_batch
 
 
 class _ViewsProvider:

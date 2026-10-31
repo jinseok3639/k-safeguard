@@ -106,6 +106,13 @@ class LiaisonInverseProvider:
     ``머글게``에서 ``먹을게``처럼, 열린 음절 뒤의 평·경·격음 초성을 앞
     음절의 종성으로 옮기고 뒤 초성을 ``ㅇ``으로 바꾼다. 자연어에도 같은
     표면 패턴이 흔해 항상 lossy이며 기본 Gateway에는 연결되지 않는다.
+
+    Args:
+        max_candidates: 입력 하나에서 낼 최대 후보 수.
+        min_pairs: 후보를 내기 위한 최소 연음 후보 위치 수.
+
+    Raises:
+        ValueError: 인자가 1 미만일 때.
     """
 
     name = "liaison_inverse"
@@ -119,6 +126,7 @@ class LiaisonInverseProvider:
         self._min_pairs = min_pairs
 
     def generate(self, text: str) -> Iterator[CandidateProposal]:
+        """치환 위치가 적은 조합부터 후보를 낸다. `confidence`는 항상 `None`이다."""
         if not isinstance(text, str):
             raise TypeError("text는 str이어야 합니다.")
 
