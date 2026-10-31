@@ -21,9 +21,13 @@ INIT_PATH = PROJECT_ROOT / "src" / "k_safeguard" / "__init__.py"
 
 REQUIRED_PACKAGE_FILES = {
     "k_safeguard/__init__.py",
+    "k_safeguard/_phonology.py",
+    "k_safeguard/data/KOTOX_LICENSE",
+    "k_safeguard/data/iconic_dictionary.json",
     "k_safeguard/edit_tags.py",
     "k_safeguard/gateway.py",
     "k_safeguard/normalization.py",
+    "k_safeguard/obfuscate.py",
     "k_safeguard/providers/__init__.py",
     "k_safeguard/providers/ml_restore.py",
     "k_safeguard/py.typed",

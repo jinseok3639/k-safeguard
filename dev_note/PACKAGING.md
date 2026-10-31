@@ -7,12 +7,10 @@ distribution 이름은 `k-safeguard`, Python import 이름은 `k_safeguard`다.
 
 | 설치 | 포함 | 기본 활성화 |
 |---|---|---|
-| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, `LiaisonInverseProvider`·`SpacedJamoProvider`(무의존 opt-in 후보) | 무손실 core만 |
+| `k-safeguard` | 무손실 정규화, Gateway, provider protocol, `LiaisonInverseProvider`·`SpacedJamoProvider`(무의존 opt-in 후보), 난독화 생성기 `k_safeguard.obfuscate` | 무손실 core만 |
 | `k-safeguard[ml-restore]` | 글자 편집 태거 provider의 **추론 런타임만** (`onnxruntime`, `numpy`, `tokenizers`). 모델 가중치는 미포함 | 아니요, 명시적 주입 필요 |
 | 외부 provider | 형태소 분석기, 로컬·원격 복원기, 사용자 사전 | 사용자 정책에 따름 |
 
-된소리 다중 view provider는 공개 API에서 제거했다. 구현 모듈은 기존 실험을 재현하기 위해
-wheel에 남아 있지만 배포 Gateway 구성으로 지원하지 않는다.
 `LiaisonInverseProvider`는 core wheel에 포함되는 별도 opt-in provider이며 기본 Gateway에는 자동
 연결되지 않는다. 추가 dependency 없이 `Gateway(providers=[...])`로 명시적으로 주입한다.
 
@@ -61,7 +59,7 @@ result = Gateway().process("ㅇㅏㄴㄴㅕㅇ")
 `GatewayResult.views`의 첫 항목은 항상 원문이다. 무손실 정규화가 실제로 바뀐 경우 두 번째 view로
 추가된다. 외부 candidate provider를 직접 구현하면 모든 후보에 provider, `lossy`, confidence와
 metadata가 붙는다. 기본 `max_views`는 10이며 원문·무손실 정규화문·외부 provider 후보를 합친
-총 예산이다. 된소리 내장 provider는 이 공개 확장 경로에 포함되지 않는다.
+총 예산이다.
 
 provider 오류는 기본적으로 `provider_errors`에 기록하고 원문·무손실 view를 반환한다. 배포 정책상
 오류를 즉시 전파해야 하면 `strict_providers=True`를 사용한다.
@@ -134,17 +132,19 @@ CPU-only 환경은 core만 설치하고, GPU 사용자는 자신에게 맞는 pr
 ```text
 src/k_safeguard/
 ├── __init__.py
+├── _phonology.py
+├── data/               # KOTOX(MIT) 닮은 글자 사전과 라이선스
 ├── execution.py
 ├── normalization.py
 ├── edit_tags.py
 ├── gateway.py
+├── obfuscate.py
 ├── py.typed
 └── providers/
     ├── __init__.py
     ├── liaison.py
     ├── ml_restore.py
-    ├── spaced_jamo.py
-    └── tensify.py
+    └── spaced_jamo.py
 ```
 
 Kanana·Qwen adapter와 모델 requirements 같은 실험 코드는 wheel에 포함되지 않는다. 실험은

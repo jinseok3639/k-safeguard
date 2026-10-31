@@ -24,7 +24,7 @@ k-safeguard는 **난독화된 한국어를 원래 문장으로 되돌리는 정�
 
 | 이 저장소 | 다른 곳 |
 |---|---|
-| `k_safeguard` 패키지(`src/`), 테스트, 예제, 웹 데모, 배포 설정 | 실험 러너·결과, 난독화 생성기, 시드 데이터 → [k-safeguard-ML-experiment](https://github.com/jinseok3639/k-safeguard-ML-experiment) |
+| `k_safeguard` 패키지(`src/`), 테스트, 예제, 웹 데모, 배포 설정 | 실험 러너·결과, 시드 데이터 → [k-safeguard-ML-experiment](https://github.com/jinseok3639/k-safeguard-ML-experiment) |
 | | 벤치마크 데이터셋 → [HF: kimchunsik03/KoreanGuardrail](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) |
 
 실험 제안이나 실험 결과에 대한 질문은 실험 저장소에 이슈로 남겨 주세요.

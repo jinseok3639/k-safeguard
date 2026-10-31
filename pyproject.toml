@@ -56,7 +56,7 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-k_safeguard = ["py.typed"]
+k_safeguard = ["py.typed", "data/*"]
 
 [tool.coverage.run]
 branch = true
@@ -80,13 +80,14 @@ output = "coverage.xml"
 # edit_tags.py는 의존성이 없는 core라 목록에 포함한다.
 source_paths = [
   "src/k_safeguard/__init__.py",
+  "src/k_safeguard/_phonology.py",
   "src/k_safeguard/edit_tags.py",
   "src/k_safeguard/execution.py",
   "src/k_safeguard/gateway.py",
   "src/k_safeguard/normalization.py",
+  "src/k_safeguard/obfuscate.py",
   "src/k_safeguard/providers/__init__.py",
   "src/k_safeguard/providers/liaison.py",
   "src/k_safeguard/providers/spaced_jamo.py",
-  "src/k_safeguard/providers/tensify.py",
 ]
 runner = "python -m unittest discover -s tests"

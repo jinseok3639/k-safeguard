@@ -43,6 +43,8 @@
 - 2026-10-27 저장소 정리: `experiments/`·`reports/`와 과거 데이터셋 기준 `dev_note` 기록을 삭제했다(기록은 `f6ee374`에 남아 있다). `hf_repo/`(시드·벤치마크·난독화 생성기)는 k-safeguard-ML-experiment로 옮겼고, 난독화 생성기는 당분간 이 저장소에서 배포하지 않는다
 - 2026-10-27 초성체 지원 중단: 초성만 남으면 원문 정보가 대부분 사라져 복원이 사실상 불가능하다(후보 정책 NRR 13.04%). 후보 생성 모듈(`chosung.py`, `providers/chosung.py`, `providers/wordfreq.py`)과 `wordfreq` extra를 삭제했다(기록은 `a6b6d4b`에 남아 있다). 초성체 입력은 원문 그대로 둔다
 - 2026-10-31 포지셔닝 변경: 가드레일 방어 도구에서 난독화된 한국어 정규화기로 넓힌다. 가드레일 우회 입력 정규화는 그 일부다. 복원 모델을 KcELECTRA 글자 편집 태거로 교체하고, 분류기 타입 이름에서 Guardrail을 뺐다(`TextClassifier` 등)
+- 2026-10-31 난독화 생성기 탑재: 2026-10-27의 "이 저장소에서 배포하지 않는다"를 바꿔, 실험 저장소의 최종 생성기(`kslab/obfuscate.py`, 24종)를 `k_safeguard.obfuscate`로 옮겼다. 닮은 글자 사전은 KOTOX(MIT)에서 가져와 패키지에 함께 넣는다. 기본 Gateway에는 연결하지 않는다
+- 2026-10-31 v1.0.0 API 정리: 2026-08-25에 재현용으로 남긴 된소리 다중 view provider(`providers/tensify.py`)를 삭제했다(기록은 `b000d24`에 남아 있다). `evaluate_gateway*` 함수는 `k_safeguard` 최상위 공개 목록에서 빼고 `k_safeguard.execution`에만 둔다
 - (미결) 평가 규격(`EVALUATION_SPEC.md`)의 주력 트랙 재정의 — GitHub Issue "EVALUATION_SPEC.md 0.2.0 개정 필요" 참고. 결정되면 여기에 한 줄 추가
 
 <!-- SLM 항목: "모델 재학습 없이"가 한 줄 요약의 핵심 주장이므로 파인튜닝 노선이 다시 거론되면 이 줄을 먼저 보여준다 -->
@@ -82,14 +84,10 @@
 직접 입력, PromptGuard·LlamaGuard 등 다국어 가드레일 직접 입력, 번역 후 영어 가드레일 입력.
 번역 파이프라인은 고전 NMT 충실도 실험과 LLM 번역기 하이재킹 실험을 분리한다.
 
-### 3. 난독화 생성 라이브러리 (k-safeguard-ML-experiment의 `hf_repo/ko_obfuscator.py`)
+### 3. 난독화 생성 라이브러리 (`k_safeguard.obfuscate`)
 
-이 저장소에는 없고 당분간 배포하지 않는다.
-
-정규화기에 종속되지 않는 독립 레드팀 도구. **구현 완료 5종**: 자모 분해(`jamo_decompose`),
-초성체(`chosung`), 된소리(`tensify`), 띄어쓰기 파괴(`break_spacing`), 투명문자 삽입(`zwsp_inject`).
-연음·종성 크래밍·호모글리프는 **미구현, 후속 과제**다. 변형 강도와 무작위 시드를 기록해 재현
-가능하게 한다.
+정규화기에 종속되지 않는 독립 도구. 정규화기를 시험하거나 평가 데이터를 만들 때 쓴다. 변형 강도와
+무작위 시드를 받아 재현 가능하게 한다. 기법 목록은 코드의 `TRANSFORMS`가 원본이다.
 
 ## 패키지 불변식
 

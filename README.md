@@ -112,14 +112,13 @@ emoji ZWJ, 결합문자, 한영 코드스위칭 입력을 임의로 훼손하지
 ### 모호한 변형 처리 정책
 
 문맥 없이는 원문을 확정할 수 없는 변형은 기본 Gateway에서 복원하지 않는다. 연음 provider는
-명시적 opt-in으로만 제공하고, 된소리 후보 구현은 과거 실험 재현용 내부 모듈로만 남긴다.
+명시적 opt-in으로만 제공한다.
 띄어 쓴 자모와 ML 복원도 정보 손실이 있어 기본 Gateway에는 자동 연결하지 않는다.
 
 | provider | 대상 | 추가 의존성 | 현재 상태 |
 |---|---|---|---|
 | `LiaisonInverseProvider` | `머글게` 같은 단순 연음 표기 | 없음 | 개발 NRR 56.52%, 평균 +8.08 view·ΔFPR 관찰로 기본 비활성 |
 | `SpacedJamoProvider` | `ㅇ ㅓ ㅂ ㅅ ㅇ ㅣ`처럼 공백으로 분리된 자모 | 없음 | 한 어절 개발 exact 504/504, 공백 삭제는 lossy라 기본 비활성 |
-| `TensifyInverseProvider` | 된소리·쌍자음화 | 없음 | 독립 locked-test ΔFPR-obf +14.29%p로 공개 API 제거, 연구 재현 전용 |
 | `MlRestoreProvider` | 글자 교체·삭제와 띄어쓰기를 포함한 복합 난독화 | `ml-restore` extra + 별도 가중치 | 가중치가 크고 결과가 lossy라 기본 비활성. 수치는 [측정 결과](#측정-결과) |
 
 #### 띄어 쓴 자모 복원 — SpacedJamoProvider
@@ -288,7 +287,7 @@ variant 15개도 모두 복원했다. E2는 clean E0 판정으로 돌아가므�
 | 산출물 | 위치 | 설명 |
 |---|---|---|
 | 실행 가능한 예제 | [`examples/`](https://github.com/jinseok3639/k-safeguard/blob/main/examples/README.md) | 정규화, provider 확장, 가드레일 연결, 비동기/배치, 오류 정책 샘플 코드 |
-| 난독화 생성 라이브러리 | [`hf_repo/ko_obfuscator.py`](https://github.com/jinseok3639/k-safeguard-ML-experiment/blob/master/hf_repo/ko_obfuscator.py) | 강도별 변형 생성기. 실험 저장소에 있으며 아직 배포하지 않는다 |
+| 난독화 생성기 | [`k_safeguard.obfuscate`](https://github.com/jinseok3639/k-safeguard/blob/main/src/k_safeguard/obfuscate.py) | 기법 24종의 강도·시드별 변형 생성기. 정규화기를 시험하거나 평가 데이터를 만들 때 쓴다. 닮은 글자 사전은 [KOTOX](https://github.com/leeyejin1231/KOTOX)(MIT) |
 | 벤치마크 데이터셋 | [HF: KoreanGuardrail](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) | 시드 505개 → 파생 5,555행. 데이터 CC-BY-4.0 |
 | 실험 | [k-safeguard-ML-experiment](https://github.com/jinseok3639/k-safeguard-ML-experiment) | 복원기·가드레일 실험 러너와 결과 기록 |
 

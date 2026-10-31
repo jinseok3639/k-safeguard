@@ -22,10 +22,6 @@ from .execution import (
     GatewayEvaluation,
     TextClassifier,
     ViewEvaluation,
-    evaluate_gateway,
-    evaluate_gateway_async,
-    evaluate_gateway_batch,
-    evaluate_gateway_batch_async,
 )
 from .normalization import (
     NORMALIZER_VERSION,
@@ -61,9 +57,5 @@ __all__ = [
     "TextClassifier",
     "ViewEvaluation",
     "__version__",
-    "evaluate_gateway",
-    "evaluate_gateway_async",
-    "evaluate_gateway_batch",
-    "evaluate_gateway_batch_async",
     "normalize_korean",
 ]

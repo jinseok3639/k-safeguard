@@ -193,7 +193,7 @@ Every number below is reproducible against the 5,555-row benchmark derived from 
 | Artifact | Location | Description |
 |---|---|---|
 | Runnable examples | [`examples/`](https://github.com/jinseok3639/k-safeguard/blob/main/examples/README.md) | Sample code: normalization, provider extension, guardrail wiring, async/batch, error policy |
-| Obfuscation generator library | [`hf_repo/ko_obfuscator.py`](https://github.com/jinseok3639/k-safeguard-ML-experiment/blob/master/hf_repo/ko_obfuscator.py) | Intensity-graded variant generator; lives in the experiments repository and is not released yet |
+| Obfuscation generator | [`k_safeguard.obfuscate`](https://github.com/jinseok3639/k-safeguard/blob/main/src/k_safeguard/obfuscate.py) | 24 techniques with intensity and seed control, for testing the normalizer or building evaluation data. Look-alike dictionary from [KOTOX](https://github.com/leeyejin1231/KOTOX) (MIT) |
 | Benchmark dataset | [HF: KoreanGuardrail](https://huggingface.co/datasets/kimchunsik03/KoreanGuardrail) | 505 seeds → 5,555 derived rows. Data under CC-BY-4.0 |
 | Experiments | [k-safeguard-ML-experiment](https://github.com/jinseok3639/k-safeguard-ML-experiment) | Restoration and guardrail experiment runners with recorded results |
 
