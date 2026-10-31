@@ -21,8 +21,8 @@ INIT_PATH = PROJECT_ROOT / "src" / "k_safeguard" / "__init__.py"
 
 REQUIRED_PACKAGE_FILES = {
     "k_safeguard/__init__.py",
+    "k_safeguard/edit_tags.py",
     "k_safeguard/gateway.py",
-    "k_safeguard/jamo_slots.py",
     "k_safeguard/normalization.py",
     "k_safeguard/providers/__init__.py",
     "k_safeguard/providers/ml_restore.py",
