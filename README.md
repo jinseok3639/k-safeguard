@@ -316,4 +316,4 @@ mutmut run && mutmut results    # 변이 테스트
 
 ## 라이선스
 
-코드는 [Apache License 2.0](https://github.com/jinseok3639/k-safeguard/blob/main/LICENSE), 벤치마크 데이터셋은 CC-BY-4.0.
+코드는 [Apache License 2.0](https://github.com/jinseok3639/k-safeguard/blob/main/LICENSE), 벤치마크 데이터셋은 CC-BY-4.0, `from_pretrained()`로 받는 모델 가중치는 CC BY-SA 4.0이다([출처와 고지](https://github.com/jinseok3639/k-safeguard/blob/main/tools/release/WEIGHTS_LICENSE.md)). 가중치는 wheel에 들어 있지 않다.

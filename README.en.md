@@ -224,4 +224,4 @@ For bug reports and enhancement proposals, use the [issue templates](https://git
 
 ## License
 
-Code under [Apache License 2.0](https://github.com/jinseok3639/k-safeguard/blob/main/LICENSE); the benchmark dataset under CC-BY-4.0.
+Code under [Apache License 2.0](https://github.com/jinseok3639/k-safeguard/blob/main/LICENSE); the benchmark dataset under CC-BY-4.0; the model weights fetched by `from_pretrained()` under CC BY-SA 4.0 ([sources and notices](https://github.com/jinseok3639/k-safeguard/blob/main/tools/release/WEIGHTS_LICENSE.md)). The weights are not part of the wheel.

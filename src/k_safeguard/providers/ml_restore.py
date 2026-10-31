@@ -11,6 +11,8 @@
 Release에서 약 500MB를 받아 파일마다 sha256을 검증하고 로컬 캐시에 저장한 뒤 재사용한다.
 새 런타임 의존성을 늘리지 않으려고 다운로드에는 표준 라이브러리(`urllib`)만 쓴다.
 
+코드와 달리 가중치의 라이선스는 CC BY-SA 4.0이다. 출처와 고지는 `tools/release/WEIGHTS_LICENSE.md`.
+
 ```python
 from k_safeguard import Gateway
 from k_safeguard.providers.ml_restore import MlRestoreProvider
