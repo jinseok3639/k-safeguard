@@ -306,6 +306,50 @@ class NormalizeKoreanTest(unittest.TestCase):
             (1, 2),
         )
 
+    def test_removes_whole_zwsp_run_between_hangul(self) -> None:
+        for count in (1, 2, 3, 8):
+            with self.subTest(count=count):
+                # Given
+                text = "가" + "​" * count + "나"
+                # When
+                result = normalize_korean(text)
+                # Then
+                self.assertEqual(result.text, "가나")
+                self.assertEqual(len(result.edits), 1)
+                self.assertEqual(
+                    (result.edits[0].source_start, result.edits[0].source_end),
+                    (1, 1 + count),
+                )
+
+    def test_zwsp_run_between_jamo_still_composes(self) -> None:
+        # Given
+        text = "ㅇ​​​ㅏ​​​ㄴ"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "안")
+
+    def test_keeps_zwsp_on_non_hangul_side_of_run(self) -> None:
+        # Given
+        text = "A​​가"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, "A​가")
+        self.assertEqual(
+            (result.edits[0].source_start, result.edits[0].source_end),
+            (2, 3),
+        )
+
+    def test_keeps_zwsp_run_without_hangul_neighbor(self) -> None:
+        # Given
+        text = "A​​​B​"
+        # When
+        result = normalize_korean(text)
+        # Then
+        self.assertEqual(result.text, text)
+        self.assertEqual(result.edits, ())
+
     def test_consecutive_compositions_remain_one_edit(self) -> None:
         # Given
         text = "ㅇㅏㄴㄴㅕㅇ"
