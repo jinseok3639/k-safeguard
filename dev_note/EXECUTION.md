@@ -1,4 +1,4 @@
-# 가드레일 실행·집계 API
+# 분류기 실행·집계 API
 
 `Gateway.evaluate()`, `Gateway.evaluate_async()`와 batch 변형은 정규화·후보 생성 결과를 호출자가
 제공한 classifier에 순서대로 전달하고, 하나라도 block이면 최종 block하는 OR 정책을 적용한다. 특정

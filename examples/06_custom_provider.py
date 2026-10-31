@@ -95,7 +95,7 @@ def main() -> None:
     print(f"  provider_errors = {list(result.provider_errors)}")
     print(f"  살아남은 view 수 = {len(result.views)} (원문·정규화·정상 provider 후보는 유지)")
     print(f"  block={resilient.evaluate(ATTACK, is_blocked).block}")
-    print("  provider 하나가 죽어도 가드레일 검사 자체는 계속된다.")
+    print("  provider 하나가 죽어도 나머지 처리는 계속된다.")
 
     print("\n=== 4. 개발 중에는 strict_providers=True로 즉시 터뜨린다 ===")
     strict = Gateway(providers=[BrokenProvider()], strict_providers=True)
