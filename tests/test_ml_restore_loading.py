@@ -4,6 +4,7 @@
 해석·검증·오류 처리 경로만 본다.
 """
 
+import hashlib
 import json
 import sys
 import unittest
@@ -55,7 +56,7 @@ def _write_weights(root: Path, manifest: dict) -> None:
 
 
 def _fill_cache(root: Path) -> None:
-    """캐시 히트 조건(크기 일치)을 만족하는 파일을 만든다."""
+    """manifest의 크기에 맞는 파일을 만든다."""
     for entry in module.PRETRAINED_MANIFEST["files"].values():
         body = b"{}" + b" " * (entry["bytes"] - 2)
         (root / entry["file"]).write_bytes(body)
@@ -182,13 +183,13 @@ class FromPretrainedTest(_FakeRuntimeTestCase):
                     module.MlRestoreProvider.from_pretrained()
         download.assert_not_called()
 
-    def test_cached_file_of_matching_size_is_not_redownloaded(self) -> None:
-        # Given — 캐시에 선언된 크기와 같은 파일이 이미 있다
+    def test_cached_file_with_matching_hash_is_not_redownloaded(self) -> None:
+        # Given — 캐시에 manifest와 해시까지 같은 파일이 이미 있다
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
-            sizes = {"model": 4, "tokenizer": 4, "char_vocab": 4}
+            digest = hashlib.sha256(b"{}  ").hexdigest()
             files = {
-                role: {**entry, "bytes": sizes[role]}
+                role: {**entry, "bytes": 4, "sha256": digest}
                 for role, entry in module.PRETRAINED_MANIFEST["files"].items()
             }
             with mock.patch.dict(module.PRETRAINED_MANIFEST, {"files": files}):
@@ -198,6 +199,24 @@ class FromPretrainedTest(_FakeRuntimeTestCase):
                     module.MlRestoreProvider.from_pretrained(cache_dir=root)
             # Then
             download.assert_not_called()
+
+    def test_cached_file_with_wrong_hash_is_removed_and_redownloaded(self) -> None:
+        # Given — 크기는 같지만 내용이 다른 파일
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            files = {
+                role: {**entry, "bytes": 4}
+                for role, entry in module.PRETRAINED_MANIFEST["files"].items()
+            }
+            with mock.patch.dict(module.PRETRAINED_MANIFEST, {"files": files}):
+                _fill_cache(root)
+                # When
+                with mock.patch.object(
+                    module, "_download_file", side_effect=_fake_download
+                ) as download:
+                    module.MlRestoreProvider.from_pretrained(cache_dir=root)
+            # Then
+            self.assertEqual(download.call_count, 3)
 
     def test_force_download_refetches_even_when_cached(self) -> None:
         # Given

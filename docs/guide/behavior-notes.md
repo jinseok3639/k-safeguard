@@ -30,3 +30,5 @@ Gateway(max_views=1).evaluate("ㅇㅏㄴ", lambda text: text == "안").block   #
 
 `MlRestoreProvider`는 입력을 조각으로 나눠 복원하며, 조각 수 상한을 넘은 뒷부분은 그대로 둡니다. 상한은
 [`MAX_CHUNKS`][k_safeguard.providers.ml_restore.MAX_CHUNKS]와 manifest의 `max_chars`로 정해집니다.
+후보의 metadata `restored_chars`와 `input_chars`를 비교하면 잘렸는지 알 수 있습니다. 앞부분에 바꿀 글자가 없으면
+후보 자체가 나오지 않으므로, 입력이 이 상한을 넘을 수 있으면 길이를 직접 제한하세요.

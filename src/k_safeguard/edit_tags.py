@@ -65,27 +65,36 @@ def jamo_features(char: str) -> tuple[int, int, int]:
     return 0, 0, 0
 
 
-def split_chunks(text: str, max_chars: int) -> list[str]:
+def split_chunks(text: str, max_chars: int, limit: int | None = None) -> list[str]:
     """`text`를 `max_chars` 이하 조각으로 나눈다. 이어 붙이면 항상 원문과 같다.
 
     문장 끝에서 나누고, 한 문장이 너무 길면 공백에서, 공백도 없으면 글자 수로 자른다.
+    `limit`을 주면 그만큼 모은 뒤 멈춘다. 이때 조각을 이어 붙이면 원문의 앞부분과 같고, 뒤를
+    더 읽지 않으므로 신뢰할 수 없는 긴 입력에서도 비용이 늘지 않는다.
     """
     if max_chars < 1:
         raise ValueError("max_chars는 1 이상이어야 합니다.")
+    if limit is not None and limit < 1:
+        raise ValueError("limit은 1 이상이어야 합니다.")
     chunks: list[str] = []
     current = ""
-    for sentence in _SENTENCE_END.findall(text):
+    for match in _SENTENCE_END.finditer(text):
+        sentence = match.group()
         if len(current) + len(sentence) <= max_chars:
             current += sentence
             continue
         if current:
             chunks.append(current)
-        current = ""
-        while len(sentence) > max_chars:
-            cut = sentence.rfind(" ", 1, max_chars) + 1 or max_chars
-            chunks.append(sentence[:cut])
-            sentence = sentence[cut:]
-        current = sentence
+            if len(chunks) == limit:
+                return chunks
+        start = 0
+        while len(sentence) - start > max_chars:
+            cut = sentence.rfind(" ", start + 1, start + max_chars) + 1 or start + max_chars
+            chunks.append(sentence[start:cut])
+            if len(chunks) == limit:
+                return chunks
+            start = cut
+        current = sentence[start:]
     if current:
         chunks.append(current)
     return chunks
