@@ -19,7 +19,7 @@ from k_safeguard import ClassifierResult, Gateway
 # --- 여기가 "기존에 쓰던 가드레일" 자리다 ---------------------------------
 # 데모를 의존성 없이 돌리려고 키워드 stub을 썼다. 실제로는 Kanana Safeguard,
 # 사내 분류기, 외부 moderation API 호출 등 무엇이든 이 자리에 온다.
-BLOCKLIST = ("시스템 프롬프트", "관리자 권한", "폭탄 제조")
+BLOCKLIST = ("시스템 프롬프트", "관리자 권한")
 
 
 def legacy_guardrail(text: str) -> bool:

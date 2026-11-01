@@ -87,6 +87,19 @@ class SplitChunksTest(unittest.TestCase):
         # Given / When / Then
         self.assertEqual(split_chunks("가나다라마", 2), ["가나", "다라", "마"])
 
+    def test_limit_stops_early_and_keeps_the_prefix(self) -> None:
+        for text in ("가나다. 라마바. 사아자. 차카", "가나 다라 마바 사아", "가" * 20, "가나다라. " * 5):
+            for limit in (1, 2, 3):
+                with self.subTest(text=text, limit=limit):
+                    # When
+                    chunks = split_chunks(text, 4, limit=limit)
+                    # Then
+                    self.assertEqual(chunks, split_chunks(text, 4)[:limit])
+
+    def test_rejects_non_positive_limit(self) -> None:
+        with self.assertRaisesRegex(ValueError, "limit"):
+            split_chunks("가", 1, limit=0)
+
     def test_joining_restores_the_input_and_respects_the_limit(self) -> None:
         # Given
         texts = ("가나다. 라마!\n\n바사 아자차카타파하 ", "   ", "...!!!", "가" * 50, " 가 나 ")

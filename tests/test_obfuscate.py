@@ -59,6 +59,14 @@ class ContractTest(unittest.TestCase):
         for name, transform in TRANSFORMS.items():
             self.assertEqual(transform(SAMPLE, 0.5, 3), transform(SAMPLE, 0.5, 3), name)
 
+    def test_rejects_out_of_range_intensity_on_any_input(self) -> None:
+        for name, transform in TRANSFORMS.items():
+            for text in (SAMPLE, "abc", ""):
+                for intensity in (1.5, -0.1, float("nan"), float("inf")):
+                    with self.subTest(name=name, text=text, intensity=intensity):
+                        with self.assertRaisesRegex(ValueError, "intensity"):
+                            transform(text, intensity, 0)
+
     def test_empty_input_stays_empty(self) -> None:
         # Given / When / Then
         for name, transform in TRANSFORMS.items():

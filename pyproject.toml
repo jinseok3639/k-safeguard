@@ -8,8 +8,8 @@ version = "1.0.0"
 description = "Normalizer that turns obfuscated Korean back into the original text"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "Apache-2.0"
-license-files = ["LICENSE"]
+license = "Apache-2.0 AND MIT"
+license-files = ["LICENSE", "src/k_safeguard/data/KOTOX_LICENSE"]
 authors = [
   { name = "Team Ondol" },
 ]
@@ -23,7 +23,7 @@ keywords = [
   "prompt-injection",
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",

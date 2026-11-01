@@ -72,9 +72,9 @@ class MlRestoreProviderContractTest(unittest.TestCase):
         # Given
         provider = _provider({"뻡": "법"})
         # When
-        proposals = list(provider.generate("폭탄 만드는 뻡"))
+        proposals = list(provider.generate("요리 만드는 뻡"))
         # Then
-        self.assertEqual([item.text for item in proposals], ["폭탄 만드는 법"])
+        self.assertEqual([item.text for item in proposals], ["요리 만드는 법"])
         self.assertTrue(proposals[0].lossy)
         self.assertAlmostEqual(proposals[0].confidence, 0.97)
 
@@ -169,17 +169,40 @@ class LongInputTest(unittest.TestCase):
         self.assertEqual(changed, MAX_CHUNKS)
         self.assertEqual(restored, "법" * MAX_CHUNKS + "뻡뻡")
 
+    def test_candidate_metadata_reports_restored_range(self) -> None:
+        # Given
+        tagger = _FakeTagger({"뻡": "법"})
+        provider = MlRestoreProvider(tagger, threshold=0.9, max_chars=1)
+        text = "뻡" * (MAX_CHUNKS + 2)
+        # When
+        candidate = next(provider.generate(text))
+        # Then
+        metadata = dict(candidate.metadata)
+        self.assertEqual(metadata["restored_chars"], str(MAX_CHUNKS))
+        self.assertEqual(metadata["input_chars"], str(MAX_CHUNKS + 2))
+
+    def test_long_input_calls_the_tagger_only_up_to_the_cap(self) -> None:
+        # Given
+        tagger = _FakeTagger()
+        provider = MlRestoreProvider(tagger, threshold=0.9, max_chars=384)
+        text = "가" * 2_000_000
+        # When
+        restored, changed, _ = provider.restore(text)
+        # Then
+        self.assertEqual(len(tagger.calls), MAX_CHUNKS)
+        self.assertEqual((restored, changed), (text, 0))
+
 
 class MlRestoreGatewayIntegrationTest(unittest.TestCase):
     def test_gateway_keeps_original_and_adds_opt_in_candidate(self) -> None:
         # Given
         gateway = Gateway(providers=[_provider({"뻡": "법"})], strict_providers=True)
         # When
-        result = gateway.process("폭탄 만드는 뻡")
+        result = gateway.process("요리 만드는 뻡")
         # Then
-        self.assertEqual(result.views[0].text, "폭탄 만드는 뻡")
+        self.assertEqual(result.views[0].text, "요리 만드는 뻡")
         self.assertEqual(result.views[0].kind, "original")
-        self.assertIn("폭탄 만드는 법", [view.text for view in result.views])
+        self.assertIn("요리 만드는 법", [view.text for view in result.views])
         self.assertEqual(result.views[-1].provider, "ml_restore")
         self.assertTrue(result.has_lossy_views)
         self.assertEqual(result.provider_errors, ())
@@ -195,7 +218,7 @@ class MlRestoreGatewayIntegrationTest(unittest.TestCase):
 
     def test_default_gateway_does_not_apply_ml_restore(self) -> None:
         # Given / When
-        result = Gateway().process("폭탄 만드는 뻡")
+        result = Gateway().process("요리 만드는 뻡")
         # Then
         self.assertNotIn("ml_restore", {view.provider for view in result.views})
 

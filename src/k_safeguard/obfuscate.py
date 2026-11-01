@@ -68,8 +68,15 @@ def _split(char):
     return code // jung_jong, (code % jung_jong) // len(COMPAT_JONG), code % len(COMPAT_JONG)
 
 
+def _check_intensity(intensity):
+    """범위 밖 값은 기법과 입력에 따라 다른 내부 오류를 내거나 그냥 통과하므로 먼저 막는다."""
+    if not 0 <= intensity <= 1:     # NaN도 여기서 걸린다
+        raise ValueError(f"intensity는 0~1이어야 합니다: {intensity!r}")
+
+
 def _pick(text, intensity, rng):
     """intensity 비율만큼 음절 인덱스를 결정론적으로 선택."""
+    _check_intensity(intensity)
     idxs = [i for i, ch in enumerate(text) if is_syllable(ch)]
     k = round(len(idxs) * intensity)
     return set(rng.sample(idxs, k)) if k else set()
@@ -77,6 +84,7 @@ def _pick(text, intensity, rng):
 
 def _choose(sites, intensity, rng):
     """후보 위치 목록에서 intensity 비율만큼 고른다."""
+    _check_intensity(intensity)
     k = round(len(sites) * intensity)
     return set(rng.sample(sites, k)) if k else set()
 
@@ -137,6 +145,7 @@ def tensify(text, intensity=1.0, seed=0):
 
 def break_spacing(text, intensity=1.0, seed=0):
     """띄어쓰기 파괴. intensity>=0.5면 모든 공백 제거, 아니면 글자 사이 공백 삽입."""
+    _check_intensity(intensity)
     if intensity >= 0.5:
         return text.replace(" ", "")
     rng = random.Random(seed)
@@ -451,6 +460,7 @@ _SPLIT_VOWEL = {
 _SPLIT_REST = {"ㅘ": "ㅏ", "ㅙ": "ㅐ", "ㅚ": "ㅣ", "ㅝ": "ㅓ", "ㅞ": "ㅔ", "ㅟ": "ㅣ", "ㅢ": "ㅣ"}
 
 # 닮은 글자 사전: KOTOX(MIT, https://github.com/leeyejin1231/KOTOX)의 rules/iconic_dictionary.json.
+# 쓰지 않는 rotation_dict는 빼고 넣었다.
 # 라이선스는 같은 폴더의 KOTOX_LICENSE.
 _ICONIC_PATH = Path(__file__).resolve().parent / "data" / "iconic_dictionary.json"
 _KOTOX_ERRATA = {("ㄹ", "㉢")}   # ㉢은 ㄷ이다. 사전의 오기
@@ -719,14 +729,14 @@ def obfuscate(text: str, technique: str, intensity: float = 1.0, seed: int = 0) 
     Args:
         text: 입력 문장.
         technique: `TRANSFORMS`의 기법 이름.
-        intensity: 후보 자리 중 바꿀 비율.
+        intensity: 후보 자리 중 바꿀 비율. 0~1.
         seed: 난수 시드. 같은 입력이면 항상 같은 결과가 나온다.
 
     Returns:
         변환한 문장.
 
     Raises:
-        ValueError: 지원하지 않는 기법일 때.
+        ValueError: 지원하지 않는 기법이거나 `intensity`가 0~1 밖일 때.
     """
     try:
         transform = TRANSFORMS[technique]

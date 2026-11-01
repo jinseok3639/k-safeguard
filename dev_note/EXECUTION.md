@@ -173,7 +173,7 @@ from experiments.benchmark.adapters import KananaPromptAdapter  # f6ee374 시점
 from k_safeguard import Gateway
 
 adapter = KananaPromptAdapter(
-    model_path=Path(r"D:\local llm\guardrails\models\kanana-prompt-2.1b"),
+    model_path=Path("<model_path>"),
     model_id="kakaocorp/kanana-safeguard-prompt-2.1b",
     revision="167d74d4706b236580b0e48318337c7ac6ba7848",
 )
